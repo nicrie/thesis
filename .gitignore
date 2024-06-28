@@ -1,3 +1,7 @@
+## Additional extension-specific rules.
+# VS Code workspace files
+*.code-workspace
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
