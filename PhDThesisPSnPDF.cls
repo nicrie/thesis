@@ -460,114 +460,51 @@ supported!}
 
 
 
-% ******************************* Bibliography *********************************
-\ifPHD@authoryear
-  \ifPHD@biblatex
-    \RequirePackage[backend=biber, style=authoryear, citestyle=alphabetic, 
-      sorting=nty, natbib=true]{biblatex}
-    \setBiBLaTeXtrue
-  \else
-    \RequirePackage[round, sort, numbers, authoryear]{natbib} %author year
-  \fi
-\else
-  \ifPHD@numbered
-    \ifPHD@biblatex
-      \RequirePackage[backend=biber, style=numeric-comp, 
-        citestyle=numeric, sorting=none, natbib=true]{biblatex}
-      \setBiBLaTeXtrue
-    \else
-      \RequirePackage[numbers,compress]{natbib} % numbered citation
-    \fi
-  \else
-    \ifuseCustomBib
-       \AtBeginDocument{
-          \@ifpackageloaded{natbib}{}{
-            \@ifpackageloaded{biblatex}{}{
-              \ClassWarning{PhDThesisPSnPDF}{%
-                You chose custom bibliography, but no corresponding package 
-                (biblatex/natbib) has been loaded. Please load the
-                appropriate bibliography package in the preamble.}
-            }
-          }
-        }
-    \else                                            % set default to numbered
-      \ifPHD@biblatex
-        \RequirePackage[backend=biber, style=numeric-comp,
-          citestyle=numeric, sorting=none, natbib=true]{biblatex}
-        \setBiBLaTeXfalse
-      \else
-        \RequirePackage[numbers,compress]{natbib} 
-      \fi % default
-      \setBibfalse
-    \fi % custombib
-  \fi % numbered
-\fi % author year
-
-\ifsetBib
-\else
-\ClassWarning{PhDThesisPSnPDF}{No bibliography style was specified.
-  Default numbered style is used. If you would like to use a 
-  different style, use `authoryear' or `numbered' in the options in
-  documentclass or use `custombib` and define the natbib package or
-  biblatex package with required style in the Preamble.tex file}
-\fi
-
 % ********************************** Fonts **********************************
 \RequirePackage{textcomp}
-% Font Selection
-\ifPHD@times
-  \ifxetex
-  \else
-    \RequirePackage{mathptmx}  % times roman, including math (where possible)
-  \fi
-  \setFonttrue
-  \message{PhDThesisPSnPDF: Using Times Roman font}
-\else
-  \ifPHD@fourier
-    \RequirePackage{fourier} % Fourier
-    \setFonttrue
-    \message{PhDThesisPSnPDF: Using Fourier font}
-  \else
-    \ifsetCustomFont
-      \setFonttrue
-      \message{PhDThesisPSnPDF: Using custom font}
-    \else
-      \setFontfalse
-      \message{PhDThesisPSnPDF: No font is set}
-    \fi % custom font
-  \fi % Fourier font
-\fi % Times font
-
-% If Font is not set throw a warning.
-\ifsetFont
-\else
-  \ClassWarning{PhDThesisPSnPDF}{Using default font Latin Modern. If you
-    would like to use other pre-defined fonts use `times' (The Cambridge 
-    University PhD thesis guidelines recommend using Times font)  or `fourier'
-    or load a custom font in the preamble.tex file by specifying `customfont' 
-    in the class options}
-  \RequirePackage{lmodern}
-\fi
+\RequirePackage{fourier}
 
 
 \ifxetex
   % XeLaTeX
   \usepackage{amsmath}
-  \usepackage{fontspec}
-  \usepackage[]{unicode-math}
+  % \usepackage{fontspec}
+  % NOTE: Bugfix as suggested in:
+  % https://github.com/kks32/phd-thesis-template/issues/179#issuecomment-431341416
+  % Replace the following:
+  % \usepackage[]{unicode-math}
+  % \setmainfont[
+  %   Extension = .otf,
+  %   UprightFont = *-regular,
+  %   BoldFont = *-bold,
+  %   ItalicFont = *-italic,
+  %   BoldItalicFont = *-bolditalic,
+  % ]{xits}
+  %
+  % \setmathfont[ 
+  %   Extension = .otf,
+  %   BoldFont = *bold,
+  % ]{xits-math}
+  %   
+  % with the following:
+  % \usepackage{unicode-math}
+  % \setmainfont{XITS}
+  % \setmathfont{XITS Math}
+  
+  \usepackage{unicode-math}
   \setmainfont[
-    Extension = .otf,
-    UprightFont = *-regular,
-    BoldFont = *-bold,
-    ItalicFont = *-italic,
-    BoldItalicFont = *-bolditalic,
-  ]{xits}
-  
-  \setmathfont[ 
-    Extension = .otf,
-    BoldFont = *bold,
-  ]{xits-math}
-  
+      Extension = .otf,
+      UprightFont = *-Regular,
+      BoldFont = *-Bold,
+      ItalicFont = *-Italic,
+      BoldItalicFont = *-BoldItalic,
+    ]{XITS}
+    
+    \setmathfont[
+        Scale=MatchUppercase,
+        Extension = .otf,
+        BoldFont = XITSMath-Bold,
+  ]{XITSMath-Regular}
 \else
   % default: pdfLaTeX
   \RequirePackage[utf8]{inputenc}
@@ -587,6 +524,7 @@ supported!}
   \RequirePackage{amsfonts}
   \RequirePackage{amsmath}
   \RequirePackage{amssymb}
+  \RequirePackage{euler}
 \fi
 
 % Don't break enumeration (etc.) across pages in an ugly manner
