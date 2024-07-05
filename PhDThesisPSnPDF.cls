@@ -531,6 +531,13 @@ supported!}
 \clubpenalty=10000
 \widowpenalty=10000
 
+% ****************************** Font Colors **********************************
+\RequirePackage{xcolor}
+\definecolor{secondarycolor}{rgb}{0.5, 0.5, 0.5}
+\colorlet{primarycolor}{red!40!black}
+
+
+
 %******************************* Print / Online ********************************
 % Defines a print / online version to define page-layout and hyperrefering
 
@@ -564,12 +571,6 @@ supported!}
       vmarginratio=1:1,scale=0.75,bindingoffset=5mm]{geometry}
   \fi
 
-  \if@twoside
-    \hypersetup{pdfpagelayout=TwoPageRight}
-  \else
-    \hypersetup{pdfpagelayout=OneColumn}
-  \fi
-
 \else
   % For PDF Online version
   \hypersetup{
@@ -583,10 +584,10 @@ supported!}
     breaklinks=true,
     linktocpage,
     colorlinks=true,
-    linkcolor=blue,
-    urlcolor=blue,
-    citecolor=blue,
-    anchorcolor=green
+    linkcolor=red!50!black,
+    urlcolor=red!50!black,
+    citecolor=red!50!black,
+    anchorcolor=red!50!black
   }
 
   \ifsetCustomMargin

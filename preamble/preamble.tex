@@ -10,7 +10,9 @@
 \fi
 
 % Add spaces between paragraphs
-%\setlength{\parskip}{0.5em}
+\setlength{\parskip}{0.5em}
+% Remove the indentation at the beginning of a paragraph
+\setlength{\parindent}{0pt} 
 % Ragged bottom avoids extra whitespaces between paragraphs
 \raggedbottom
 % To remove the excess top spacing for enumeration, list and description
@@ -69,10 +71,6 @@
 %\usepackage{float}
 %\restylefloat{figure}
 
-% Subcaption package is also available in the sty folder you can use that by
-% uncommenting the following line
-% This is for people stuck with older versions of texlive
-%\usepackage{sty/caption/subcaption}
 \usepackage{subcaption}
 
 % ********************************** Tables ************************************
@@ -82,6 +80,15 @@
 %\usepackage{multicol}
 %\usepackage{longtable}
 %\usepackage{tabularx}
+
+
+% ******************************Math & Physics *********************************
+\newcommand\bmmax{2}  % avoid error due to too many math alphabets: https://tex.stackexchange.com/a/219345/75215
+\usepackage{bm}
+\usepackage{physics2}
+\usephysicsmodule{ab}
+\usephysicsmodule[order=O]{ab.legacy}
+\usephysicsmodule{op.legacy}
 
 
 % *********************************** SI Units *********************************
@@ -111,17 +118,6 @@
 % *************************** Bibliography  and References ********************
 
 %\usepackage{cleveref} %Referencing without need to explicitly state fig /table
-
-% Add `custombib' in the document class option to use this section
-% \ifuseCustomBib
-  % \RequirePackage[square, sort, numbers, authoryear]{natbib} % CustomBib
-
-  % If you would like to use biblatex for your reference management, as opposed 
-  % to the default `natbibpackage` pass the option `custombib` in the document 
-  % class. Comment out the previous line to make sure you don't load the 
-  % natbib package. Uncomment the following lines and specify the location of 
-  % references.bib file
-
 \RequirePackage[
   backend=biber,
   style=nature,
@@ -140,11 +136,6 @@
 ]{biblatex}
 \addbibresource{references/references.bib}
 
-% \fi
-
-% changes the default name `Bibliography` -> `References'
-% \renewcommand{\bibname}{References}
-
 
 % ******************************************************************************
 % ************************* User Defined Commands ******************************
@@ -152,9 +143,9 @@
 
 % *********** To change the name of Table of Contents / LOF and LOT ************
 
-%\renewcommand{\contentsname}{My Table of Contents}
-%\renewcommand{\listfigurename}{My List of Figures}
-%\renewcommand{\listtablename}{My List of Tables}
+\renewcommand{\contentsname}{Table of Contents}
+\renewcommand{\listfigurename}{List of Figures}
+\renewcommand{\listtablename}{List of Tables}
 
 
 % ********************** TOC depth and numbering depth *************************
@@ -174,7 +165,7 @@
 
 % The default value of both \appendixtocname and \appendixpagename is `Appendices'. These names can all be changed via:
 
-%\renewcommand{\appendixtocname}{List of appendices}
+%\renewcommand{\appendixtocname}{List of Appendices}
 %\renewcommand{\appendixname}{Appndx}
 
 % *********************** Configure Draft Mode **********************************
@@ -187,10 +178,10 @@
 %\SetDraftText{DRAFT}
 
 % Default Watermark location is top. Location (top/bottom)
-%\SetDraftWMPosition{bottom}
+% \SetDraftWMPosition{bottom}
 
 % Draft Version - default is v1.0
-%\SetDraftVersion{v1.1}
+\SetDraftVersion{v0.1}
 
 % Draft Text grayscale value (should be between 0-black and 1-white)
 % Default value is 0.75
@@ -200,16 +191,39 @@
 % ******************************** Todo Notes **********************************
 %% Uncomment the following lines to have todonotes.
 
-%\ifsetDraft
-%	\usepackage[colorinlistoftodos]{todonotes}
-%	\newcommand{\mynote}[1]{\todo[author=kks32,size=\small,inline,color=green!40]{#1}}
-%\else
-%	\newcommand{\mynote}[1]{}
-%	\newcommand{\listoftodos}{}
-%\fi
+\ifsetDraft
+	\usepackage[colorinlistoftodos]{todonotes}
+	\newcommand{\mynote}[1]{\todo[author=nicrie,size=\small,inline,color=green!40]{#1}}
+\else
+	\newcommand{\mynote}[1]{}
+	\newcommand{\listoftodos}{}
+\fi
 
 % Example todo: \mynote{Hey! I have a note}
 
 % *****************************************************************************
 % ******************* Better enumeration my MB*************
 \usepackage{enumitem}
+
+
+% *****************************************************************************
+% ****************************** Aesthetics ***********************************
+% *****************************************************************************
+% Font color of document text
+\color{black!80}
+
+\def\myrulewidth{0.4mm}
+\usepackage[explicit]{titlesec}
+
+
+% Chapter style
+\titleformat{\chapter}[display]%
+{\relax}{\mbox{}\marginpar{\vspace*{-\baselineskip}\color{secondarycolor}\fontsize{78}{94}\selectfont\thechapter}}{0pt}%
+    {\Huge\bfseries\color{secondarycolor} #1}[\normalsize\vspace*{.8\baselineskip}\titleline{\color{secondarycolor}\titlerule}]% 
+\titlespacing*{\chapter}{0pt}{0cm}{1cm}
+% --------------------------------
+
+% Section style
+\newcommand{\hsp}{\hspace{10pt}}
+\titleformat{\section}[hang]{\Large\bfseries}{\color{primarycolor}\thesection\hsp\textcolor{primarycolor}{|}\hsp}{0pt}{\Large\color{primarycolor} #1}
+
