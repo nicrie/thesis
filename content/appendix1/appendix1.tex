@@ -1,7 +1,42 @@
 %!TEX root = ../thesis.tex
 % ******************************* Thesis Appendix A ****************************
-\chapter{How to install \LaTeX} 
+\chapter{Proofs} 
 
-\section*{Windows OS}
+\section*{Deriving PCA for the general $M$-dimensional projection space}\label{sec:appendix1:pca_m_dim}
+Here we generalize the solution for the optimal linear projection for the case of an $M$-dimensional projection space.
+In Chapter~\ref{sec:theory:pca}, we have already shown that for $M=1$, the variance of the 
+projected data is maximized when $\bm{u}_1$ is the eigenvector of the covariance 
+matrix $\bm{S}$ corresponding to the largest eigenvalue $\lambda_1$.
 
-\subsection*{TeXLive package - full version}
+Using proof by induction we will show that the optimal liner projection for an $\ab(M-1)$ dimensional 
+subspace is given by the $M-1$ eigenvectors $\bm{u}_1, \bm{u}_2, \dots, \bm{u}_{M-1}$
+corresponding to the $M-1$ largest eigenvalues $\lambda_1, \lambda_2, \dots, \lambda_{M-1}$.
+
+First, we need to find $\bm{u}_M$ such that the variance of the projection onto the $M$-dimensional 
+subspace is maximized. The total variance for the $M$-dimensional projection space can be expressed 
+as the sum of variances in each direction 
+
+\[
+\sum_{i=1}^{M} \bm{u}_i^T\bm{S}\bm{u}_i
+\]
+
+where $\bm{u}_M$ must be orthogonal to the previously chosen eigenvectors $\bm{u}_1, \bm{u}_2, \dots, \bm{u}_{M-1}$:
+
+\[
+\bm{u}_1^T\bm{u}_j = \delta_{ij} \quad \text{for} \quad i,j = 1,2,\dots, M.
+\]
+
+Using the same methods as for the $M=1$ case, we introduce a Lagrange multiplier $\lambda_M$ and 
+maximize 
+
+\[
+\bm{u}_M^T \bm{S} \bm{u}_M + \lambda_M \ab( 1 - \bm{u}_M^T\bm{u}_M).
+\]
+
+Setting the derivative with respect to $\bm{u}_M$ to zero, we obtain
+
+\[
+\bm{S}\bm{u}_M = \lambda_M \bm{u}_M
+\]
+
+showing that $\bm{u}_M$ is an eigenvector of $\bm{S}$ with eigenvalue $\lambda_M$.

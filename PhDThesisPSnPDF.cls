@@ -571,6 +571,12 @@ supported!}
       vmarginratio=1:1,scale=0.75,bindingoffset=5mm]{geometry}
   \fi
 
+  \if@twoside
+    \hypersetup{pdfpagelayout=TwoPageRight}
+  \else
+    \hypersetup{pdfpagelayout=OneColumn}
+  \fi
+
 \else
   % For PDF Online version
   \hypersetup{
