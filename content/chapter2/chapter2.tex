@@ -21,7 +21,7 @@ There are two definitions. PCA can be defined as
     \item the linear projection that minimizes the average projection cost, defined as the mean squared distance between the data points (Pearson, 1901).
 \end{itemize}
 
-Here we derive PCA from the maximum variance formulation\cite[e.g.][pp.~561-563]{bishop_pattern_2006}
+Here we derive PCA from the maximum variance formulation~\cite[e.g.][pp.~561-563]{bishop_pattern_2006}
 Consider a data set represented as a two dimensional $N\times D$ matrix $\bm{X}$ of $N$ 
 observations with $D$ features such that the element $x_{ni}$ represents the 
 $n$\textsuperscript{th} observations of the $i$\textsuperscript{th} feature.
@@ -39,15 +39,15 @@ interested in the direction of $\bm{v}_1$, not its magnitude. Each data point $\
 then projected onto a scaler value $\bm{v}_1^T\bm{x}_n$, and the variance of the projected data 
 is given by
 
-\[
-\bar{\bm{x}} = \frac{1}{N} \sum_{n=1}^{N} \bm{x}_n
-\]
+\begin{align}
+    \bar{\bm{x}} = \frac{1}{N-1} \sum_{n=1}^{N} \bm{x}_n
+\end{align}
 
 and the variance of the projected data is given by 
 
-\[
-\frac{1}{N} \sum_{n=1}^{N} \ab\{ \bm{v}_1^T\bm{x}_n - \bm{v}_1^T\bar{\bm{x}} \}^2 = \bm{v}_1^T\bm{S}\bm{v}_1
-\]
+\begin{align}
+    \frac{1}{N-1} \sum_{n=1}^{N} \ab\{ \bm{v}_1^T\bm{x}_n - \bm{v}_1^T\bar{\bm{x}} \}^2 = \bm{v}_1^T\bm{S}\bm{v}_1
+\end{align}
 
 where $\bm{S}$ is the covariance matrix defined by
 
@@ -82,7 +82,7 @@ see that the variance is given by
 
 and so the variance will be a maximum when we set $\bm{v}_1$ equal to the eigenvector 
 having the largest eigenvalue $\lambda_1$. The eigenvector is known as the first 
-\textit{principal component} of the data set.
+\textit{principal component}\footnote{Naming convention depends a lot on the scientific domain. For instance, the pair of eigenvectors (here $\bm{V}$) and corresponding data projections (here $\bm{U}$) are called the principal components and principal component scores in machine learning~\cite[e.g.][]{bishop_pattern_2006}, vector of coefficients/loadings and principal components in statistics~\cite[e.g.][]{jolliffe_principal_2002} or empirical orthogonal functions and principal components/expansion coefficients in climate science and meteorology~\cite[e.g.][]{storch_statistical_2003}. Here I try to be consistent and follow the convention used in machine learning.} of the data set.
 
 We can define additional princiapl components in an incremental fashion by choosing each new 
 direction to be that which maximizes the projected variance amongst all possible directions
@@ -90,59 +90,99 @@ orthongonal to those already considered. If we consider the general case of an $
 projection space, the optimal liner projection for which the variance of the projected data is
 maximized is now defined by the $M$ eigenvectors $\bm{v}_1,\dots,\bm{v}_M$ of the data 
 covariance matrix $\bm{S}$ corresponding to the $M$ largest eigenvalues 
-$\lambda_1,\dots,\lambda_M$. This is easily shown using proof by induction (Appendix~\ref{sec:appendix1:pca_m_dim}).
+$\lambda_1,\dots,\lambda_M$. This is easily shown using proof by induction (Appendix~\ref{sec:appendix1:pca_m_dim}), 
+yielding the consice expression
 
-Each eigenvalues thus serves as a measure of explained variance which is typically expressed in form of a 
-fraction $\gamma_i$ for the corresponding $i$\textsuperscript{th} component:
+\begin{align}\label{eq:theory:pca_eigenvector_decomposition}
+    \bm{S}  \bm{V} = \bm{V} \bm{\Lambda},
+\end{align}
+
+where by construction the eigenvector matrix $\bm{V}$ is orthogonal, i.e. $\bm{V}^T\bm{V}=\bm{I}_M$.
+
+Thus we see how the eigenvectors of $\bm{S}$ arise naturally when we try to find a new coordiante system
+"along" regularities in the data. For what to do when the regularities in the data are not aligned in the
+orthogonal directions, see Section~\ref{sec:theory:rotated_pca}.
+
+From the spectral theorem for normal matrices~\cite[e.g.][p. 133]{horn_matrix_2012} it follows that the symmetric covariance matrix $\bm{S}$ can be decomposed
+into the sum of the outer products of the eigenvectors $\bm{v}_i$ and the corresponding eigenvalues $\lambda_i$:
+
+\begin{align}
+    \bm{S} = \sum_{i=1}^M \lambda_i \bm{v}_i \bm{v}_i^T.
+\end{align}
+
+Therefore, each eigenvalue $\lambda_i$ represents the amount of variance described by each component 
+which is typically expressed in form of a fraction $\gamma_i$ for the corresponding $i$\textsuperscript{th} component:
 
 \begin{align}
     \gamma_i = \frac{\lambda_i}{\sum_{i=1}^M\lambda_i}
 \end{align}
 
-As a more consice notation for the above result we can express eigenvector decomposition solution 
-in matrix notation,
 
-\begin{align}
-    \bm{S} = \bm{V} \bm{\Lambda} \bm{V}^T,
+Projecting the data $\bm{X}$ onto the $M$ dimensional subspace thus provides the data representation in 
+the projection space, called the raw \text{principal component scores}
+
+\begin{equation}
+    \bm{\tilde{U}} = \bm{X} \bm{V},
+\end{equation}
+
+which gives also the possibility to reconstruct the original data from (a subset of) the projected data:
+
+\begin{align}\label{eq:theory:pca_reconstruction}
+    \bm{X} = \bm{\tilde{U}} \bm{V}^T.
 \end{align}
 
 
+As we will see later, computing the eigenvector decomposition is not the most efficient way computationally seen.
+A more efficient way to compute the eigenvectors involves the singular value composition (SVD)~\cite[e.g.][p. 150]{horn_matrix_2012} of the
+data matrix
 
-Projecting the data $\bm{x}_n$ onto the $M$ dimensional subspace thus provides its representation in 
-the projection space
+\begin{align}\label{eq:theory:pca_svd}
+    \bm{X} = \bm{U}' \bm{\Sigma} {\bm{V}'}^T,
+\end{align}
 
-\begin{equation}
-    \bm{U} = \bm{X} \bm{V}
-\end{equation}
+where $\bm{U}'$ and $\bm{V}'$ are respectively $N \times M$ and $M \times D$ unitary
+matrices, i.e. ${\bm{U}'}^T \bm{U}' = {\bm{V}'}^T \bm{V}' = \bm{I}_M$ where $M \leq \min(N, D)$ is
+the rank of $\bm{X}$ and $\bm{I}_M$ is the identity matrix of order $M$. The matrix $\bm{\Sigma}$ is a diagonal matrix of the singular values $\sigma_i$ of $\bm{X}$, i.e. $\sigma_1 \geq \sigma_2 \geq \dots \geq \sigma_M \geq 0$.
 
+The covariance matrix $\bm{S}$ can be expressed in terms of the SVD as
 
-An alternative and more efficient way to compute the eigenvectors involves the singular value composition (SVD) of the
-data matrix.
+\begin{align}
+    \bm{S} = \frac{1}{N-1} \bm{X}^T \bm{X} = \frac{1}{N-1} \bm{V}' \bm{\Sigma}^T \bm{U}'^T \bm{U}' \bm{\Sigma} \bm{V}'^T = \bm{V} \bm{\Lambda} {\bm{V}}^T,
+\end{align}
 
-To appreciate how SVD can be used as an PCA algorithm, consider the following: Any $N \times D$ 
-data matrix $\bm{X}$ can be decomposed as
+where, by comparison with \eqref{eq:theory:pca_eigenvector_decomposition}, $\bm{V} = \bm{V}'$ and $\bm{\Lambda} = \frac{1}{N-1} \bm{\Sigma}^T \bm{\Sigma}$. This last equation directly links the 
+eigenvalues of the covariance matrix to the singular values of the data matrix:
 
-\[
-    \bm{X} = \bm{U} \bm{\Sigma} \bm{V}^T,
-\]
+\begin{align}
+    \lambda_i = \frac{ \sigma_i^2}{N-1}.
+\end{align}
 
-where $\bm{U}$ and $\bm{V}$ are respectively $N \times M$ and $M \times D$ unitary
-matrices, i.e. $\bm{U}^T \bm{U} = \bm{A}^T \bm{A} = \bm{I}_M$ where $M \leq \min(N, D)$ is
-the rank of $\bm{X}$ and $\bm{I}_M$ is the identity matrix of order $M$.
+Comparing \eqref{eq:theory:pca_reconstruction} with \eqref{eq:theory:pca_svd} shows that the raw principal component scores $\bm{\tilde{U}}$ 
+can be normalized
 
+\begin{align}
+    \bm{U} \equiv \bm{U}'= \bm{\tilde{U}} \bm{\Sigma}^{-1} = \frac{1}{\ab(N-1)^{1/2}} \bm{\tilde{U}} \bm{\Lambda}^{-1/2},
+\end{align}
 
+so that $\bm{U}^T\bm{U} = \bm{I}_M$ and the principal component scores $\bm{U}$ are unitary, thus uncorrelated.
+
+\paragraph{Physical interpretation in climate science} 
+
+In climate science, PCA\footnote{In climate science, it is often refered to as Empirical Orthogonal Function (EOF) analysis.} 
+is widely used to identify the dominant modes of variability in the atmosphere and oceans, where each mode is 
+represented by a pair of principal components and the associated scores. 
 
 
 \paragraph{Computational considerations}
 
-Computationally, solving the eigedencomposition of the covariance matrix 
+Computationally, solving the eigendencomposition of the covariance matrix 
 scales with $\order*{D^3}$ making it infeasable for modern data sizes in e.g. climate science 
-where typical data sets\footnote{For instance, a single climate variable of ERA5, the go-to standard reference for state-of-the-art reanalysis climate data is distributed on a regular \ang{0.25} grid of Earth surface which translates to \num{1036800} grid cells.}
-are of the order $D=10^6$, but can be even much larger in practice.
+where typical data sets\footnote{For instance, a single climate variable of ERA5, the go-to standard reference for state-of-the-art reanalysis climate data is distributed on a regular \ang{0.25} grid of Earth surface which translates to $D=\num{1036800}$ grid cells.}
+are of the order $D=\order{10^6}$, but can be even much larger in practice.
 
 In practice, alternative, more efficient algorithms involving the singular value demposition (SVD) or the 
-power methods\cite{golub_matrix_2013} haven been used instead from the beginning of the 
-21st century onward. More recently, randomized low-rank approximation techniques\cite{drineas_clustering_2004,halko_finding_2011} have allowed to considerably
+power methods~\cite{golub_matrix_2013} haven been used instead from the beginning of the 
+21st century onward. More recently, randomized low-rank approximation techniques~\cite{drineas_clustering_2004,halko_finding_2011} have allowed to considerably
 reduce the computational complexity to $\order*{ND \log(M) + \ab(N+D)M^2}$ offering feasable alternatives for large, out-of-memory datasets 
 (Table~\ref{tab:pca_algorithm_complexity}).
 
@@ -151,7 +191,7 @@ reduce the computational complexity to $\order*{ND \log(M) + \ab(N+D)M^2}$ offer
 
 
 \begin{table}
-    \caption[Computational costs of PCA algorithms]{Computational costs of different algorithms used to compute either full or approximative $M$-rank solutions for PCA for a real, dense, in-memory matrix with dimensions $N \times D$. Compiled from \citet{bishop_pattern_2006,halko_finding_2011}.}
+    \caption[Computational costs of PCA algorithms]{Computational costs of different algorithms used to compute either full or approximative $M$-rank solutions for PCA for a real, dense, in-memory matrix with dimensions $N \times D$. Compiled from~\citet{bishop_pattern_2006,halko_finding_2011}.}
     \centering
     \label{tab:pca_algorithm_complexity}
     \begin{tabular}{l c}
@@ -175,7 +215,9 @@ reduce the computational complexity to $\order*{ND \log(M) + \ab(N+D)M^2}$ offer
 
 
 
-\subsection{Rotated Principal Component Analysis}
+\subsection{Rotated Principal Component Analysis}\label{sec:theory:rotated_pca}
+
+
 
 \subsection{Complex Principal Component Analysis}
 
