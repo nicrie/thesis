@@ -13,15 +13,25 @@
 
 
 \section{Principal Component Analysis}\label{sec:theory:pca}
-is widely used in dimensionality reduction, data compression, feature extraction and visualization of high-dimensional data.
+Principal Component Analysis (PCA) is a technique that transforms a large set of variables into a smaller 
+one that still contains most of the information in the original set by identifying the directions 
+along which the data varies the most. As we will see, this is achieved by projecting the data onto the 
+eigenvectors of the covariance matrix of the data, where these eigenvectors, or principal components, 
+correspond to the directions of maximum variance, and the associated eigenvalues represent the 
+magnitude of variance in these directions. This can be extremely helpful when dealing with high-dimensional data where the goal is dimensionality 
+reduction, data compression, feature extraction or visualization of these high-dimensional data.
 
-There are two definitions. PCA can be defined as
-\begin{itemize}
-    \item the orthogonal projection of the data onto a lower dimensional linear space, known as the principal subspace, such that the variance of the projected data is maximized (Hotelling 1933).
-    \item the linear projection that minimizes the average projection cost, defined as the mean squared distance between the data points (Pearson, 1901).
-\end{itemize}
+The first description of PCA can be traced back to \citet{pearson_lines_1901} in 1901 and \citet{hotelling_relations_1936} in 1936, but 
+it was not until 1956 when \citet{lorenz_empirical_1956} popularized PCA in the field of meteorology under the term \textit{empirical orthogoanal function}
+analysis\footnote{Indeed, until today EOF analysis seems to be the prefered term used in meteorology and climate science. We will stick to the more commonly used term PCA though.} 
+Subsequently, PCA has been widely used in meteorology and climate science to identify the dominant modes of variability in the atmosphere and oceans with entire chapters of popular textbooks 
+being dedicated to this technique \cite[e.g.][]{preisendorfer_principal_1988,storch_statistical_2003,hannachi_patterns_2021}. 
 
-Here we derive PCA from the maximum variance formulation~\cite[e.g.][pp.~561-563]{bishop_pattern_2006}
+In the following we will quickly derive PCA from the maximum variance formulation\footnote{This is what \citet{hotelling_relations_1936} used to derive PCA. An alternative derivation is the minimum error formulation by \citet{pearson_lines_1901}, in which we seek a linear projection that minimizes the average projection cost, defined as the mean squared distance between the data points.},
+\cite[e.g.][pp.~561-563]{bishop_pattern_2006}, in which the data is orthogonaly projected onto a lower dimensional linear space, known as the principal subspace, 
+such that the variance of the projected data is maximized. Then we will discuss the main shortcomings of PCA in particular in the context of climate science and some of the most common ways to overcome these.
+
+\subsection{Derivation based on Maximum Variance Formulation}
 Consider a data set represented as a two dimensional $N\times D$ matrix $\bm{X}$ of $N$ 
 observations with $D$ features such that the element $x_{ni}$ represents the 
 $n$\textsuperscript{th} observations of the $i$\textsuperscript{th} feature.
@@ -166,12 +176,6 @@ can be normalized
 
 so that $\bm{U}^T\bm{U} = \bm{I}_M$ and the principal component scores $\bm{U}$ are unitary, thus uncorrelated.
 
-\paragraph{Physical interpretation in climate science} 
-
-In climate science, PCA\footnote{In climate science, it is often refered to as Empirical Orthogonal Function (EOF) analysis.} 
-is widely used to identify the dominant modes of variability in the atmosphere and oceans, where each mode is 
-represented by a pair of principal components and the associated scores. 
-
 
 \paragraph{Computational considerations}
 
@@ -190,8 +194,30 @@ reduce the computational complexity to $\order*{ND \log(M) + \ab(N+D)M^2}$ offer
 
 
 
+\paragraph{Shortcomings} 
+Despite its popularity and wide applicability, PCA has several limitations and potential drawbacks that should be considered when using this technique:
+\begin{enumerate}
+    \item \textbf{Linearity assumption:} PCA assumes that the data's underlying structure is linear, which may not always hold true, especially in complex systems like climate data where nonlinear relationships can be significant.
+    \item \textbf{Interpretability of principal components:}  In addition to the linearity assumption, the dominant modes of variability are represented in an orthgonal subspace spanned by the principal components. This orthogonality is a mathematical construction that may not always correspond to the physical reality of the data, potentially leading to misinterpretations of the results (see Section~\ref{sec:theory:rotated_pca}).
+    \item \textbf{Variance focus:} Capturing the directions of maximum variance may not always correspond to the most important features for a given application, potentially overlooking critical but less variable information. 
+    \item \textbf{Static nature:} As a static method PCA does not account for temporal dynamics or changes over time, which can be particularly limiting in climate science where time evolution is a key aspect.
+    \item \textbf{Sensitivity to outliers:} PCA can be sensitive to outliers, as extreme values can disproportionately influence the principal components, leading to misleading results.
+    \item \textbf{Sensitivity to scaling:} The results are sensitive to the scaling of the input data, meaning that variables with larger ranges can dominate the principal components unless the data is appropriately standardized.
+    \item \textbf{Loss of information:} Not a shortcoming by itself because it's sometime the goal of PCA, but it should be taked into account that by reducing dimensionality, PCA inherently discards some information, which might lead to the loss of important details that could be crucial for accurate analysis and interpretation in specific applications.
+\end{enumerate}
+
+Over the last decades a plethora of modifications and extensions have been proposed to overcome these limitations. We only mention a few here that are particularly relevant in the context of climate science.
+These include various forms of kernel PCA \cite{webb_approach_1996,scholkopf_nonlinear_1998,bueso_nonlinear_2020} to adress the linearity assumption, rotated \cite{richman_rotation_1986} and sparse \cite{hannachi_search_2006} PCA for interpretability, 
+robust PCA \cite{candes_robust_2011} to address the sensitivity to outliers, and extended \cite{weare_examples_1982,broomhead_extracting_1986} and complex \cite{barnett_interaction_1983,horel_complex_1984} PCA to account for temporal dynamics. 
+Although not strictly a form of PCA, eigenmethods like optimal persistence analysis (OPA) \cite{delsole_optimally_2001,delsole_low-frequency_2006}, which allows to filter for spatial patterns linked to increased persistence, and Principal Oscillation Pattern (POP) analysis \cite{hasselmann_pips_1988} 
+that provides a mean to analyze dynamical systems, are an example of related appraoches with the goal to gain insights about the dominant pattern of a physical field in climate science.
+
+In the following sections, we will discuss some of the shortcomings and proposed solutions in more detail: 
+in particular we will discuss how an additional rotation of the PCA solution can help address the challenge of physical interpretability (Section~\ref{sec:theory:rotated_pca}) and 
+how complexifying the data provides a means to better understand time evolution patterns (Section~\ref{sec:theory:hilbert_pca}).
+
 \begin{table}
-    \caption[Computational costs of PCA algorithms]{Computational costs of different algorithms used to compute either full or approximative $M$-rank solutions for PCA for a real, dense, in-memory matrix with dimensions $N \times D$. Compiled from~\citet{bishop_pattern_2006,halko_finding_2011}.}
+    \caption[Computational complexity of PCA algorithms]{Computational costs of different algorithms used to compute either full or approximative $M$-rank solutions for PCA for a real, dense, in-memory matrix with dimensions $N \times D$. Compiled from~\citet{bishop_pattern_2006,halko_finding_2011}.}
     \centering
     \label{tab:pca_algorithm_complexity}
     \begin{tabular}{l c}
@@ -199,15 +225,10 @@ reduce the computational complexity to $\order*{ND \log(M) + \ab(N+D)M^2}$ offer
         Algorithm & Complexity  \\ 
         \midrule
         Eigenvector decomposition & $\order*{D^3}$ \\
-
         Full SVD & $\order*{ND\min(N,D)}$ \\
-
         Power method & $\order*{MD^2}$  \\
-
         Truncated SVD & $\order*{NDM}$  \\
-
         Randomized SVD & $\order*{ND \log(M)+(N + D)M^2}$ \\
-
         \bottomrule
     \end{tabular}
 \end{table}
@@ -215,11 +236,55 @@ reduce the computational complexity to $\order*{ND \log(M) + \ab(N+D)M^2}$ offer
 
 
 
-\subsection{Rotated Principal Component Analysis}\label{sec:theory:rotated_pca}
+\subsection{Rotated PCA}\label{sec:theory:rotated_pca}
+The physical interpretation of the principal componetns is limited by two fundamental properties of PCA.
+
+First, while it is often possible to clearly associate the first components with a 
+known physical process, this is much more difficult with the second (and higher-order)
+components because it is constrained to be orthogonal to the first component. However,
+real-word processes do not need to have orthogonal patterns or uncorrelated scores. 
+
+Secondly, while benefitial in many cases, the ability for efficient data compression inherent in the dimesionality reduction of PCA typically 
+leads to the principal components being dense, i.e. all elements of the eigenvectors are non-zero. 
+This can make the interpretation of the principal components difficult.
+
+It is mainly due to these two properties that lead to a variety of undesired effects in the context of climate science. For instance, \citet{richman_rotation_1986} 
+describes four effects, namely domain shape dependence, subdomain instability, sampling errors and non-intuitive patterns. 
+The first two are a direct consequence of the orthogonality constraint,
+which for rectangular domains -- like a regular longitude-latitude grid -- leads to a set of patterns known as the Buell patterns \cite{richman_rotation_1986} consisting 
+of a positive pattern for the first component, subsequently followed by increasing polar i.e. bipole, tripole, quadrupole etc. patterns for the subsequent components 
+(Figure~\ref{fig:theory:pca_buell_patterns}), which upon shifting the domain can lead to a completely different set of patterns. 
+
+The third effect is related to fact that finite sample sizes will always lead to a sampling error \cite{north_sampling_1982}, 
+which can be severe when eigenvalues are closely spaced. 
+
+The fourth effect is a logical conclusions from the first three, but which is enhanced by the dense nature of the principal components which is often not representative of the underlying physical processes,
+which are often more regionalized. 
+
+To address these limitations, rotated PCA techniques \cite[e.g.][]{richman_rotation_1986} have been developed with the goal to produce "simpler" patterns 
+in the hope that these would automatically better align with the underlying physical processes.
+
+This simplicity is vaguely defined in a heuristic manner, but typically refers to patterns that are more localized, less dense, and more physically interpretable.
+
+Thurstone states that all of the common variance of a variable should be accounted for by fewer than r common factors.
+
+The underlying idea is to find a rotation matrix $\bm{R}$ that rotates the principal components $\bm{V}$ to a new set of components $\bm{V}_R$ that are more physically interpretable.
 
 
 
-\subsection{Complex Principal Component Analysis}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{example_synthetic_pca_rotated.pdf}
+    \caption{Comparison of the first three modes obtained from PCA vs. Varimax-rotated PCA for a synthetic data set. (Left) Original data set with three different, uncorrelated autoregressive processes. (Middle) PCA solution. (Right) Varimax-rotated PCA solution.}
+    \label{fig:theory:pca_buell_patterns}
+\end{figure}
+
+\mynote{drawbacks of rotation, e.g. in Storch, alternatives based on lasso; problem though with computation complexity}
+
+\subsection{Hilbert PCA}\label{sec:theory:hilbert_pca}
+
+
 
 
 \subsection{Probabilistic PCA}
