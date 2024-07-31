@@ -28,6 +28,8 @@
   % Set your custom font here and use `customfont' in options. Leave empty to
   % load computer modern font (default LaTeX font).
   % \RequirePackage{helvet} % Uses Utopia Font
+  \RequirePackage{mathpazo}  % --- Palatino with math support
+  \RequirePackage[scale=0.95]{eulerpx}  % --- Euler math font
 
 
   % % For use with XeLaTeX
@@ -55,9 +57,7 @@
 % ********************Captions and Hyperreferencing / URL **********************
 
 % Captions: This makes captions of figures use a boldfaced small font.
-\RequirePackage[small,bf]{caption}
-
-\RequirePackage[labelsep=space,tableposition=top]{caption}
+\RequirePackage[labelsep=space,tableposition=top,small,bf]{caption}
 \renewcommand{\figurename}{Fig.} %to support older versions of captions.sty
 
 
@@ -89,6 +89,18 @@
 \usephysicsmodule{ab}
 \usephysicsmodule[order=O]{ab.legacy}
 \usephysicsmodule{op.legacy}
+
+% Add your own math operators
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\sgn}{sgn}
+
+% Add your own shorthands
+% Fourier transform
+\newcommand{\FT}[1]{\mathcal{F}\{#1\}}
+% Hilbert transform
+\newcommand{\HT}[1]{\mathcal{H}\{#1\}}
+
 
 
 % *********************************** SI Units *********************************
@@ -194,12 +206,15 @@
 \ifsetDraft
 	\usepackage[colorinlistoftodos]{todonotes}
 	\newcommand{\mynote}[1]{\todo[author=nicrie,size=\small,inline,color=green!40]{#1}}
+  % Correct bad margins for todonotes
+  \setlength{\marginparwidth}{2cm}  
 \else
 	\newcommand{\mynote}[1]{}
 	\newcommand{\listoftodos}{}
 \fi
 
 % Example todo: \mynote{Hey! I have a note}
+
 
 % *****************************************************************************
 % ******************* Better enumeration my MB*************

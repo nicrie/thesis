@@ -461,8 +461,7 @@ supported!}
 
 
 % ********************************** Fonts **********************************
-\RequirePackage{textcomp}
-\RequirePackage{fourier}
+% \RequirePackage{textcomp}
 
 
 \ifxetex
@@ -524,7 +523,6 @@ supported!}
   \RequirePackage{amsfonts}
   \RequirePackage{amsmath}
   \RequirePackage{amssymb}
-  \RequirePackage{euler}
 \fi
 
 % Don't break enumeration (etc.) across pages in an ugly manner
