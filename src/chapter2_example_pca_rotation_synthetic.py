@@ -6,6 +6,7 @@ import xeofs as xe
 import xskillscore as xs
 from matplotlib.gridspec import GridSpec
 from statsmodels.tsa.arima_process import arma_generate_sample
+from utils.tools import get_figure_path
 
 plt.style.use("style/tex.mplstyle")
 plt.style.use("style/thesis.mplstyle")
@@ -333,10 +334,7 @@ ax_comps_spca[0].text(
     transform=ax_comps_spca[0].transAxes,
     **title_kws,
 )
-fig.savefig(
-    "../content/chapter2/figs/example_synthetic_pca_rotated.pdf",
-    format="pdf",
-    bbox_inches="tight",
-)
+path_fig = get_figure_path("chapter2", "example_synthetic_pca_rotated.pdf")
+fig.savefig(path_fig, format="pdf", bbox_inches="tight")
 
 # %%

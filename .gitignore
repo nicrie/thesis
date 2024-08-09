@@ -2,6 +2,9 @@
 # Ignore folders
 admin
 
+# Python stuff
+__pycache__
+
 # VS Code workspace files
 *.code-workspace
 
