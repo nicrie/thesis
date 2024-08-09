@@ -1,4 +1,7 @@
 ## Additional extension-specific rules.
+# Ignore folders
+admin
+
 # VS Code workspace files
 *.code-workspace
 

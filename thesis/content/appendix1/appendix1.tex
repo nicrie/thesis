@@ -38,11 +38,3 @@ Finally using the invariance property of the trace, we obtain:
 This concludes the proof that the Frobenius norm of a matrix is indeed the $\ell_2$-norm of its singular values.
 
 
-\section*{Derivation of Maximum Covariance Analysis}
-Here we derive the Maximum Covariance Analysis (MCA) from the framework of Generalized Canonical Correlation Analysis \todo{add ref. Tenenhaus and Tenenhaus, equation 2} where we maximize covariance instead of correlation. The objective function of MCA is:
-
-\begin{align*}
-    \argmax_{\bm{v}_x, \bm{v}_y} \Vab{\bm{v}_x^H\bm{X}\bm{Y}^H\bm{v}_y}^2
-\end{align*}
-
- which is a generalization of the Canonical Correlation Analysis (CCA) algorithm. We start by defining the covariance matrix of two random variables $\bm{x}$ and $\bm{y}$ as:

@@ -160,11 +160,11 @@ In practice, more efficient algorithms, such as SVD or power methods~\cite{golub
 Despite its widespread use and versatility, PCA has several limitations and potential drawbacks that should be considered:
 
 \begin{enumerate}
-    \item \textbf{Linearity Assumption:} PCA assumes a linear structure in the data, which may not hold in complex systems such as climate data, where nonlinear relationships can be significant~\cite{scholkopf_nonlinear_1998}.
+    \item \textbf{Linearity Assumption:} PCA assumes a linear structure in the data, which may not hold in complex systems such as climate data, where nonlinear relationships can be significant~\cite{scholkopf_nonlinear_1998,kramer_nonlinear_1991}.
     \item \textbf{Interpretability of VCs:} The orthogonality of the vectors of coefficients is a mathematical construct that may not always correspond to the physical reality of the data, potentially leading to misinterpretations~\cite{richman_rotation_1986}.
     \item \textbf{Variance Focus:} Focusing on directions of maximum variance may not always capture the most relevant features for a specific application, potentially critical but less variable information~\cite{farrell_accurate_2001}.
     \item \textbf{Static Nature:} As a static method, PCA does not account for temporal dynamics or changes over time, which is particularly limiting in climate science, where time evolution is a key aspect.
-    \item \textbf{Sensitivity to Outliers:} PCA can be sensitive to outliers, as extreme values can disproportionately influence the VCs, leading to misleading results.
+    \item \textbf{Sensitivity to Outliers:} PCA can be sensitive to outliers, as extreme values can disproportionately influence the VCs, leading to misleading results \cite{candes_robust_2011}.
     \item \textbf{Sensitivity to Scaling:} The results are sensitive to the scaling of the input data, meaning that variables with larger ranges can dominate the VCs unless the data is appropriately standardized.
     \item \textbf{Loss of Information:} While dimensionality reduction is often the goal, PCA inherently discards some information, which could lead to the loss of important details crucial for accurate analysis and interpretation in specific applications.
 \end{enumerate}
@@ -322,21 +322,20 @@ The main advantage of Hilbert PCA is the ability to identify and reconstruct pro
 
 % \subsection{Probabilistic PCA}
 % \mynote{PCA arises naturally as the maximum likelihood solution a particular form of linear-Gaussian latent variable model.
-% assumption 1: the simplest continuous latent variable model assumes Gaussian distributions
-% for both thc latent and observed variables
+% assumption 1: the simplest continuous latent variable model assumes Gaussian distributions for both thc latent and observed variables
 % assumption 2: make use of linear,Gaussian dependence of the observed variables on the slate of the latent variables.
 
 % assumpotion 1+ 2 give rise to Probabilistic PCA}
 
 
-\section{Maximum Covariance Analysis (MCA)}
+\section{Maximum Covariance Analysis}
 
-Sometimes we're not so much interested in the primary modes of variations within a dataset, but rather the modes of shared variations between two different data sets. Consider the MJO, which is the largest element of the intraseasonal variability in the tropical atmosphere, characterized by an eastward migrating cell of overturning wind circulation within the troposphere that lead to large regions of enhanced and suppressed precipitation. Rather than interested in the dominant variability in any of the individual fields, we may want to find the shared dyanmics between these variables ignoring dominant variability that is associated only to one of the variables such as diurnal cycles linked to surface processes but which are absent in higher levels of the atmosphere.
+In contrast to finding latent variables that maximize covariance within a single dataset, Maximum Covariance Analyis (MCA) aims to identify the latent variables that are common in two sets of data and maximize covariance. For example, in the case of the MJO \cite{madden_detection_1971}, which is the dominant mode of intraseasonal variability in the tropical atmosphere, characterized by an eastward-moving cell of overturning wind circulation and associated regions of enhanced and supressed precipitation, MCA helps in findings shared dynaics between different variables. This method allows us to focus on shared variability while ignoring dominant variations associated with only one variable, such as diurnal cycles linked to surface processes absent at higher atmosphere levels.
 
-Maximum Covariance Analysis (MCA) is a statistical method that has exactly this goal: to identify patterns of maximum covariance between two (or more) different datasets \cite[][p. 321]{storch_statistical_2003}. It is a data-driven approach similar to PCA, in the sense that we can formulate it as optimization problem where we want to find pairs of coupled (complex) patterns $\bm{v}_{i,1}$ for two (complex-valued) datasets, $\bm{Z}_i, i=\bab{x, y}$, such that the projection of the data onto these patterns maximizes the covariance between the two datasets,
+MCA identifies patterns of maximum covariance between datasets by finding paris of linear subspaces with high cross-covariance \cite[e.g.][p. 321]{storch_statistical_2003}. Unlike PCA, which operates on a single set of variables, MCA considers two\footnote{In theory, this can be extended to more than two sets of data \cite{kettenring_canonical_1971}.} sets of variables and seeks components that exhibit high covariance across datasets. This approach can be formulated as an optimization problem, aiming to find pairs of (complex-valued) coupled patterns $\bm{v}_{s,1}$ for datasets $\bm{Z}_s$, $s={x, y}$, such that the projection maximizes the covariance between the datasets. The solution involves a generalized eigenvector problem, often solved using the Singular Value Decomposition (SVD) of the cross-covariance matrix.
 
 \begin{align}\label{eq:theory:mca_maximization}
-    \argmax_{\bm{v}_{x,i}} \, = \ab(\bm{v}_{x,1} \bm{C}_{xy} \bm{v}_{y,1})^2 \quad \text{subject to} \quad \Vab{\bm{v}_{x,i}}_2 = 1,
+    \argmax_{\bm{v}_{x,1}, \bm{v}_{y,1}} \, \bm{v}_{x,1} \bm{C}_{xy} \bm{v}_{y,1} \quad \text{subject to} \quad \Vab{\bm{v}_{x,1}}_2 = \Vab{\bm{v}_{y,1}}_2 = 1,
 \end{align}
 
 where the cross-covariance matrix between the two datasets is given by
@@ -353,120 +352,91 @@ The solution to this problem gives rise to a generalized eigenvalue equations si
 
 % Proof that optimality of leading SVD components: https://atmos.washington.edu/~breth/classes/AS552/lect/lect22.pdf
 
-where the $m$\textsuperscript{th} column of the left and right singular vectors, $V_x$ and $V_y$, contains the patterns $\bm{v}_{x,m}$ and $\bm{v}_{y,m}$, and $\bm{\Sigma}$ a diagonal matrix containing the singular values $\sigma_i$ in decending order. Then it can be easily verified that the first left and right singular vectors corresponding to the first column maximize Equation~\eqref{eq:theory:mca_maximization}, resulting in a corresponding maximum covariance given by the largest singular value $\sigma_1$.
+where the $i$\textsuperscript{th} column of the left and right singular vectors, $V_x$ and $V_y$, contains the pattern vectors $\bm{v}_{x,i}$ and $\bm{v}_{y,i}$, and $\bm{\Sigma}$ a diagonal matrix containing the singular values $\sigma_i$ in decending order. The first left and right singular vectors correspond to the maximum covariance, given by the largest singular value $\sigma_1$.
 
-Since the patterns are unitary, we can expand the datasets according to
-
-\begin{align}
-    \bm{Z}_i =& \bm{P}_i \bm{V}_i^H,
-\end{align}
-
-with the expansion coefficient $\bm{P}_i$. The expansion coefficients $\bm{P}_1$ and $\bm{P}_2$ are uncorrelated with each other, since
+Since the pattern vectors are unitary, datasets can be expanded as
 
 \begin{align}
-    \bm{P}_1^H \bm{P}_2 =& \bm{V}_1^H \bm{Z}_1^H \bm{Z}_2 \bm{V}_2 \overset{\eqref{eq:theory:mca_cross_covariance}}{=} (N-1) \bm{V}_1^H \bm{C}_{xy} \bm{V}_2 \overset{\eqref{eq:theory:mca_svd}}{=} (N-1)\bm{\Sigma}.
+    \bm{Z}_s =& \bm{P}_s \bm{V}_s^H,
 \end{align}
 
-In contrast, the expansion coefficients $\bm{P}_1$ and $\bm{P}_2$ are, in general, correlated with themselves, i.e. $\bm{P}_i^H\bm{P}_i \neq c \bm{I}_m$ for any arbitrary constant $c$.
+with the expansion coefficients $\bm{P}_s$. The expansion coefficients $\bm{P}_x$ and $\bm{P}_y$ are uncorrelated with each other:
 
-The total covariance is given by squared Frobenius norm of the cross-covariance matrix, 
+\begin{align}
+    \bm{P}_x^H \bm{P}_y =& \bm{V}_x^H \bm{Z}_x^H \bm{Z}_y \bm{V}_y \overset{\eqref{eq:theory:mca_cross_covariance}}{=} (N-1) \bm{V}_x^H \bm{C}_{xy} \bm{V}_y \overset{\eqref{eq:theory:mca_svd}}{=} (N-1)\bm{\Sigma}.
+\end{align}
+
+However, the expansion coefficients $\bm{P}_x$ and $\bm{P}_y$ are generally correlated within themselves as indicated by the condition $\bm{P}_s^H\bm{P}_s \neq c \bm{I}_M$ for any arbitrary constant $c$.
+
+The total covariance, given by the squared Frobenius norm of the cross-covariance matrix, is
 
 \begin{align}
     \Vab{\bm{C}_{xy}}_F^2 = \sum_{i=1}^{M} \sigma_i^2, 
 \end{align}    
 
-which shows that the $i$\textsuperscript{th} mode captures the squared covariance $\sigma_i^2$, thus its relative importance can be expressed as the squared covariance fraction $f_{xy, i}$:
+which shows that each mode captures a fraction of the total squared covariance. The relative importance of each mode can be quantified by the squared covariance fraction $f_{xy, i}$:
 
 \begin{align}
     f_{xy, i} = \frac{\sigma_i^2}{\sum_{i=1}^{M} \sigma_i^2}.
 \end{align}
 
-This provides a measure of the relative importance of the $i$\textsuperscript{th} mode in capturing the shared variability between the two datasets. However, to quantify the importance of the patterns themselves, we need to consider the variance within the individual datasets explained by each mode in relation to the total variance of the individual datasets, which can be expressed as the squared Frobenius norm of the individual datasets,
+This fraction provides a measure of how much of the shared variability between the two datasets is captured by the $i$\textsuperscript{th} mode. To assess the importance of the patterns themselves, it is necesarry to consider the variance within the individual datasets explained by each mode relative to the total variance of the individual datasets. This can be expressed using the squared Frobenius norm of the individual datasets:
 
 \begin{align}
     f_{xx, i} &= \frac{\bm{v}_{x,i}^H\bm{C}_{xx}\bm{v}_{x,i}}{\Vab{\bm{Z}_x}_F^2} = \frac{1}{N-1} \frac{\bm{p}_{x,i}^H\bm{p}_{x,i}}{\Vab{\bm{Z}_x}_F^2},\\
     f_{yy, i} &= \frac{\bm{v}_{y,i}^H\bm{C}_{yy}\bm{v}_{y,i}}{\Vab{\bm{Z}_y}_F^2} = \frac{1}{N-1} \frac{\bm{p}_{y,i}^H\bm{p}_{y,i}}{\Vab{\bm{Z}_y}_F^2}.
 \end{align}
 
-The method was popularized in the field of meterology\footnote{According to \citet[][p. 225]{jolliffe_principal_2002}, it was first used in psychology starting from the 1950s where it is known as inter-battery factor analysis. As a variant of Partial Least Squares (PLS), it was later used in biomedical sciences by \citet{sampson_neurobehavioral_1989} and termed PLS-SVD by \citet{wegelin_survey_2000}- In meteorology, \citet{bretherton_intercomparison_1992} coined the confusing term SVD analysis, which is still in use today \cite[e.g.][]{mori_reconciled_2019}. Rarely, the method is also called Canonical Covariance Analysis \cite[e.g.][]{cherry_singular_1996,hannachi_patterns_2021}, akin to Canonical Correlation Analysis.} by \citet{bretherton_intercomparison_1992} and \citet{wallace_singular_1992} since when it has been extensively applied \cite[e.g.][]{wallace_singular_1992,tsai_maximum_2009,li_north_2016,barreto_maximum_2017,mori_reconciled_2019,rathore_improving_2021}
+While the squared covariance fraction $f_{xy, i}$ indicates the amount of shared variability between the two datasets, it does not provide information about the strength of the association or coupling between them. To measure this, we use the correlation coefficient $\rho_i$ for the expansion coefficients of mode $i$ between the two datasets:
 
-
-
-Why Is It Important?
-Understanding Coupled Variability: MCA is crucial for understanding the coupled variability between different climatic variables. For instance, it can help identify how changes in sea surface temperatures may be related to atmospheric pressure patterns, which is vital for understanding phenomena like El Niño-Southern Oscillation (ENSO).
-
-Teleconnections Analysis: It is used to study teleconnections, which are climate anomalies related to each other at large distances (thousands of kilometers apart). By identifying the dominant modes of variability, MCA helps in understanding how different regions of the climate system interact.
-
-Climate Prediction: The patterns identified by MCA can be used for predictive modeling. By understanding the leading modes of variability, scientists can make better predictions about future climate conditions.
-
-Data Reduction and Interpretation: MCA helps in reducing the dimensionality of large climate datasets by focusing on the most significant modes of variability, making it easier to interpret complex interactions.
-
-
-% \parargraph{Conceptual Overview and Objectives of MCA}
-% \paragraph{Historical Development and Key Contributions}
-% \paragraph{Mathematical Foundation and Generalized Eigenvector Problem}
-% \paragraph{Comparison with Principal Component Analysis (PCA)}
-% \parragraph{Distinction from Canonical Correlation Analysis (CCA)}
-% \parargraph{Application Areas and Relevance in Climate Science}
-% \paragraph{Advantages and Limitations of MCA}
-% \paragraph{Practical Considerations and Implementation}
-% \paragraph{Summary and Future Directions in MCA Research}
-
- 
-
-Whereas PCA works with a single set of random variables, MCA considers two (or more) variables and tries to find a corresponding pair of linear subspaces that have high cross-covariance, so that each component within one of the subspaces exhibits high covariance with a single component from the other subspace. Its solution can be expressed in terms of a generalized eigenvector problem.
-
-The origins of Maximum Covariance Analysis (MCA) date back to Tucker (1958), where it is known as inter-battery factor analysis; The method was popularised in atmospheric science by Bretherton et al. (1992) and Wallace et al. (1992) under the name singular value decomposition (SVD) analysis. the name maximum covariance analysis is used by von Storch and Zwiers (1999, Section 14.1.7) 
-
-
-MCA reduces to PCA when both sets are the same, but there's an even deeper link to PCA: maximum covariance analysis can be viewed as two PCAs, followed by rotation to match up the results of the two analyses as closely as possible (Cherry, 1997).
-
-
-difference to CCA: 
-Maximum covariance analysis diﬀers from CCA in two ways: covariance rather than correlation is maximized, and vectors of loadings are orthogonal instead of derived variates being uncorrelated. The rationale behind maximum covariance
-analysis is that it may be important to explain a large proportion of
-the variance in one set of variables using the other set, and a pair of
-variates from CCA with large correlation need not necessarily have large
-variance
-
-Wilks:
-There are two main distinctions between CCA and MCA. The first is that CCA maximizes correlation, whereas MCA maximizes covariance. The leading CCA modes may capture relatively little of the corresponding variances (and thus yield small covariances even if the canonical correlations are high). On the other hand, MCA will find linear combinations with large covariances, which may result
-more from large variances than a large correlation. The second difference is that the vectors am and bm in maximum covariance analysis are orthogonal, and the projections vm and wm of the data onto them are in general correlated, whereas the canonical variates in CCA are uncorrelated but the corresponding
-canonical vectors are not generally orthogonal. Bretherton et al. (1992), Cherry (1996), Tippett et al. (2008), and Van den Dool (2007) compare the two methods in greater detail.
-
-
-
-
-Prediction via
 \begin{align}
-    \bm{P}_1 &= \bm{X}_1 \bm{V}_1 \\
-    \bm{P}_2 &= \bm{X}_2 \bm{V}_2 \quad \text{or} \quad \bm{P}_2 = \bm{P}_1 \bm{G} \quad \text{with} \quad g_k = \frac{s_k}{var{p_{1,k}}} \\
-    \bm{X}_2 &= \bm{P}_2 \bm{V}_2^T = \bm{P}_1 \bm{G} \bm{V}_2^T = \bm{X}_1 \bm{V}_1 \bm{G} \bm{V}_2^T
+    \rho_i = \frac{\cov (\bm{p}_{1, i}, \bm{p}_{2, i}) }{\pab{\var(\bm{p}_{1, i}) \var(\bm{p}_{2, i})}^{1/2}} =  \frac{\sigma_i}{\Vab{\bm{p}_{1, i}}^2 \Vab{\bm{p}_{2, i}}^2}.
 \end{align}
-Accuracy of reconstruction depends on
-\begin{itemize}
-    \item The degree of covariance between the two fields.
-    \item The cumulative squared covariance fraction represented by the leading modes. The more modes the better the reconstruction.
-    \item The variance explained by the right singular vectors in the right phase space. I.e. the component of the right space that is related to the left space.
-\end{itemize}
 
-\subsection{Rotated Maximum Covariance Analysis}
+The homogeneous patterns \cite{bretherton_intercomparison_1992} for the pattern vectors are:
 
-\subsection{Complex Maximum Covariance Analysis}
+\begin{align}
+    \text{HoP}_{x, i} = \cov(\bm{Z}_x, \bm{p}_{x, i}) = \bm{S}_{xx} \bm{v}_{x, i},\\
+    \text{HoP}_{y, i} = \cov(\bm{Z}_y, \bm{p}_{y, i}) = \bm{S}_{yy} \bm{v}_{y, i},
+\end{align}
 
-CCA or MCA?
-\begin{description}
-    \item[MCA] focues on covariance: Modes tend to be large where the variance is large. Danger that physical modes are confounded by large variance.
-    \item[CCA] focuses on correlation: Coupling is identified also if associated variance is low. Danger that physical modes are confounded by small (insignificant) variations (sampling problems)
-\end{description}
+These patterns provide an indicator of which variables or features are important for the covarying components in both fields. The corresponding heterogeneous patterns are defined as:
+
+\begin{align}
+    \text{HeP}_{x, i} = \cov(\bm{Z}_x, \bm{p}_{y, i}) = \sigma_i \bm{v}_{y, i},\\
+    \text{HeP}_{y, i} = \cov(\bm{Z}_y, \bm{p}_{x, i}) = \sigma_i \bm{v}_{x, i}.
+\end{align}
+
+These patterns indicate how well the variables in one field can be predicted from the $i$\textsuperscript{th} expansion coefficient of the other field. One may also use standardized data, $Z_x$ and $Z_y$, to obtain the respective homogeneous and heterogeneous correlation patterns.
+
+MCA gained popularity in the field of meterology\footnote{According to \citet[][p. 225]{jolliffe_principal_2002}, the technique was first used in psychology in the 1950s under the name \textit{inter-battery factor analysis}. As a variant of Partial Least Squares (PLS), it was later applied in biomedical sciences by \citet{sampson_neurobehavioral_1989} and was referred to as \textit{PLS-SVD} by \citet{wegelin_survey_2000}. In meteorology, \citet{bretherton_intercomparison_1992} introduced the term \textit{SVD analysis}, which remains in use today \cite[e.g.][]{mori_reconciled_2019}. Occasionally,the method is also called \textit{Canonical Covariance Analysis}, similar to Canonical Correlation Analysis \cite[e.g.][]{cherry_singular_1996,hannachi_patterns_2021}.} through the works of \citet{bretherton_intercomparison_1992} and \citet{wallace_singular_1992}, since when it has been extensively applied \cite[e.g.][]{wallace_singular_1992,tsai_maximum_2009,li_north_2016,barreto_maximum_2017,mori_reconciled_2019,rathore_improving_2021}.
+
+The method's orthogonal patterns ensure efficient dimensionality reduction of the covariance but limit physical interpretability, similar to PCA. To enhance interpretability, rotation of the MCA solution can be employed, as proposed by \citet{cheng_orthogonal_1995}, and later applied by \citet{frankignoul_airsea_2005}. A composite matrix of the left and right singular vectors is constructed and a simplicity criterion (e.g. varimax) is applied:
+
+\begin{align}
+    \bm{V}_R = 
+    \begin{bmatrix}
+        \bm{V}_x\\
+        \bm{V}_y
+    \end{bmatrix}
+    M
+\end{align}
+
+In this case, $M$ is a diagonal matrix that weights the augmented pattern matrix. While \citet{cheng_orthogonal_1995} proposed $M=\Sigma^{1/2}$, this choice is not ideal as the singular values $\sigma_i$ are not directly related to the explained covariance of the patterns. Instead, it is more appropriate to weight each mode by the squared singular value, preserving the squared covariance fraction of the first $m$ modes before and after (orthogonal) rotation. Thus, we use
+
+\begin{align}
+    M = \Sigma
+\end{align}
+
+for the weighted (or "loaded") pattern vectors. 
+
+Beyond rotation for better interpretability, Hilbert MCA can be applied to capture the temporal evolution of coupled patterns, akin to Hilbert PCA (see Section~\ref{sec:theory:hilbert_pca}). This is especially useful for analyzing propagating patterns like the MJO, which involve covarying patterns in different climate variables, such as wind speed in the troposphere and lower stratosphere, and precipitation. By augmenting data with the Hilbert transform, we obtain complexified fields and solve the maximization problem (Equation~\eqref{eq:theory:mca_maximization}) for these augmented data, capturing the temporal evolution of coupled patterns. It seems that Hilbert MCA has seen limited application in climate science \cite[e.g.][]{elipot_observed_2017}. In this thesis we utilize the combined power of Hilbert and rotated MCA to identify and interpret coupled patterns of variability in the climate system.
+
+\paragraph{PCA, MCA and CCA}
+
+MCA reduces to PCA when both sets are identical. Furthermore, MCA can be viewed as two PCAs followed by rotation to align the results of the two analyses as closely as possible \cite{cherry_comments_1997}. MCA is also closely related to Canonical Correlation Analysis (CCA), which, instead of maximizing shared covariance, seeks patterns that maximize correlation. Unlike MCA, where pattern vectors are by construction orthogonal, yielding correlated expansion coefficients, CCA results in pattern vectors that are not necesarriliy orthogonal but produce uncorrelated canonical variates \cite{jolliffe_principal_2002,wilks_statistical_2019}. In fact, PCA, MCA and CCA can all be seen as special cases of a more general framework \cite{borga_unified_1997,swenson_continuum_2015}.
 
 
-\section{Canonical Correlation Analysis}
-Finally, it is worth noting that there exists a closely related linear dimensionality reduction technique called canonical correlation analysis, or CCA (Hotelling, 1936;Bach and Jordan, 2002). Whereas PCA works with a single random variable, CCA considers two (or more) variables and tries to find a corresponding pair of linear subspaces that have high cross-correlation, so that each component within one of the subspaces is correlated with a single component from the other subspace. Its solution can be expressed in terms of a generalized eigenvector problem.
-
-
-
-\subsection{Complex Canonical Correlation Analysis}
 
 \section{Neural Networks}
 \subsection{Introduction to Neural Networks}
