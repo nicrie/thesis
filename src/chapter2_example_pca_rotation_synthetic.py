@@ -1,4 +1,5 @@
 # %%
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
@@ -11,8 +12,18 @@ from utils.tools import get_figure_path
 plt.style.use("style/tex.mplstyle")
 plt.style.use("style/thesis.mplstyle")
 
+mpl.rcParams["font.size"] = 5
+mpl.rcParams["axes.linewidth"] = 0.5
+mpl.rcParams["xtick.major.width"] = 0.5
+mpl.rcParams["ytick.major.width"] = 0.5
+# Set the length of the ticks
+plt.rcParams["xtick.major.size"] = 0
+plt.rcParams["ytick.major.size"] = 0
+
 
 # %%
+# Create synthetic data
+# =============================================================================
 # Define am ARMA(1,0) model for simulation
 # Note: The AR parameter array must have 1 as the first element according to the convention used by the function
 def simulate_ar(n_samples, ar_params):
@@ -31,6 +42,22 @@ def simulate_ar(n_samples, ar_params):
 
 def normalize(signal, dim):
     return (signal - signal.mean(dim)) / signal.std(dim)
+
+
+def convert_signal_to_xarray(signal, coords):
+    return xr.DataArray(
+        signal,
+        dims=["time"],
+        coords={"time": coords},
+    )
+
+
+def convert_scaling_to_xarray(scaling, xcoords, ycoords):
+    return xr.DataArray(
+        scaling,
+        dims=["y", "x"],
+        coords={"y": ycoords, "x": xcoords},
+    )
 
 
 # Define the number of sampleslatex detexify
@@ -105,6 +132,8 @@ X = xr.DataArray(
 )
 
 # %%
+# Perform PCA variants
+# =============================================================================
 pca = xe.models.EOF(n_modes=10).fit(X, "time")
 scores = pca.scores()
 comps = pca.components()
@@ -127,22 +156,6 @@ print(expvar.values)
 print(spca_expvar.values)
 
 # %%
-
-
-def convert_signal_to_xarray(signal, coords):
-    return xr.DataArray(
-        signal,
-        dims=["time"],
-        coords={"time": coords},
-    )
-
-
-def convert_scaling_to_xarray(scaling, xcoords, ycoords):
-    return xr.DataArray(
-        scaling,
-        dims=["y", "x"],
-        coords={"y": ycoords, "x": xcoords},
-    )
 
 
 S1 = convert_signal_to_xarray(signal1, time)
@@ -180,17 +193,8 @@ for i in range(3):
 
 
 # %%
-
-import matplotlib as mpl
-
-mpl.rcParams["font.size"] = 5
-mpl.rcParams["axes.linewidth"] = 0.5
-mpl.rcParams["xtick.major.width"] = 0.5
-mpl.rcParams["ytick.major.width"] = 0.5
-# Set the length of the ticks
-plt.rcParams["xtick.major.size"] = 0
-plt.rcParams["ytick.major.size"] = 0
-
+# Create Figure
+# =============================================================================
 
 fig = plt.figure(figsize=(6.3, 6.3 * 3 / 8), dpi=500)
 gs = GridSpec(3, 10, figure=fig, width_ratios=[1, 0.1, 1, 1, 0.1, 1, 1, 0.1, 1, 1])
