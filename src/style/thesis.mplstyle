@@ -375,7 +375,7 @@ axes.edgecolor:     gray   # axes edge color
 #axes.grid:          False   # display grid or not
 #axes.grid.axis:     both    # which axis the grid should apply to
 #axes.grid.which:    major   # grid lines at {major, minor, both} ticks
-#axes.titlelocation: center  # alignment of the title: {left, right, center}
+axes.titlelocation:  left  # alignment of the title: {left, right, center}
 #axes.titlesize:     large   # font size of the axes title
 #axes.titleweight:   normal  # font weight of title
 #axes.titlecolor:    auto    # color of the axes title, auto falls back to
@@ -568,8 +568,8 @@ ytick.color:         gray   # color of the ticks
 #figure.titleweight: normal    # weight of the figure title
 #figure.labelsize:   large     # size of the figure label (``Figure.sup[x|y]label()``)
 #figure.labelweight: normal    # weight of the figure label
-#figure.figsize:     6.4, 4.8  # figure size in inches
-#figure.dpi:         100       # figure dots per inch
+figure.figsize:     7.0, 4.8  # figure size in inches
+figure.dpi:         300       # figure dots per inch
 #figure.facecolor:   white     # figure face color
 #figure.edgecolor:   white     # figure edge color
 #figure.frameon:     True      # enable figure frame
