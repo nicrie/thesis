@@ -52,9 +52,9 @@ timings = timings.min("run")
 eofs = timings.sel(solver=["eofs", "eofs_dask"]).min("solver")
 xeofs = timings.sel(solver=["xeofs", "xeofs_dask"]).min("solver")
 
-speed_ratio = xeofs / eofs
+speed_ratio = eofs / xeofs
 lvls = np.logspace(-2, 2, 10)
-speed_ratio.plot.contourf(levels=lvls, xscale="log", yscale="log", cmap="RdBu_r")
+speed_ratio.plot(xscale="log", yscale="log", cmap="RdBu_r")
 
 # %%
 
@@ -84,7 +84,7 @@ lvl_labels_ratio = ["100x", "50x", "20x", "5x", "2x", "2x", "5x", "20x", "50x", 
 speed_ratio.plot.contourf(
     ax=ax2,
     levels=lvls_ratio,
-    cmap="RdBu_r",
+    cmap="RdBu",
     cbar_kwargs={
         "ticks": mticker.FixedLocator(lvls_ratio),
         "format": mticker.FixedFormatter(lvl_labels_ratio),
@@ -182,5 +182,37 @@ ax3.set_title("C | Timings vs. number of features [in s]")
 path_fig = get_figure_path("chapter3", "performance_xeofs.pdf")
 fig.savefig(path_fig, bbox_inches="tight", format="pdf")
 
+
+# %%
+
+
+def perf_svd(N, D, M):
+    s2d = n_samples[:, None] * np.ones(n_features.size)
+    f2d = np.ones(n_samples.size)[:, None] * n_features[None, :]
+    return s2d * f2d * np.min(np.stack([s2d, f2d], axis=0))
+
+
+def perf_rsvd(N, D, M):
+    return N[:, None] * D[None, :] * np.log(M) + (N[:, None] + D[None, :]) * M**2
+
+
+n_samples = np.logspace(0, 5, 50)
+n_features = np.logspace(0, 5, 100)
+n_components = 2
+
+tt_svd = perf_svd(n_samples, n_features, 2)
+tt_rsvd = perf_rsvd(n_samples, n_features, 2)
+
+tt_svd = xr.DataArray(
+    tt_svd,
+    dims=["n_samples", "n_features"],
+    coords={"n_samples": n_samples, "n_features": n_features},
+)
+tt_rsvd = xr.DataArray(
+    tt_rsvd,
+    dims=["n_samples", "n_features"],
+    coords={"n_samples": n_samples, "n_features": n_features},
+)
+tt = xr.Dataset({"svd": tt_svd, "rsvd": tt_rsvd}).to_array("solver")
 
 # %%
