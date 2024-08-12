@@ -1,0 +1,7 @@
+{
+    "latex-workshop.latex.search.rootFiles.include": [
+        "thesis/**/*.tex",
+        "thesis/**/*.rnw",
+        "thesis/**/*.Rnw"
+    ]
+}
