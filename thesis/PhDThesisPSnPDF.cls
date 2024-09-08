@@ -531,6 +531,7 @@ supported!}
 
 % ****************************** Font Colors **********************************
 \RequirePackage{xcolor}
+\definecolor{mygrey}{HTML}{080808}
 \definecolor{secondarycolor}{rgb}{0.5, 0.5, 0.5}
 \colorlet{primarycolor}{red!40!black}
 
