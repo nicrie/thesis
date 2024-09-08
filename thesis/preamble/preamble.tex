@@ -57,9 +57,12 @@
 % ********************Captions and Hyperreferencing / URL **********************
 
 % Captions: This makes captions of figures use a boldfaced small font.
-\RequirePackage[labelsep=space,tableposition=top,small,bf]{caption}
-\renewcommand{\figurename}{Fig.} %to support older versions of captions.sty
+% \usepackage[textfont={color=ocre},figurename=Fig.,labelfont={bf}, labelsep=space,tableposition=top]{caption}
 
+\usepackage[tableposition=top]{caption}
+\DeclareCaptionLabelSeparator{emdash}{\;\textemdash\;}
+\DeclareCaptionFont{gray}{\color{gray}}
+\captionsetup{font={gray, small}, labelfont={bf},labelsep=emdash}
 
 % *************************** Graphics and figures *****************************
 
@@ -153,6 +156,48 @@
 \addbibresource{references/references.bib}
 
 
+% *****************************************************************************
+% ********* Higlight a desired "n-th" author in \fullcites  *******************
+% *****************************************************************************
+% Source: https://tex.stackexchange.com/a/445090/75215
+% Usage: \highlightnames{1}{\fullcite{sigfridsson}} to highlight the first author
+\makeatletter
+\newcommand*{\resetnamehighlights}{\let\nhcbx@highlightlist\@empty}
+\resetnamehighlights
+
+\newcommand*{\highlightnames}{%
+  \@ifstar{\resetnamehighlights\highlightnames@add}{\highlightnames@add}}
+
+\newcommand*{\highlightnames@add@inner}[2]{%
+  \listeadd{#1}{\the\numexpr#2\relax}}
+
+\newcommand*{\highlightnames@add}{%
+  \forcsvlist{\highlightnames@add@inner\nhcbx@highlightlist}}
+
+\newcommand*{\mkbibhighlightnthname}[1]{%
+  \xifinlist{\the\value{listcount}}{\nhcbx@highlightlist}
+    {\mkbibbold{#1}}
+    {#1}}
+\makeatother
+
+\DeclareNameWrapperFormat{highlightnthname}{%
+  \renewcommand*{\mkbibcompletename}{\mkbibhighlightnthname}%
+  #1}
+
+
+\DeclareCiteCommand{\fullcite}
+  {\usebibmacro{prenote}}
+  {\usedriver
+     {\DeclareNameWrapperAlias{author}{highlightnthname}%
+      \DeclareNameWrapperAlias{editor}{highlightnthname}%
+      \DeclareNameWrapperAlias{translator}{highlightnthname}%
+      \DeclareNameWrapperAlias{sortname}{highlightnthname}}
+     {\thefield{entrytype}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}}
+
+
+
 % ******************************************************************************
 % ************************* User Defined Commands ******************************
 % ******************************************************************************
@@ -243,6 +288,6 @@
 % --------------------------------
 
 % Section style
-\newcommand{\hsp}{\hspace{10pt}}
-\titleformat{\section}[hang]{\Large\bfseries}{\color{primarycolor}\thesection\hsp\textcolor{primarycolor}{|}\hsp}{0pt}{\Large\color{primarycolor} #1}
+% \newcommand{\hsp}{\hspace{5pt}}
+% \titleformat{\section}[hang]{\Large\bfseries}{\color{primarycolor}\thesection\hsp\textcolor{primarycolor}{|}\hsp}{0pt}{\Large\color{primarycolor} #1}
 
