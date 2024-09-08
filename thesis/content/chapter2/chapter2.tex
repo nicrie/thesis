@@ -25,18 +25,20 @@
 
 \chapter{Theoretical Foundations}\label{sec:theory}
 
+\mynote{Motivation for Dimensionality Reduction: Explain why dimensionality reduction is necessary in climate science. e.g. ERA5 contains more than 9 PB of data. Discuss the need to simplify complex datasets by identifying the most significant patterns and features, which can help in understanding underlying processes and improving predictability.}
+
 \section{Principal Component Analysis}
 \label{sec:theory:pca}
 Principal Component Analysis (PCA) is a statistical technique used to reduce the dimensionality of a dataset while preserving most of the variance. This is achieved by identifying the principal axes, which are the directions in which the data varies the most. These directions corresond to the eigenvectors of the covariance matrix of the data, with the associated eigenvalues representing the magnitude of variance along these directions. PCA is particularly useful for dimensionality reduction, data compression, feature extraction and visualization of high-dimensional datasets. 
 
 The origins of PCA can be traced back to \citet{pearson_lines_1901} in 1901 and \citet{hotelling_relations_1936} in 1936. It gained significant traction in meteorology through the work of \citet{lorenz_empirical_1956} in 1956, who introducted the technique under the term \textit{empirical orthogoanal function} (EOF) analysis\footnote{Although EOF analysis remains the preferred term in meteorology and climate science, we will use the more commonly recognized term, PCA.}. The method has since been extensively applied in meterology and climate science to identifiy dominant modes of variability in the atmosphere and oceans, as discussed in numerous textbooks \cite[e.g.][]{preisendorfer_principal_1988,jolliffe_principal_2002,storch_statistical_2003,hannachi_patterns_2021,wilks_statistical_2019,delsole_statistical_2022}. 
 
-In this section, we derive PCA from the maximum variance formulation\footnote{\citet{hotelling_relations_1936} originally proposed this formulation. An alternative derivation, known as the minimum error formulation by \citet{pearson_lines_1901}, seeks a linear projection that minimizes the average projection error, defined as the mean squared distance between the original data points and their projections.}, as outlined by \citet[][pp.~561-563]{bishop_pattern_2006}. This approach involves projecting the data onto a lower-dimensiona linear space, known as the principal subspace, to maximize the variance of the projected data. We will then explore the limitations of PCA, particularly in the context of climate science, and discuss common strategies to address these limitations.
+In this section, we derive PCA from the maximum variance formulation\footnote{\citet{hotelling_relations_1936} originally proposed this formulation. An alternative derivation, known as the minimum error formulation by \citet{pearson_lines_1901}, seeks a linear projection that minimizes the average projection error, defined as the mean squared distance between the original data points and their projections. This alternative approach shows that PCA is an optimal solution for approximating data in the squared error sense.}, as outlined by \citet[][pp.~561-563]{bishop_pattern_2006}. This approach involves projecting the data onto a lower-dimensiona linear space, known as the principal subspace, to maximize the variance of the projected data. We will then explore the limitations of PCA, particularly in the context of climate science, and discuss common strategies to address these limitations.
 
 \mynote{make link to Karhunen-Loève expansion}
 
 \subsection{Derivation from Maximum Variance Formulation}
-Consider a data set represented as a complex-valued, two-dimensional $N\times D$ matrix $\bm{Z}$, where $N$ denotes the number of observations (or samples) and $D$ the number of variables (or features). We will refer to the $n$\textsuperscript{th} observation as the $D$-dimensional vector $\bm{z}_n$. For simplicity, we assume the data is centered, meaning the mean of each variable is zero, i.e. $\bar{\bm{z}} = \frac{1}{N} \sum_{n=1}^{N} \bm{z}_n = \bm{0}$. The goal is to project the data onto an $M$-dimensional space ($M<D$) while maximizing the variance of the projected data. 
+Consider a data set represented as a complex-valued, two-dimensional $N\times D$ matrix $\bm{Z}$, where $N$ denotes the number of observations (or samples) and $D$ the number of variables (or features). We will refer to the $n$\textsuperscript{th} observation as the $D$-dimensional vector $\bm{z}_n$. For simplicity, we assume the data is centered, meaning the mean of each variable is zero, i.e. $\bar{\bm{z}} = \frac{1}{N} \sum_{n=1}^{N} \bm{z}_n = \bm{0}$. The goal is to project the data onto an $M$-dimensional space ($M<D$) of $M$ latent variables while maximizing the variance of the projected data.
 
 To start, consider a one-dimensional projection ($M=1$). We define the direction of this space using a $D$-dimensional unit\footnote{This normalization is for convenience and not necessary, since we are only interested in the direction of $\bm{v}_1$, not its magnitude.} vector $\bm{v}_1$, such that $\bm{v}_1^H\bm{v}_1=1$, where $\bm{v}_1^H$ denotes the conjugate transpose of $\bm{v}_1$. The data points $\bm{z}_n$ are then projected onto this direction, $\bm{v}_1^H\bm{z}_n$, and the variance of the projected data is 
 
@@ -149,6 +151,7 @@ Using this scaling, the Equation~\ref{eq:theory:pca_reconstruction} can be expre
 \end{align}
 
 
+
 \paragraph{Computational Considerations}
 
 The computational cost of performing eigendencomposition on the covariance matrix scales with $\order*{D^3}$, making it impractical for modern datasets, such as those in climate science, where typical data sizes are on the order of $D=\order*{10^6}$ or even larger. For example, ERA5 \cite{c3s_era5_2018}, a widely used reference for state-of-the-art reanalysis climate data, distributes a single climate variable on a regular \ang{0.25} grid, resulting in $D=\num{1036800}$ grid cells.
@@ -189,6 +192,10 @@ In the following sections, we will explore some of these shortcomings and propos
         \bottomrule
     \end{tabular}
 \end{table}
+
+\paragraph{Weighting of Data Variables}
+
+In some cases, it may be necessary to weight the data variables differently. This can be achieved by scaling the data matrix $\bm{Z}$ by a diagonal matrix $\bm{W}$, where the $j$\textsuperscript{th} diagonal element $w_j$ corresponds to the weight of the $j$\textsuperscript{th} variable. A very common situation is that the observed variables exhibit stark differences in their variance, which can sometimes lead to mask structure in the data as the PCA solution is solely driven by the different scales of variance (so the first principal axis will closely align to the variable with the highest variance) in which case the obvious choice is to use the inverse of the standard deviation of each variable, $w_j = 1/\sigma_j$, which ensures that all variables are equally weighted in which case the covariance matrix becomes the correlation matrix. Another common situation in climate science is that the physical fields are represented on regular longitude-latitude grids. This representation leads to a higher density of grid points near the poles, which typically results in an exaggerated importance of components spatially focused near the poles. To address this, the data matrix can be weighted by the square root of the cosine of the latitude \cite{north_latitude_1982}, $w_j = \cos(\text{lat}_j)$, where $\text{lat}_j$ is the latitude of the $j$\textsuperscript{th} grid point. This weighting ensures that the grid points are equally weighted in the PCA solution, regardless of their geographical location. In the following we will discuss some popular extensions of PCA together with a related multi-set method called Maximum Covariance Analysis (see Section~\ref{sec:theory:mca}), for which the latitude weighting can be applied in the same way.
 
 
 
@@ -329,6 +336,7 @@ The main advantage of Hilbert PCA is the ability to identify and reconstruct pro
 
 
 \section{Maximum Covariance Analysis}
+\label{sec:theory:mca}
 
 In contrast to finding latent variables that maximize covariance within a single dataset, Maximum Covariance Analyis (MCA) aims to identify the latent variables that are common in two sets of data and maximize covariance. For example, in the case of the MJO \cite{madden_detection_1971}, which is the dominant mode of intraseasonal variability in the tropical atmosphere, characterized by an eastward-moving cell of overturning wind circulation and associated regions of enhanced and supressed precipitation, MCA helps in findings shared dynaics between different variables. This method allows us to focus on shared variability while ignoring dominant variations associated with only one variable, such as diurnal cycles linked to surface processes absent at higher atmosphere levels.
 
@@ -435,6 +443,8 @@ Beyond rotation for better interpretability, Hilbert MCA can be applied to captu
 \paragraph{PCA, MCA and CCA}
 
 MCA reduces to PCA when both sets are identical. Furthermore, MCA can be viewed as two PCAs followed by rotation to align the results of the two analyses as closely as possible \cite{cherry_comments_1997}. MCA is also closely related to Canonical Correlation Analysis (CCA), which, instead of maximizing shared covariance, seeks patterns that maximize correlation. Unlike MCA, where pattern vectors are by construction orthogonal, yielding correlated expansion coefficients, CCA results in pattern vectors that are not necesarriliy orthogonal but produce uncorrelated canonical variates \cite{jolliffe_principal_2002,wilks_statistical_2019}. In fact, PCA, MCA and CCA can all be seen as special cases of a more general framework \cite{borga_unified_1997,swenson_continuum_2015}.
+
+
 
 
 

@@ -11,117 +11,140 @@
     \graphicspath{{content/chapter3/figs/vector/}{content/chapter3/figs/}}
 \fi
 
-From statistical models to applications: case studies and technology, Impact of cloud computing, AI, and machine learning.
-\section{Key Challenges}
-Reproducibility: Ensuring results can be replicated.
-Access to Methods: Democratizing advanced tools.
-Transparency: Building trust through open methods.
-FAIR Principles
+Over the last decades, the field of climate science has seen a rapid increase in the volume and complexity of available data \cite{overpeck_climate_2011}. This trend is driven by the growing number of Earth observation satellites, the development of high-resolution climate models, and the increasing availability of citizen science data. As a result, researchers are faced with the challenge of analyzing vast amounts of data to extract meaningful insights about the Earth's climate and evnironment system. To address this challenge, dimensionality reduction methods have become an essential tool for gaining a better understanding of complex climate processes.
 
+In the last chapter we briefly reviewed the theory for some commonly applied dimensionality reduction techniques in climate and environmental science. We showed that the combination of some useful and known extensions for PCA can be used to extend MCA to extract physically more meaningful patterns to analyze the shared dynamics between two distinct datasets. In this chapter, we will briefly describe
 
-Scientific software differs from traditional software engineering by prioritizing scientific goals, involving developers as domain experts, embracing agile-like and open source practices, and focusing on continuous evolution and unique verification methods, such as bit-level reproducibility, to support complex, evolving scientific inquiries (Easterbrook and Johns).
+how the ever-growing volume of climate data produces practical challenges for researchers in the application of these techniques and how the open-source software ecosystem has responded to these challenges. Specifically, Section \ref{sec:xeofs:introduction} will introduce the \texttt{xeofs} library, a Python package that aims to facilitate the application of scalable dimensionality reduction techniques in climate science. By providing a user-friendly interface to traditional and state-of-the-art methods specific to the climate science context, \texttt{xeofs} enables researchers to leverage the power of advanced data analysis techniques without the need for specialized expertise. This section is based upon the work presented in:
 
-\section{Current Solutions and Trends}
-
-Why Xarray and Dask?
-The Pangeo project strongly encourages the use of Xarray data structures wherever possible. Xarray Dataset and DataArrays contain multidimensional numeric array data and also the metadata describing the data’s coordinates, labels, units, and other relevant attributes. Xarray makes it easy to keep this important metadata together with the raw data; applications can then take advantage of the metadata to perform calculations or create visualizations in a coordinate-aware fashion. The use of Xarray eliminates many common bugs, reduces the need to write boilerplate code, makes code easier to understand, and generally makes users and developers happier and more productive in their day-to-day scientific computing.
-
-Xarray’s data model is explicitly based on the CF Conventions, a well-established community standard which encompasses many different common scenarios encountered in Earth System science. However, Xarray is flexible and does not require compliance with CF conventions. We encourage Pangeo packages to follow CF conventions wherever it makes sense to do so.
-
-Most geoscientists have encountered the CF data model via the ubiquitous netCDF file format. While Xarray can easily read and write netCDF files, it doesn’t have to. This is a key difference between software built on Xarray and numerous other tools designed to process netCDF data (e.g. nco, cdo, etc. etc.): Xarray data can be passed directly between python libraries (or over a network) without ever touching a disk drive. This “in-memory” capability is a key ingredient to the big data scalability of Pangeo packages. Very frequently the bottleneck in data processing pipelines is reading and writing files.
-
-Another important aspect of scalability is the use of Dask for parallel and out-of-core computations. The raw data underlying Xarray objects can be either standard in-memory numpy arrays or Dask arrays. Dask arrays behave nearly identically to numpy arrays (they support the same API), but instead of storing raw data, they store a symbolic computational graph of operations. An example computational graph would start by reading data from disk or network and then preform transformations or mathematical calculations. No operations are actually executed until actual numerical values are required, such as for making a figure. This is called lazy execution. Dask figures out how to execute these computational graphs efficiently on different computer architectures using sophisticated techniques. By chaining operations on dask arrays together, researchers can symbolically represent large and complex data analysis pipelines and then deploy them effectively on large computer clusters.
-
-
-Welcome to pyOpenSci
-We support the scientific Python tools that drive open science through peer review, training and community building.
-
-\paragraph{Data Repositories and Archives}
-
-Earth System Grid Federation (ESGF)
-Overview: ESGF is a global infrastructure that provides access to a vast array of climate data, including simulations from CMIP, observational datasets, and reanalysis products.
-Key Features: Distributed data storage, federated data access, and tools for data search, retrieval, and analysis.
-
-
-Copernicus Climate Change Service (C3S)
-Overview: C3S is part of the European Union's Copernicus program, providing information about the past, present, and future climate. It offers access to a wealth of climate data and analysis tools.
-Key Features: Climate data store, reanalysis datasets, and climate indicators.
-
-Climate Data Store (CDS)
-Overview: Managed by the European Centre for Medium-Range Weather Forecasts (ECMWF), CDS offers a wealth of climate data, including satellite observations, in situ data, and climate reanalysis.
-Key Features: Comprehensive data catalog, tools for data access and processing, APIs for integration.
-
-Copernicus Atmosphere Monitoring Service (CAMS)
-Overview: CAMS provides comprehensive data on atmospheric composition, including greenhouse gases, aerosols, and reactive gases. It supports climate monitoring and air quality forecasting.
-Key Features: Global data, forecasting capabilities, and detailed emissions inventories.
-
-\paragraph{Modelling and Simulation Platforms}
-
-CMIP (Coupled Model Intercomparison Project)
-Overview: CMIP coordinates climate model experiments that compare and analyze the outputs of various climate models from around the world. It plays a crucial role in assessing climate projections and understanding model uncertainties.
-Key Features: Standardized data formats, community-developed protocols, and a central repository for model outputs.
-
-Google Earth Engine
-Overview: A cloud-based platform for planetary-scale environmental data analysis. It provides access to a vast public data archive and powerful computing resources to analyze geospatial data.
-Key Features: Scalable cloud computing, extensive data catalog, APIs for custom analysis.
-
-OpenClimateGIS
-Overview: An open-source toolkit for accessing, analyzing, and visualizing climate data. It integrates with GIS tools to provide spatial analysis capabilities.
-Key Features: Python-based, support for various data formats, integration with GIS systems.
-
-JupyterHub for Science
-Overview: JupyterHub is an open-source platform that allows researchers to share computational resources, code, and data within a collaborative environment. It supports interactive computing and reproducibility.
-Key Features: Multi-user Jupyter notebooks, support for various programming languages, integration with cloud and HPC resources.
-
-Open Science Movement, FAIR, open access, open data, open-source software.
-
-Impact: Transforming research collaboration and dissemination.
-Python Libraries:
 \begin{itemize}
-    \item Xarray: Multi-dimensional arrays.
-    \item Dask: Scalable computing.
-    \item Zarr: Efficient storage.
-\end{itemize}
-Innovative Tools: Docker, Snakemake, Apache Airflow, Git/GitHub.
-
-other relevant open source software
-
-\section{Introduction to the xeofs Library}
-Overview: Design and key features
-Core Functionalities: PCA techniques and variants;
-Scalable computations; Integration with Python libraries;
-Pre- and post-processing; Custom methods and bootstrapping
-
-ensuring reproducibility and transparency through extensive collaborative coding, documentation and version control.
-Examples of reproducible research with xeofs. (all of our studies + other studies that have used xeofs)
-
-
-open source software helps 
-\begin{itemize}
-    \item to democratize access to cutting-edge tools and techniques, enabling researchers to focus on their scientific questions rather than technical challenges.
-    \item to improve reproducibility and transparency in research by providing open-source code that can be easily shared and reused by the community.
+    \item \highlightnames{1}{\fullcite{rieger_xeofs_2024}}
 \end{itemize}
 
 
-xeofs addresses this through the following tools and practices for reproducible Science
-\begin{itemize}
-    \item Version Control Systems: Discuss the use of version control systems like Git/Github for tracking changes in code and data.
-    \item Open Data Practices: Explain the importance of open data repositories and how they facilitate reproducibility (e.g., Zenodo, Figshare).
-    \item Documentation Standards: Emphasize the need for thorough documentation of methods, data, and code (readthedocs, sphinx, Jupyter Notebooks).
-\end{itemize}
-also address F.A.I.R principles
+\section{Scalable Open-Source Tools for Climate Data Analysis}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{overview_oss.pdf}
+    \caption[Evolution of the OSS ecosystem.]{Open-source software (OSS) projects for environmental science. Panel A shows the number of new OSS projects created per year with the relative importance of Python based projects. Panel B shows the relative share of programming languages used in all created OSS projects since 2010. Programming languages with a share $\leq \SI{0.5}{\percent}$ have been excluded. OSS project data is made available from \textit{Open Sustainable Technology} \cite{augspurger_open_2023}. Here we defined environmental science, we considered all projects in the categories "Atmosphere", "Climate Change", "Cryosphere", "Hydrosphere" or "Biosphere". Note that for 2024 the data includes only the first half of the year until August.}
+    \label{fig:xeofs:oss_overview}
+\end{figure}
 
 
-in particular xeofs allows for the following features:
+Climate science is a data-intensive field that relies on the analysis of large and complex datasets to understand the Earth's climate system. The increasing volume of available data poses a significant challenge for researchers, as traditional data analysis methods are often ill-suited to handle the scale and complexity of climate data. Additionally, the application of some of these techniques requires specialized knowledge and expertise, making them inaccessible to many researchers in the field. To bridge the gap between theory and scientific practice, software tools that lower the barrier to entry for non-experts are essential. Consequently, the field of climate science has seen a growing interest in the development of open-source tools that enable scalable and efficient data analysis. 
+
+One of the biggest challanges in climate science today is the exploding volume of climate data and the resulting challenge of data analytics, i.e. the ability to extract meaningful information from large, complex datasets \cite{schnase_big_2016}. 
+quotation: "the capacity to perform useful scientific analyses over large quantities of data in reasonable amounts of time."  (Schnase 2016). In many respects this is the biggest challenge, for without effective means for transforming large scientific data collections into meaningful scientific knowledge, our climate science mission fails.
+
+
+To avoid that the analysis of these large data sets remains in the hand of a selective group of "Wissende", it effectively requires free, robust and scalable software tools that allow researchers without specialized knwodlege in programming to  simplifying and managing the vast amounts of data produced by climate models \cite{easterbrook_engineering_2009}. 
+
+At the same time, over the last decade the open-source software (OSS) movement has gained significant momentum in the scientific community (Fig.~\ref{fig:xeofs:oss_overview}), with many researchers recognizing the benefits of OSS for fostering collaboration, improved transparency and reproducibility in scientific research \cite{krogh_community_2003,ince_case_2012,millman_developing_2018}. In particular, the high-level, general-purpose programming language Python has emerged as one of the most popular tools for scientific computing (Fig.~\ref{fig:xeofs:oss_overview}~B), due to its ease of use, extensive library support, and vibrant community of developers. Prime examples of the success of collaborative open-source software development in the scientific community are the \textit{NumPy} \cite{oliphant_python_2007,harris_array_2020}, \textit{SciPy} \cite{oliphant_python_2007,virtanen_scipy_2020} and \textit{Matplotlib} \cite{hunter_matplotlib_2007} libraries, which have become essential tools for scientific computing and visualizations in Python contributing to the deomcratization of scientific tools and techniques and spurring innvoation and scientific discovery \cite{sonnenburg_need_2007}.
+
+Specifically for geoscience, the \textit{Pangeo} project \cite{pangeo} has been a key driver in promoting the use of open-source, high-quality scientific software for big data geoscience that allow researchers to handle petabyte-scale datasets on HPC and cloud platforms. Among others, two key cornerstones of the Pangeo software ecosystem are the open sources Python packages \textit{xarray} \cite{hoyer_xarray_2017} and \textit{dask} \cite{dask_development_team_dask_2016}. On the one hand side, xarray introduces labels in the form of dimensions, coordinates, and attributes on top of raw NumPy-like arrays, which allows for more intuitive, more concise, and less error-prone user experience. On the other hand side, dask faciliates parallel and distributed out-of-memory computing of datasets. Both tools in combination facilitate the analysis of large climate datasets by providing a scalable, efficient and simple way to handle the vast amounts of data produced by climate models, enabling researchers to focus on their scientific questions rather than technical challenges.
+
+
+\section{Technical Barriers in Large-Scale and Multi-Dimensional Data Analysis}
+\label{sec:xeofs:challenges}
+Climate data analysis often involves the application of multivariate statsitical analysis and dimensionality reduction techniques to extract meaningful patterns from large labeled datasets. In Chapter~\ref{sec:theory} we only presented a tiny fraction of the vast universe of statistical methods for pattern identification in environment and climate science \cite{hannachi_patterns_2021,hsieh_introduction_2023}. Commonly, these methods rely on a fundamendal assumption: data can be represented as a compilation of observations (or samples) of certain variables (or features). This forms a 2D matrix. Yet, when examining data commonly encountered in Earth observations, be it climate simulations or satellite data, two characteristics of the data stand out:
+
 \begin{enumerate}
-    \item Streamlined Data Analysis for various PCA techniques and variants: xeofs facilitates the application of dimensionality reduction techniques such as EOF analysis (commonly referred to as Principal Component Analysis (PCA) in other fields). This is crucial for extracting meaningful patterns from large, multi-dimensional datasets commonly encountered in climate science.
-    \item Scalable computations with dask and zarr: efficient scaling of computations across multiple cores or clusters; allows for out-of-memory processing and improved performance thanks to randomized SVD; essential for handling the extensive datasets typical in climate research
-    \item Seamless Integration with state-of-the-art Python libaries: xarray, dask, and zarr; ensures compatibility with existing workflows and tools, simplifying the analysis process, scikit-learn interface
-    \item streamlines pre and postprocessing steps like normalization, weighting and handling of missing values
-    \item bootstrapping module for PCA model evaluation
-    \item Custom dimensionality reduction methods: allows for the introduction of custom dimensionality reduction methods, crucial for researchers who require specialized analysis techniques tailored to their unique data and research questions
+    \item Multi-dimensional Nature: The data spans multiple dimensions, including spatial coordinates (longitude, latitude, height), time metrics (time, steps, forecast lead times), and other categories (variable types, sensors).
+    \item Large Volume: These datasets are often enormous, frequently exceeding the memory capacity of a single computer.
 \end{enumerate}
 
-\mynote{performance analysis of full SVD compared to randomized SVD; xeofs vs. eofs; reference back to Theory PCA}
+These two aspects have probably been the key drivers for the de-facto adoption of xarray and dask as the standard in the Python ecosystem when it comes to handling large, multi-dimensional data such as climate and Earth observations.
+
+However, applying dimensionality reduction techniques like the ones discussed in Section~\ref{sec:theory} can pose challenges to researchers. The typical data processing pipeline for a climate data set (with dimesions time longitude and latitude) includes applying the desired variable weighting, removing invalid grid points (e.g. sea surface temperature with land grid cells), transforming the multidimensional dataset into a 2D matrix format using xarray which is then fed into packages like scikit-learn or dask for out-of-memory computations. These factors can make the analysis of large data sets cumbersome for the researcers. For instance, if one is interested in producing an approximate reconstruction of the original datafield using the first $M$ modes of PCA, after obtaining the 2D reconstruction (e.g. from scikit-learn) one has to reshape the data into its original in its multidimensioal form, reinsert land grid cells and unweight the data.  While manageable, this process is cumbersome, error-prone, and time-consuming task.
+
+Earlier efforts in this regard have been the development of the python libraries \textit{eofs} \cite{dawson_eofs_2016} and \textit{xMCA} \cite{he_xmca_2020} which addressed PCA and MCA in particular. However, these libaries exhibit limitations when it comes to xarray and dask compatibility, which are essential for handling large climate datasets. For example, there is no support for xarray's fundamental \texttt{Dataset} object and neither of both makes use of randomized linear algebra \cite{halko_finding_2011,erichson_randomized_2019} to greatly speed up the computations. 
+
+In addition, climate scienctist often require more than just the dimensionality reduction itself. They need to assess the significance of the extracted patterns, e.g. by performing a bootstrapping analysis to determine the significance of the modes. This requires additional code and expertise, which can be a barrier to entry for many researchers.
+
+And finally, many classical and traditional methods developed over the last decades in and for climate science to extract meaningful patterns to the best of our knowldege have not been implemented in Python/xarray. This can make it difficult for researchers to apply these methods to their data, limiting the range of techniques available to them. 
+
+\section{\textit{xeofs}: Extracting Meaningful Patterns from Climate Data}
+\label{sec:xeofs:introduction}
+
+Here we briefly introduce the \texttt{xeofs} library \cite{rieger_xeofs_2024}, a Python package that aims to facilitate the application of scalable dimensionality reduction techniques in climate science by providing a user-friendly interface to traditional and state-of-the-art methods specific to the climate science context. It provides a collection of widely-used dimensionality reduction techniques, focusing on methods prevalent in climate sciences. At the same time, the package development follows the common rules of scientific programming \cite{balaban_ten_2021}, clean coding and test design \cite{hunter-zinck_ten_2021}, version control \cite{perez-riverol_ten_2016}, robustness \cite{taschuk_ten_2017}, usability \cite{list_ten_2017}, documentation \cite{lee_ten_2018} and common rules of open software development \cite{prlic_ten_2012}. Specifically for Python, we xeofs largely follows the guidelines and best practices presented by the Pangeo project \cite{pangeo} and \textit{pyOpenSci} Packaging Guide \cite{wasser_pyopenscipython-package-guide_2024}.
+
+The three key features of the \texttt{xeofs} library are:
+\begin{description}
+    \item[Multi-Dimensioal \& Labeled Data] Designed for xarray objects, xeofs applies dimensionality reduction to multi-dimensional data while maintaining data labels being based on xarray's DataArray and Dataset objects.
+    \item[Out-of-Memory Computations] Supports large datasets via dask xarray objects, allowing researchers to analyze data that exceeds the memory capacity of a single computer and facilitates scaling up to terabyte computations on HPCs.
+    \item[Computationally Efficient] Ensures computational efficiency, especially with large datasets through randomized linear algebra, which greatly speeds up the computations. A experimental comparison of the performance of the \texttt{xeofs} with the \texttt{eofs} library for conducting PCA on various data sizes shows that the xeofs librarby performance is about one order of magnitude faster for moderate to larger data sets (Fig.~\ref{fig:xeofs:performance}).
+\end{description}
+
+Secondary, additional nice-to-have features of the \texttt{xeofs} library include:
+
+\begin{description}
+    \item[Handling Missing Values] Can manage common cases of missing values such as masked ocean or land cells.
+    \item[Weighted Analysis] Supports weighted analysis, allowing researchers to apply different weights to the data before performing dimensionality reduction. Binary TrueFalse switches for common weighting schemes (i.e. standard deviation, cosine of latitude; see Section~\ref{sec:theory:pca}) are provided.
+    \item[Significance Testing] Provides a user-friendly interface for significance testing using bootstrapping \cite{efron_bootstrap_1979}.
+    \item[Model Serialization] Allows users to save and load trained models in HDF5, Climate and Forecast (CF) convention-compatible netCDF4 \cite{hassell_data_2017} or cloud optimized Zarr formats \cite{alistair_miles_2020_3773450}.
+\end{description}
+
+All this is written in a modular, object-oriented way to make the package easily extendable to implement and include new dimensionality reduction methods.
+
+All this is offered via an easy-to-use API that allows researchers to apply dimensionality reduction techniques to their climate data with minimal effort. The \texttt{xeofs} library is available on the Python Package Index (PyPI) and can be installed via pip. The source code is hosted on GitHub, where users can contribute to the development of the library and report issues or bugs. The library is licensed under the MIT license, making it free to use and modify for both academic and commercial purposes.
 
 
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{performance_xeofs.pdf}
+    \caption{Performance of Python library xeofs.}
+    \label{fig:xeofs:performance}
+\end{figure}
+
+
+\begin{table}
+    \caption{Even better looking table using booktabs}
+    \centering
+    \label{table:good_table}
+    \begin{tabular}{l r c}
+        \toprule
+        & Method & Reference \\ 
+        \midrule
+        Single-Set Analysis & PCA & \cite{pearson_lines_1901,hotelling_relations_1936,lorenz_empirical_1956} \\
+        & Complex PCA & 0.56 \\
+        & Hilbert PCA & 0.63 \\
+        & Rotated PCA & 0.02 \\
+        & Extended PCA & 0.02 \\
+        & GWPCA & 0.02 \\
+        & Sparse PCA & 0.09  \\
+        & POP & 0.05  \\ 
+        & OPA & 0.05  \\ 
+        \midrule
+        Cross-Set Analysis & CCA & 0.05  \\ 
+        & RDA & 0.05  \\ 
+        & MCA & 0.05  \\ 
+        & CPCCA & 0.05  \\ 
+        & Complex CCA & 0.05  \\ 
+        & Complex RDA & 0.05  \\ 
+        & Complex MCA & 0.05  \\ 
+        & Hilbert CCA & 0.05  \\ 
+        & Hilbert RDA & 0.05  \\ 
+        & Hilbert MCA & 0.05  \\ 
+        & Rotated MCA & 0.05  \\
+        & Rotated CPCCA & 0.05  \\
+        \midrule
+        Multi-Set Analysis & CCA & 0.05  \\ 
+        & Regularized CCA & 0.05  \\ 
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\mynote{combinations are sometimes also possible, like complex rotated PCA, or hilbert rotated PCA}
+\mynote{some methods are in climate science better known under the name using EOF analysis instead of PCA, such as Extended EOF analysis}
+\mynote{rotated methods include varimax and promax rotation schemes}
+\mynote{mention cca-zoo and ristretto libary}
+
+
+
+\section*{outlook}
+
+implement additional state of the art methods \cite{bueso_nonlinear_2020,guilloteau_rotated_2020} and more bootstrapping methods for e.g. MCA and rotated PCA \cite{timmerman_estimating_2007}.
