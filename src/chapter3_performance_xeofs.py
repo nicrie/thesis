@@ -45,7 +45,7 @@ def fmt(x):
 
 # %%
 
-data = xr.open_dataset("../data/xeofs/timings_xeofs_eofs.nc")
+data = xr.open_dataset("../data/chapter3/timings_xeofs_eofs.nc")
 nbytes = data["nbytes"]
 timings = data[["eofs", "eofs_dask", "xeofs", "xeofs_dask"]].to_array("solver")
 timings = timings.min("run")
