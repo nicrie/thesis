@@ -1,12 +1,18 @@
 # %%
 
+from string import ascii_uppercase as LETTERS
+
 import cartopy.crs as ccrs
+import matplotlib as mpl
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import numpy as np
 import seaborn as sns
 import xarray as xr
 import xeofs as xe
+from cartopy.feature import LAND, OCEAN
 from cycler import cycler
+from matplotlib.gridspec import GridSpec
 from xarray.backends.api import open_datatree
 
 from utils.plotting import shift_cmap
@@ -20,10 +26,10 @@ clrs = sns.color_palette("tab20", n_colors=8, desat=0.9)
 
 default_cycler = cycler(color=[clrs[0], clrs[1], clrs[6], clrs[7]])
 plt.rc("axes", prop_cycle=default_cycler)
-# mpl.rcParams["font.size"] = 5
-# mpl.rcParams["axes.linewidth"] = 0.5
-# mpl.rcParams["xtick.major.width"] = 0.5
-# mpl.rcParams["ytick.major.width"] = 0.5
+mpl.rcParams["font.size"] = 7
+mpl.rcParams["axes.linewidth"] = 0.5
+mpl.rcParams["xtick.major.width"] = 0.5
+mpl.rcParams["ytick.major.width"] = 0.5
 
 
 def compute_angle(x):
@@ -87,11 +93,12 @@ possible_shifts = np.exp(-1j * phis)
 possible_shifts = xr.DataArray(possible_shifts, dims=["shift"], coords={"shift": phis})
 P0_shifted = P0 * possible_shifts
 all_corrs = xr.corr(indexes.to_array("index"), P0_shifted.real, dim="time")
-max_idx = all_corrs.argmax("shift").sel(index="PDO", mode=8)
+max_idx = all_corrs.argmax("shift").sel(index="OWI", mode=2)
 phis[max_idx]
 
 
 phi = np.zeros(Q0.mode.size, dtype=float)
+phi[1] = 0.2856
 phi[2] = 1.3645
 phi[3] = 2.6793
 phi[4] = -1.428
@@ -131,10 +138,7 @@ mode2index = {
 # %%
 # Plotting
 # =============================================================================
-mode = 3
-
-from cartopy.feature import LAND, OCEAN
-from matplotlib.gridspec import GridSpec
+mode = 1
 
 scf = SCF.sel(mode=mode).values
 ccoeff = CORR.sel(mode=mode).values
@@ -151,8 +155,8 @@ map_proj = {
     "prcp": ccrs.EqualEarth(central_longitude=0),
 }
 
-fig = plt.figure(figsize=(7, 4.5))
-gs = GridSpec(3, 3, figure=fig, width_ratios=[1, 1, 0.02], hspace=0.08, wspace=0.00)
+fig = plt.figure(figsize=(7, 4.7))
+gs = GridSpec(3, 3, figure=fig, width_ratios=[1, 1, 0.02], hspace=0.15, wspace=0.00)
 ax1 = fig.add_subplot(gs[0, 0], projection=map_proj["sst"])
 ax2 = fig.add_subplot(gs[0, 1], projection=map_proj["prcp"])
 ax3 = fig.add_subplot(gs[1, 0], projection=map_proj["sst"])
@@ -199,14 +203,19 @@ index = mode2index[mode]
 if index is not None:
     max_corr = all_corrs.sel(mode=mode).max(("shift", "index"))
     label = f"{index} ($r_p$: {max_corr:.2f})"
-    indexes[index].plot(ax=ax5, lw=1, color=clrs[2], label=label)
+    indexes[index].plot(ax=ax5, lw=1, color=clrs[2], label=label, alpha=0.7)
 
 
 ax1.set_title(f"Sea Surface Temperature \n{fve_x*100:.1f} %", loc="center")
 ax2.set_title(f"Precipitation \n{fve_y*100:.1f} %", loc="center")
 ax5.set_title("")
 ax5.text(
-    0.02, 1, "Expansion Coefficients", ha="left", va="top", transform=ax5.transAxes
+    0.02,
+    1,
+    "(E) | Expansion Coefficients",
+    ha="left",
+    va="top",
+    transform=ax5.transAxes,
 )
 ax5.text(0.5, 1, f"Mode {mode}", ha="center", va="top", transform=ax5.transAxes)
 ax5.text(
@@ -231,10 +240,35 @@ for ax in ax_scores:
     ax.set_xlabel("")
     ax.set_ylabel("")
 
+# Add gridlines
+gl1 = ax1.gridlines(draw_labels=["left"], linewidth=0.3)
+gl2 = ax2.gridlines(draw_labels=False, linewidth=0.3)
+gl3 = ax3.gridlines(draw_labels={"left": "y", "bottom": "x"}, linewidth=0.3)
+gl4 = ax4.gridlines(draw_labels=["bottom"], linewidth=0.3)
+for gl in [gl1, gl2, gl3, gl4]:
+    #     gl.xlocator = mticker.FixedLocator([-120, -60, 0, 60, 120, 180])
+    gl.ylocator = mticker.FixedLocator([-30, 0, 30])
+    gl.xlabel_style = {"size": "small"}
+    gl.ylabel_style = {"size": "small"}
 
+
+# Add legend to scores plot
 ax5.legend(loc="upper left", frameon=False, bbox_to_anchor=(0.95, 0.9))
 ax5.axhline(0, color=".8", lw=0.7, ls="--", zorder=0)
 sns.despine(ax=ax5, trim=True)
+
+# Add letters for subplots
+for ax, letter in zip(ax_comps, LETTERS):
+    ax.text(
+        0.02,
+        1.02,
+        f"({letter})",
+        transform=ax.transAxes,
+        va="bottom",
+        ha="left",
+    )
+
+
 # Save figure
 save_to = get_figure_path("chapter4", f"tele_mode{mode:02d}.pdf")
 plt.savefig(save_to, bbox_inches="tight")
