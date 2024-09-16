@@ -1,7 +1,7 @@
 ## Additional extension-specific rules.
 # Ignore folders
 admin
-
+revisions
 # Python stuff
 __pycache__
 
