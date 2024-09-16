@@ -154,7 +154,7 @@ Using this scaling, the Equation~\ref{eq:theory:pca_reconstruction} can be expre
 
 \paragraph{Computational Considerations}
 
-The computational cost of performing eigendencomposition on the covariance matrix scales with $\order*{D^3}$, making it impractical for modern datasets, such as those in climate science, where typical data sizes are on the order of $D=\order*{10^6}$ or even larger. For example, ERA5 \cite{c3s_era5_2018}, a widely used reference for state-of-the-art reanalysis climate data, distributes a single climate variable on a regular \ang{0.25} grid, resulting in $D=\num{1036800}$ grid cells.
+The computational cost of performing eigendencomposition on the covariance matrix scales with $\order*{D^3}$, making it impractical for modern datasets, such as those in climate science, where typical data sizes are on the order of $D=\order*{10^6}$ or even larger. For example, ERA5 \cite{c3s_era5_hourly_single}, a widely used reference for state-of-the-art reanalysis climate data, distributes a single climate variable on a regular \ang{0.25} grid, resulting in $D=\num{1036800}$ grid cells.
 
 In practice, more efficient algorithms, such as SVD or power methods~\cite{golub_matrix_2013}, have been employed traditionally employed. Recently,randomized low-rank approximation techniques~\cite{drineas_clustering_2004,halko_finding_2011} have further reduced computational complexity to $\order*{ND \log(M) + \ab(N+D)M^2}$. These advancements offer feasible alternatives for handling large, out-of-memory datasets (see Table~\ref{tab:pca_algorithm_complexity}).
 
