@@ -122,7 +122,7 @@ for ax in [ax1, ax2]:
 axes[0, 0].legend(loc="upper left", ncols=2, frameon=False)
 axes[0, 0].set_xscale("log")
 axes[0, 0].set_xlim(5e-3, 0.3)
-axes[0, 0].set_ylim(0, 0.5)
+axes[0, 0].set_ylim(0, 0.25)
 axes[0, 0].set_ylabel("Power [$1/$ cycles month$^{-1}$]")
 axes[1, 0].set_ylabel("Power [$1/$ cycles month$^{-1}$]")
 axes[2, 0].set_ylabel("Power [$1/$ cycles month$^{-1}$]")
