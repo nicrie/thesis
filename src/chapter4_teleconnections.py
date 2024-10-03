@@ -28,8 +28,8 @@ default_cycler = cycler(color=[clrs[0], clrs[1], clrs[6], clrs[7]])
 plt.rc("axes", prop_cycle=default_cycler)
 mpl.rcParams["font.size"] = 7
 mpl.rcParams["axes.linewidth"] = 0.5
-mpl.rcParams["xtick.major.width"] = 0.5
-mpl.rcParams["ytick.major.width"] = 0.5
+mpl.rcParams["xtick.major.width"] = 0.3
+mpl.rcParams["ytick.major.width"] = 0.3
 
 
 def compute_angle(x):
@@ -41,13 +41,28 @@ def compute_angle(x):
 # =============================================================================
 case_study = "tele"
 alpha = 0.2
+power = 1
 model = "rotated_hilbert_cpcca"
 root_dir = f"/home/nrieger/Projects/cpcca/{case_study}/"
-rot = xe.cross.HilbertCPCCARotator.load(root_dir + f"models/{model}_{alpha:.2f}")
-dt = open_datatree(root_dir + f"models/{model}_{alpha:.2f}_individual", engine="zarr")
+rot = xe.cross.HilbertCPCCARotator.load(
+    root_dir + f"models/{model}_{alpha:.2f}_p{power}"
+)
+dt = open_datatree(
+    root_dir + f"models/{model}_{alpha:.2f}_p{power}_individual", engine="zarr"
+)
 
+model = xe.cross.HilbertCPCCA.load(root_dir + f"models/hilbert_cpcca_{alpha:.2f}")
+model.compute()
+model.data["input_data1"] = model.data["input_data1"].load()
+model.data["input_data2"] = model.data["input_data2"].load()
+
+model_SCF = model.squared_covariance_fraction()
+singular_values_rotated = np.sqrt(rot.data["squared_covariance"])
+singular_values = rot.model_data["singular_values"].load()
+
+
+# %%
 lbda = np.sqrt(rot.data["squared_covariance"].load())
-
 idx_sorted = np.argsort(dt["scf"].values)[::-1]
 dt = dt.isel(mode=idx_sorted).assign_coords(mode=dt.mode)
 
@@ -87,23 +102,11 @@ corr_factor = (n - 1) / n
 CORR = CORR * corr_factor
 
 # Apply phase shift so that the dominant patterns has a phase of 0
-# compute lagged correlation between P0.real and indexes phase shifting P0 from -PI to PI to find the best phase shift
-phis = np.linspace(-np.pi, np.pi, 100)
-possible_shifts = np.exp(-1j * phis)
-possible_shifts = xr.DataArray(possible_shifts, dims=["shift"], coords={"shift": phis})
-P0_shifted = P0 * possible_shifts
-all_corrs = xr.corr(indexes.to_array("index"), P0_shifted.real, dim="time")
-max_idx = all_corrs.argmax("shift").sel(index="OWI", mode=2)
-phis[max_idx]
+lonlats_max = Qhet0.fillna(0).argmax(dim=["lat", "lon"])
+lon_p = lonlats_max["lon"]
+lat_p = lonlats_max["lat"]
+phi = np.angle(Q0.isel(lon=lon_p, lat=lat_p))
 
-
-phi = np.zeros(Q0.mode.size, dtype=float)
-phi[1] = 0.2856
-phi[2] = 1.3645
-phi[3] = 2.6793
-phi[4] = -1.428
-phi[6] = 0.5 * np.pi
-phi[7] = 1.872
 shift = np.exp(-1j * phi)
 shift = xr.DataArray(shift, dims="mode", coords={"mode": Q0.mode})
 
@@ -114,32 +117,34 @@ P1 = P1 * shift
 Q0 = Q0 * shift
 Q1 = Q1 * shift
 
+# Correlation between indexes and (phase-shifted) scores
+all_corrs = xr.corr(indexes.to_array("index"), P0.real, dim="time")
+
 # Phases
-
 Qp0, Qp1 = compute_angle(Q0), compute_angle(Q1)
-Qp0 = Qp0.where(Qhet0 > 0.2)
-Qp1 = Qp1.where(Qhet1 > 0.2)
+phase_threshold = 0.25
+Qp0 = Qp0.where(Qhet0 > phase_threshold)
+Qp1 = Qp1.where(Qhet1 > phase_threshold)
 
-Qhet0 = Qhet0.where(Qhet0 > 0.2)
-Qhet1 = Qhet1.where(Qhet1 > 0.2)
-
-mode2index = {
-    1: None,
-    2: "OWI",
-    3: "ONI",
-    4: "EMI",
-    5: "AMMSST",
-    6: None,
-    7: None,
-    8: "PDO",
-}
+Qhet0 = Qhet0.where(Qhet0 > phase_threshold)
+Qhet1 = Qhet1.where(Qhet1 > phase_threshold)
 
 
 # %%
 # Plotting
 # =============================================================================
-mode = 1
+mode = 2
 
+mode2index = {
+    1: None,
+    2: "OWI",
+    3: "ONI",
+    4: None,
+    5: "AMMSST",
+    6: None,
+    7: "PDO",
+    8: None,
+}
 scf = SCF.sel(mode=mode).values
 ccoeff = CORR.sel(mode=mode).values
 fve_x = FVE_X.sel(mode=mode).values
@@ -169,9 +174,10 @@ cax_phase = fig.add_subplot(gs[1, 2])
 ax_comps = [ax1, ax2, ax3, ax4]
 ax_scores = [ax5]
 
-
+levels = [0, 0.25, 0.4, 0.55, 0.7, 0.95]
+# levels = [0, 0.25, 0.35, 0.45, 0.55, 0.65]
 limits = {
-    "levels": [0, 0.2, 0.4, 0.6, 0.8, 1],
+    "levels": levels,
     "cmap": cmap["amplitude"],
     "transform": data_proj,
     "cbar_ax": cax_amp,
@@ -201,7 +207,7 @@ P0.real.sel(mode=mode).plot(ax=ax5, alpha=0.5, label="SST")
 P1.real.sel(mode=mode).plot(ax=ax5, alpha=0.5, label="PRCP")
 index = mode2index[mode]
 if index is not None:
-    max_corr = all_corrs.sel(mode=mode).max(("shift", "index"))
+    max_corr = all_corrs.sel(mode=mode, index=mode2index[mode]).item()
     label = f"{index} ($r_p$: {max_corr:.2f})"
     indexes[index].plot(ax=ax5, lw=1, color=clrs[2], label=label, alpha=0.7)
 
@@ -240,11 +246,13 @@ for ax in ax_scores:
     ax.set_xlabel("")
     ax.set_ylabel("")
 
+
 # Add gridlines
-gl1 = ax1.gridlines(draw_labels=["left"], linewidth=0.3)
-gl2 = ax2.gridlines(draw_labels=False, linewidth=0.3)
-gl3 = ax3.gridlines(draw_labels={"left": "y", "bottom": "x"}, linewidth=0.3)
-gl4 = ax4.gridlines(draw_labels=["bottom"], linewidth=0.3)
+gl_kws = {"linewidth": 0.2, "color": ".8"}
+gl1 = ax1.gridlines(draw_labels=["left"], **gl_kws)
+gl2 = ax2.gridlines(draw_labels=False, **gl_kws)
+gl3 = ax3.gridlines(draw_labels={"left": "y", "bottom": "x"}, **gl_kws)
+gl4 = ax4.gridlines(draw_labels=["bottom"], **gl_kws)
 for gl in [gl1, gl2, gl3, gl4]:
     #     gl.xlocator = mticker.FixedLocator([-120, -60, 0, 60, 120, 180])
     gl.ylocator = mticker.FixedLocator([-30, 0, 30])
@@ -270,7 +278,103 @@ for ax, letter in zip(ax_comps, LETTERS):
 
 
 # Save figure
-save_to = get_figure_path("chapter4", f"tele_mode{mode:02d}.pdf")
+save_to = get_figure_path("chapter4", f"tele_mode{mode:02d}_power{power}.pdf")
+plt.savefig(save_to, bbox_inches="tight")
+
+# %%
+# Figure Squared Covariance Fraction and related measures
+# =============================================================================
+default_cycler = cycler(color=clrs)
+plt.rc("axes", prop_cycle=default_cycler)
+
+fig = plt.figure(figsize=(7.2, 3))
+gs = GridSpec(1, 3, figure=fig)
+ax1 = fig.add_subplot(gs[0, 0])
+ax2 = fig.add_subplot(gs[0, 1])
+ax3 = fig.add_subplot(gs[0, 2])
+axes = [ax1, ax2, ax3]
+
+SCF.plot(ax=ax1, marker=".")
+model_SCF.plot(ax=ax1, marker=".")
+SCF.cumsum().plot(ax=ax1)
+model_SCF.cumsum().plot(ax=ax1)
+
+singular_values_rotated.plot(ax=ax2)
+singular_values.plot(ax=ax2)
+singular_values_rotated.cumsum().plot(ax=ax2)
+singular_values.cumsum().plot(ax=ax2)
+
+(singular_values_rotated**2).plot(ax=ax3, label="Rotated", color=clrs[0])
+(singular_values_rotated**2).cumsum().plot(
+    ax=ax3, label="Rotated (cumulative)", color=clrs[2]
+)
+(singular_values**2).plot(ax=ax3, label="Non-rotated", color=clrs[1])
+(singular_values**2).cumsum().plot(
+    ax=ax3, label="Non-rotated (cumulative)", color=clrs[3]
+)
+
+
+ax1.set_xlim(0.5, 40)
+ax2.set_xlim(0, 40)
+ax3.set_xlim(0, 40)
+
+ax1.set_ylim(1e-4, 1.25)
+ax2.set_ylim(1e-1, 3e1)
+ax3.set_ylim(1e-1, 3e1)
+
+for ax in axes:
+    ax.set_yscale("log")
+    ax.set_xlabel("Mode")
+    ax.set_ylabel("")
+    ax.grid(True, which="major", axis="y", **{"lw": 0.2})
+
+ax1.set_yticks([1e-4, 1e-3, 1e-2, 0.1, 1])
+ax1.set_yticklabels(["0.01 %", "0.1 %", "1%", "10%", "100 %"])
+
+# ax2.axvline(31, ls="--", lw=0.2, color=".5")
+# ax3.axvline(31, ls="--", lw=0.2, color=".5")
+
+ax1.set_title("A | Squared Covariance Fraction (SCF)")
+ax2.set_title("B | Singular Values $\sigma$")
+ax3.set_title("C | Squared Singular Values $\sigma^2$")
+
+ax3.legend(ncols=1, bbox_to_anchor=[0, 0], loc="lower left", frameon=False)
+
+
+# inset axes
+x1, x2 = 30, 32
+axins1 = ax1.inset_axes([0.4, 0.65, 0.6, 0.2], xlim=(0.5, 10.5), ylim=(0.98, 1.20))
+axins2 = ax2.inset_axes(
+    [0.7, 0.55, 0.3, 0.2], xlim=(x1, x2), ylim=(21, 25), xticklabels=[], yticklabels=[]
+)
+axins3 = ax3.inset_axes(
+    [0.7, 0.55, 0.3, 0.2], xlim=(x1, x2), ylim=(17, 21), xticklabels=[], yticklabels=[]
+)
+axins = [axins1, axins2, axins3]
+
+SCF.cumsum().plot(ax=axins1, marker=".", color=clrs[2])
+model_SCF.cumsum().plot(ax=axins1, marker=".", color=clrs[3])
+
+(singular_values_rotated).cumsum().plot(ax=axins2, color=clrs[2])
+(singular_values).cumsum().plot(ax=axins2, color=clrs[3])
+
+(singular_values_rotated**2).cumsum().plot(ax=axins3, color=clrs[2])
+(singular_values**2).cumsum().plot(ax=axins3, color=clrs[3])
+
+for axr, ax in zip([ax1, ax2, ax3], axins):
+    ax.spines["top"].set_visible(True)
+    ax.spines["right"].set_visible(True)
+    axr.indicate_inset_zoom(ax)
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+
+axins1.set_xticks(np.arange(1, 11, 1))
+axins1.set_yticks([1, 1.1, 1.2])
+axins1.set_yticklabels(["100 %", "110 %", "120 %"])
+
+
+# Save figure
+save_to = get_figure_path("chapter4", "tele_singular_spectrum.pdf")
 plt.savefig(save_to, bbox_inches="tight")
 
 # %%

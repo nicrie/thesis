@@ -134,6 +134,21 @@ mode2index = {
     8: "PDO",
 }
 
+# %%
+# Load MJO index
+# =============================================================================
+import pandas as pd
+
+url = "https://www.psl.noaa.gov/mjo/mjoindex/omi.era5.1x.webpage.4023.txt"
+mjo = pd.read_csv(
+    url,
+    sep="\s+",
+    header=None,
+    names=["year", "month", "day", "A", "B", "phase_int", "amplitude"],
+)
+mjo.index = pd.to_datetime(mjo[["year", "month", "day"]])
+mjo.index.name = "time"
+mjo = mjo["amplitude"].to_xarray()
 
 # %%
 # Plotting

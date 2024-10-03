@@ -18,29 +18,51 @@ complicated climate system, importance of teleconnections for understanding, pre
 advanced techniques (complex rotated MCA)
 
 
+The publication
+
+\begin{itemize}
+    \item \highlightnames{1}{\fullcite{rieger_lagged_2021}}
+\end{itemize}
+
+served as an prior work on the topic of teleconnections in the climate system. In this prior work, the authors identified spatio-temporal patterns between SST and continental precipitation using rotated Hilbert MCA. Due to the different scales and varying amounts of variance that both datasets live on, it was necessary to standardize both datasets prior to analysis. In the following chapters we perform the same analysis but embedding it into the CPCCA framework \cite{swenson_continuum_2015} to address some of the drawbacks associated with MCA (Section~\ref{sec:theory:mca} \todo{to be added}). Additionally, we extent the spatial and temporal coverage of the analysis which provides a greater potential to describe teleconnections. The difference in the preprocessing steps and results (if any) will be discussed.
+
+
 \section{Climate Data}
 
-We use ERA5 monthly averaged reanalysis \cite{c3s_era5_monthly_single} for sea surface temperature (SST) and continental precipitation to investigate the shared dynamics between these two variables on seasonal to decadal time scales. The ERA5 dataset provides global coverage on a regular longitude-latitude grid with a spatial resolution of \ang{0.25} and a monthly temporal resolution.  The time frame of the dataset spans from 1940 to today (given a couple of months delay), allowing us to capture long-term climate variability and trends and potential teleconnnections between both variables.
-
-How is the SST data obtained in ERA5? (observations (in-situde, satellites)? model simulations? )
-How is the precipitation data obtained in ERA5?
-
-Can we trust the SST of ERA5 ?
-Can we trust the prcp of ERA5 ?
-
-By analyzing the covariability between SST and continental precipitation, we aim to identify large-scale patterns, regional impacts, and temporal relationships that can enhance our understanding of the climate system.
+We use ERA5 monthly averaged reanalysis \cite{c3s_era5_monthly_single} for sea surface temperature (SST) and continental precipitation to investigate the shared dynamics between these two variables on seasonal to decadal time scales. The ERA5 dataset provides global coverage on a regular longitude-latitude grid with a spatial resolution of \ang{0.25} and a monthly temporal resolution.  The time frame of the dataset spans from 1940 to today (given a couple of days delay), allowing us to capture long-term climate variability and trends and potential teleconnnections between both variables.
 
 
-We focus on Geographic coverage: 40°S to 60°N with 1°x1° spatial resolution why?
+\mynote{How is the SST data obtained in ERA5? (observations (in-situde, satellites)? model simulations? ) How is the precipitation data obtained in ERA5?}
 
-We 
-Data Preprocessing Steps: temporal smoothing; normalizeation, weighting, etc.
+\mynote{Can we trust the SST of ERA5 ? Can we trust the prcp of ERA5 ?}
+
+
+We focus on geographic coverage: 40°S to 60°N with 1°x1° spatial resolution why? possible reasons: is the SST variability really reliable where we have partial covering during the year by sea ice? southern hemisphere generally less reliable because of missing observations in the long term. is higher resolution really necessary? 
+
+to include extra-tropical regions thanks to PCA preprocessing (Section~\ref{sec:theory:mca} \todo{to be added}) which provides a greater potential to describe tropical-extratropical teleconnections. Finally, we also extent temporal coverage extending , we   to a smaller  
 
 
 
-We apply theta extended, complex MCA to SST and con-
-tinental precipitation using a theta period Ts 5 12 to account
-for the seasonal cycle. The dimensionality of the problem can
+\paragraph{Data Preprocessing} We focus on continental precipitation by masking out precipitation over the ocean using the land-ocean mask at 1:110m scale provided by Natural Earth\footnote{\url{naturalearthdata.com}}. Temporally, we want to focus on teleconnection playing out on annual to decadal time scale, this is why we a apply a 7 month centered moving average to both the SST and precipitation time series. This way, we remove the high frequency variability such as monsoonal cirulcations but keep the low frequency variability such as ENSO, PDO, etc. We do not remove the seasonal cycle, however , in order to test if we can recover dominant modes of variability with rotated Hilbert CPCCA (Section~\ref{sec:theory:mca})\todo{the chapter about CPCCA is still missing; to be included later} despite having the predominant seasonal cycle in the data. In this case study, we want to focus on teleconnections, i.e. connections between SST and continental precipitation in regions that are not necessarily close to each other. In contrast,  local connections between SST and precipipitation are quite common, for instance, coastal precipitation and river plumes are related to changes in SST \todo{look for reference}. Since the high-spatial resolution of ERA5 (ca. 30 km at the equator) is able to resolve these processes, it is likely that a CPCCA of both datasets will also identify these processes. To mitigate this, we apply spatial averages to coarsen the data from a \ang{0.25} to a \ang{1.00} longitude--latitude grid so that the impact of small-scale processes is hopefully smoothed out. This processing step leaves us with \num{36588} and \num{16920} non-masked grid cells for SST and continental precipitation. To counter the effect of grid size distortion towards the poles \cite{north_latitude_1982}, we apply a latitude weighting to the data as described in Section~\ref{sec:theory:pca}.
+
+We then apply the Hilbert transform to each time series individually in both datasets to complexfiy both datasets. To counter potentially boundary effects in the time series introduced by the Hilbert transform due to spectral leakage (Section~\ref{sec:theory:hilbert_pca} \todo{still to be added}), we extend the time series of both SST and continental precipitation in both directions by an expoentially decaying function with a e-folding time of 3 months so that the final time series has the length three times for the original ones. The value of 3 months is motivated by the fact that the expected dominant time scales in the analyzsed data is the seasonal cycle with a period of 12 months.
+
+Since the computation of the cross-covariance matrix can get very large we perform H-CPCCA in the principal component space, i.e. we transform each data set into the space spanned by its principal axes and considering for each data sets as many PCs that explain in total \qty{99}{\percent}, which leaves us with 77 and 199 components for SST and continental precipitation, so that the cross-covariance in the PC reduced space has a dimensions of 77 x 199. By reducing the dimensionality we also render the initially ill-conditioned problem (about $10^5$ features vs only about $10^3$ samples) into a well-conditioned problem, produdcing a more regularized solution.
+
+An important factor in the CPCCA is the degree of fractional whitening $\alpha_i$ \cite{swenson_continuum_2015} where the index $i$ refers to either of the two datasets, SST or continental precipitation (PRCP), $i \in \{\text{SST, PRCP}\}$. Since the two datasets live on different scales, we want to maximize correlation instead of covariance, so our goal is to perform regularized CCA. In the CPCCA this an be achieved by choosing small values of $\alpha_i$. Here we choose $\alpha_i = 0.2$ for both datasets following the results of \citet{swenson_continuum_2015} that showed that CPCCA tended to be the most skillfull in terms of capturing the shared dynamics between two synthetic climate datasets for $\alpha_i$ around \numrange{0.15}{0.20}. 
+
+
+We then perform CPCCA on the preprocessed data to identify the shared patterns of variability between SST and continental precipitation. 
+
+As discussed in Chapter 2, the obtained spatial patterns of a regular CPCCA solution are dense, i.e. almost all grid  points contribute to a given pattern which can make them hard to interpret. 
+
+
+Second, the obtained time series are uncorrelated with eachother. Although appealing from a mathematical perspective, when interpreting the obtained patterns and time series, this can be an undesireable feature, since there's no obvious reason why geophysical processes should be uncorrelated in general. 
+To address these two points we apply an additional rotation as discussed by \citet{cheng_orthogonal_1995} (see Chapter 2).
+
+From inspection of the singular value spectrum we can infer that the first 10-20 modes seem to contain most of the covariance, for higher modes the spectrum decays exponentially indicating primarily noise. Therefore, we choose to rotate the first 30 modes using varimax rotaion scheme. We then rerotate the first 30 modes using promax rotation to check if the obtained patterns exhibit a strong correlation structure. Indeed, we find that the time series obtained for mode 1 and 3 exhibit correlation coefficients of around 0.27. We therefore perform 
+
+ The dimensionality of the problem can
 be greatly reduced with the first 72 modes explaining more than
 99\% of the lagged covariance (Fig. 4a). To simplify the ob-
 tained patterns and to increase the physical meaning of the
@@ -125,7 +147,15 @@ the seasonal SST maximum of the South Pacific by 27 days.
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{tele_mode01.pdf}
+    \includegraphics[width=\textwidth]{tele_singular_spectrum.pdf}
+    \caption[TBD]{\textbf{Caption} Description}
+    \label{fig:tele:singular_spectrum}
+\end{figure}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{tele_mode01_power2.pdf}
     \caption[TBD]{\textbf{Caption} Description}
     \label{fig:tele:mode01}
 \end{figure}
@@ -176,7 +206,7 @@ tively time shifted relative to the Pacific.
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{tele_mode02.pdf}
+    \includegraphics[width=\textwidth]{tele_mode02_power2.pdf}
     \caption[TBD]{\textbf{Caption} Description}
     \label{fig:tele:mode02}
 \end{figure}
@@ -212,7 +242,7 @@ is approximately 1p/2.
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{tele_mode03.pdf}
+    \includegraphics[width=\textwidth]{tele_mode03_power2.pdf}
     \caption[TBD]{\textbf{Caption} Description}
     \label{fig:tele:mode03}
 \end{figure}
@@ -241,7 +271,7 @@ phase interpretation physically less clear.
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{tele_mode04.pdf}
+    \includegraphics[width=\textwidth]{tele_mode04_power2.pdf}
     \caption[TBD]{\textbf{Caption} Description}
     \label{fig:tele:mode04}
 \end{figure}
@@ -265,7 +295,7 @@ to show if these weak amplitudes are significant.
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{tele_mode05.pdf}
+    \includegraphics[width=\textwidth]{tele_mode05_power2.pdf}
     \caption[TBD]{\textbf{Caption} Description}
     \label{fig:tele:mode05}
 \end{figure}
@@ -296,21 +326,21 @@ anticorrelated.
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{tele_mode06.pdf}
+    \includegraphics[width=\textwidth]{tele_mode06_power2.pdf}
     \caption[TBD]{\textbf{Caption} Description}
     \label{fig:tele:mode06}
 \end{figure}
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{tele_mode07.pdf}
+    \includegraphics[width=\textwidth]{tele_mode07_power2.pdf}
     \caption[TBD]{\textbf{Caption} Description}
     \label{fig:tele:mode07}
 \end{figure}
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{tele_mode08.pdf}
+    \includegraphics[width=\textwidth]{tele_mode08_power2.pdf}
     \caption[TBD]{\textbf{Caption} Description}
     \label{fig:tele:mode08}
 \end{figure}
