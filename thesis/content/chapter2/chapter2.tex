@@ -444,7 +444,13 @@ Beyond rotation for better interpretability, Hilbert MCA can be applied to captu
 
 MCA reduces to PCA when both sets are identical. Furthermore, MCA can be viewed as two PCAs followed by rotation to align the results of the two analyses as closely as possible \cite{cherry_comments_1997}. MCA is also closely related to Canonical Correlation Analysis (CCA), which, instead of maximizing shared covariance, seeks patterns that maximize correlation. Unlike MCA, where pattern vectors are by construction orthogonal, yielding correlated expansion coefficients, CCA results in pattern vectors that are not necesarriliy orthogonal but produce uncorrelated canonical variates \cite{jolliffe_principal_2002,wilks_statistical_2019}. In fact, PCA, MCA and CCA can all be seen as special cases of a more general framework \cite{borga_unified_1997,swenson_continuum_2015}.
 
+drawbacks of MCA according to swenson:
+1. Drawbacks of MCA are its representation of relationships with transformations that are necessarily orthogonal (Newman and Sardeshmukh 1995)
+2. its lack of a least squares estimate because of nonzero correlation between modes (Tippett et al. 2008)
+3. its bias toward modes with larger variance given that it maximizes squared covariance.
+\mynote{dip into CPCCA swenson 2015}
 
+\mynote{add PCA preprocessing as a common step in CPCCA}
 
 
 
