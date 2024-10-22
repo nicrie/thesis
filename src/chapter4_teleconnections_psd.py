@@ -28,6 +28,9 @@ mpl.rcParams["ytick.major.width"] = 0.5
 # Hilbert Analysis
 # =============================================================================
 case_study = "tele"
+alpha = 1.00  # 1.00 or 0.00
+n_rot = 22  # 22 or 28
+power = 1  # 1 or 2
 model = "rotated_hilbert_cpcca"
 root_dir = f"/home/nrieger/Projects/cpcca/{case_study}/"
 dt = open_datatree(root_dir + "data/power_spectral_density", engine="zarr")
@@ -40,10 +43,10 @@ psd_red_noise = dt["red_noise"]
 # %%
 # Plotting
 # =============================================================================
-modes = [1, 2, 3, 4, 5, 6, 7, 8]
+modes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 fig, axes = plt.subplots(
-    nrows=4, ncols=2, figsize=(7, 8), sharex=True, sharey=True, squeeze=True
+    nrows=5, ncols=2, figsize=(7.2, 10), sharex=True, sharey=True, squeeze=True
 )
 
 for ax, mode, letter in zip(axes.flatten(), modes, LETTERS):
@@ -128,16 +131,20 @@ axes[0, 0].set_ylabel("Power [$1/$ cycles month$^{-1}$]")
 axes[1, 0].set_ylabel("Power [$1/$ cycles month$^{-1}$]")
 axes[2, 0].set_ylabel("Power [$1/$ cycles month$^{-1}$]")
 axes[3, 0].set_ylabel("Power [$1/$ cycles month$^{-1}$]")
+axes[4, 0].set_ylabel("Power [$1/$ cycles month$^{-1}$]")
 axes[0, 1].set_ylabel("")
 axes[1, 1].set_ylabel("")
 axes[2, 1].set_ylabel("")
 axes[3, 1].set_ylabel("")
-axes[3, 0].set_xlabel("Frequency [cycles month$^{-1}$]")
-axes[3, 1].set_xlabel("Frequency [cycles month$^{-1}$]")
+axes[4, 1].set_ylabel("")
+axes[4, 0].set_xlabel("Frequency [cycles month$^{-1}$]")
+axes[4, 1].set_xlabel("Frequency [cycles month$^{-1}$]")
 
 
 # Save figure
-save_to = get_figure_path("chapter4", "tele_psd.pdf")
-plt.savefig(save_to, bbox_inches="tight")
+save_to_pdf = get_figure_path("chapter4", "pdf/tele_psd.pdf")
+save_to_raster = get_figure_path("chapter4", "raster/tele_psd.png")
+plt.savefig(save_to_pdf, bbox_inches="tight")
+plt.savefig(save_to_raster, bbox_inches="tight")
 
 # %%

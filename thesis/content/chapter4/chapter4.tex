@@ -2,9 +2,6 @@
 %*******************************************************************************
 %****************************** Fourth Chapter **********************************
 %*******************************************************************************
-\part{Case Studies}
-\chapter{Shared Dynamics between Temporally Lagged Climate Variables: A Case Study of SST and Continental Precipitation}
-
 
 % **************************** Define Graphics Path **************************
 \ifpdf
@@ -12,6 +9,13 @@
 \else
     \graphicspath{{content/chapter4/figs/vector/}{content/chapter4/figs/}}
 \fi
+
+
+\part{Case Studies}
+\chapter{Shared Dynamics between Temporally Lagged Climate Variables: A Case Study of SST and Continental Precipitation}
+
+Weather conditions in one region can affect those in another, distant location through what is commonly called an atmospheric “teleconnection.” For example, the El Niño Southern Oscillation (ENSO) occurring in the Pacific can influence conditions in the Atlantic through its effect on the extratropical jet stream. \citet{scaife_enso_2024} showed that ENSO can have a delayed effect as well: The Arctic Oscillation and the North Atlantic Oscillation have an opposite response delayed by 1 year. The authors explain this behavior as being the result of migrating atmospheric angular momentum anomalies.
+
 
 \section{Teleconnections in the Climate System}
 complicated climate system, importance of teleconnections for understanding, predictions etc.; lagged teleconnections challening to analyze in a data-driven way, requires 
@@ -43,122 +47,112 @@ to include extra-tropical regions thanks to PCA preprocessing (Section~\ref{sec:
 
 
 
-\paragraph{Data Preprocessing} We focus on continental precipitation by masking out precipitation over the ocean using the land-ocean mask at 1:110m scale provided by Natural Earth\footnote{\url{naturalearthdata.com}}. Temporally, we want to focus on teleconnection playing out on annual to decadal time scale, this is why we a apply a 7 month centered moving average to both the SST and precipitation time series. This way, we remove the high frequency variability such as monsoonal cirulcations but keep the low frequency variability such as ENSO, PDO, etc. We do not remove the seasonal cycle, however , in order to test if we can recover dominant modes of variability with rotated Hilbert CPCCA (Section~\ref{sec:theory:mca})\todo{the chapter about CPCCA is still missing; to be included later} despite having the predominant seasonal cycle in the data. In this case study, we want to focus on teleconnections, i.e. connections between SST and continental precipitation in regions that are not necessarily close to each other. In contrast,  local connections between SST and precipipitation are quite common, for instance, coastal precipitation and river plumes are related to changes in SST \todo{look for reference}. Since the high-spatial resolution of ERA5 (ca. 30 km at the equator) is able to resolve these processes, it is likely that a CPCCA of both datasets will also identify these processes. To mitigate this, we apply spatial averages to coarsen the data from a \ang{0.25} to a \ang{1.00} longitude--latitude grid so that the impact of small-scale processes is hopefully smoothed out. This processing step leaves us with \num{36588} and \num{16920} non-masked grid cells for SST and continental precipitation. To counter the effect of grid size distortion towards the poles \cite{north_latitude_1982}, we apply a latitude weighting to the data as described in Section~\ref{sec:theory:pca}.
+\paragraph{Data Preprocessing} We focus on continental precipitation by masking out precipitation over the ocean using the land-ocean mask at 1:110m scale provided by Natural Earth\footnote{\url{naturalearthdata.com}}. Temporally, we want to focus on teleconnection playing out on annual to decadal time scale, this is why we a apply a centered 7 month centered moving average to both the SST and precipitation time series. This way, we remove the high frequency variability such as monsoonal cirulcations but keep the low frequency variability such as ENSO, PDO, etc. We do not remove the seasonal cycle, however , in order to test if we can recover dominant modes of variability with rotated Hilbert MCA (Section~\ref{sec:theory:mca}) despite having the predominant seasonal cycle in the data. In this case study, we want to focus on teleconnections, i.e. connections between SST and continental precipitation in regions that are not necessarily close to each other. In contrast,  local connections between SST and precipipitation are quite common, for instance, coastal precipitation and river plumes are related to changes in SST \todo{look for reference}. Since the high-spatial resolution of ERA5 (ca. 30 km at the equator) is able to resolve these processes, it is likely that a MCA of both datasets will also identify these processes. To mitigate this, we apply spatial averages to coarsen the data from a \ang{0.25} to a \ang{1.00} longitude--latitude grid so that the impact of small-scale processes is hopefully smoothed out. This processing step leaves us with \num{36588} and \num{16920} non-masked grid cells (or features) for SST and continental precipitation. To counter the effect of grid size distortion towards the poles \cite{north_latitude_1982}, we apply a latitude weighting to the data as described in Section~\ref{sec:theory:pca}.
 
-We then apply the Hilbert transform to each time series individually in both datasets to complexfiy both datasets. To counter potentially boundary effects in the time series introduced by the Hilbert transform due to spectral leakage (Section~\ref{sec:theory:hilbert_pca} \todo{still to be added}), we extend the time series of both SST and continental precipitation in both directions by an expoentially decaying function with a e-folding time of 3 months so that the final time series has the length three times for the original ones. The value of 3 months is motivated by the fact that the expected dominant time scales in the analyzsed data is the seasonal cycle with a period of 12 months.
+We then apply the Hilbert transform to each time series individually in both datasets to complexfiy both datasets. To counter potentially boundary effects in the time series introduced by the Hilbert transform due to spectral leakage (Section~\ref{sec:theory:hilbert_pca} \todo{still to be added}), we extend the time series of both SST and continental precipitation in both directions by an expoentially decaying function with an e-folding time of 3 months so that the final time series has the length three times for the original ones. The value of 3 months is motivated by the fact that the expected dominant time scales in the analyzsed data is the seasonal cycle with a period of 12 months, so that after 6 months any periodical signal will have decayed to a negligible value.
 
-Since the computation of the cross-covariance matrix can get very large we perform H-CPCCA in the principal component space, i.e. we transform each data set into the space spanned by its principal axes and considering for each data sets as many PCs that explain in total \qty{99}{\percent}, which leaves us with 77 and 199 components for SST and continental precipitation, so that the cross-covariance in the PC reduced space has a dimensions of 77 x 199. By reducing the dimensionality we also render the initially ill-conditioned problem (about $10^5$ features vs only about $10^3$ samples) into a well-conditioned problem, produdcing a more regularized solution.
-
-An important factor in the CPCCA is the degree of fractional whitening $\alpha_i$ \cite{swenson_continuum_2015} where the index $i$ refers to either of the two datasets, SST or continental precipitation (PRCP), $i \in \{\text{SST, PRCP}\}$. Since the two datasets live on different scales, we want to maximize correlation instead of covariance, so our goal is to perform regularized CCA. In the CPCCA this an be achieved by choosing small values of $\alpha_i$. Here we choose $\alpha_i = 0.2$ for both datasets following the results of \citet{swenson_continuum_2015} that showed that CPCCA tended to be the most skillfull in terms of capturing the shared dynamics between two synthetic climate datasets for $\alpha_i$ around \numrange{0.15}{0.20}. 
+Since the computation of the cross-covariance matrix can get very large we perform Hilbert MCA in the principal component space, i.e. we transform each data set into the space spanned by its principal axes and considering for each data sets as many PCs that explain in total \qty{99}{\percent}, which leaves us with 77 and 199 components for SST and continental precipitation, so that the cross-covariance in the PC reduced space has a dimensions of 77 x 199. By reducing the dimensionality we also render the initially ill-conditioned problem (about $10^5$ features vs only about $10^3$ samples) into a well-conditioned problem, produdcing a more regularized solution.
 
 
-We then perform CPCCA on the preprocessed data to identify the shared patterns of variability between SST and continental precipitation. 
+We then perform MCA on the complexified, PC-transformed data to identify the shared patterns of variability between SST and continental precipitation. 
 
-As discussed in Chapter 2, the obtained spatial patterns of a regular CPCCA solution are dense, i.e. almost all grid  points contribute to a given pattern which can make them hard to interpret. 
-
-
-Second, the obtained time series are uncorrelated with eachother. Although appealing from a mathematical perspective, when interpreting the obtained patterns and time series, this can be an undesireable feature, since there's no obvious reason why geophysical processes should be uncorrelated in general. 
+As discussed in Chapter 2, there are two aspects of the standard MCA solution that can be undesireable. First the obtained spatial are dense, i.e. almost all grid points contribute to a given pattern which can make them hard to interpert. Second, the obtained expansion coefficients are uncorrelated with each other. Although appealing from a mathematical perspective, when interpreting the obtained patterns and time series, this can be an undesireable feature, since there's no obvious reason why geophysical processes should be uncorrelated in general. 
 To address these two points we apply an additional rotation as discussed by \citet{cheng_orthogonal_1995} (see Chapter 2).
 
-From inspection of the singular value spectrum we can infer that the first 10-20 modes seem to contain most of the covariance, for higher modes the spectrum decays exponentially indicating primarily noise. Therefore, we choose to rotate the first 30 modes using varimax rotaion scheme. We then rerotate the first 30 modes using promax rotation to check if the obtained patterns exhibit a strong correlation structure. Indeed, we find that the time series obtained for mode 1 and 3 exhibit correlation coefficients of around 0.27. We therefore perform 
-
- The dimensionality of the problem can
-be greatly reduced with the first 72 modes explaining more than
-99\% of the lagged covariance (Fig. 4a). To simplify the ob-
-tained patterns and to increase the physical meaning of the
-results (section 2c), we rotate the first 150 modes explaining
-99.82\% of the lagged covariance. Our decision to rotate 150 modes
-is motivated by the idea of retaining as much information as
-possible without including the noise that dominates the higher
-modes. Since we observe a marked drop in singular values at
-about the mode number 100 followed by an exponential de-
-crease in singular values (Fig. 4b), we guess that there is a
-negligible information content in higher modes. Moreover, the
-quality of the reconstructed signal is rather independent of the
-exact number of rotated modes, with 150 6 50 yielding basi-
-cally identical results for the first six modes for both varimax
-orthogonal and promax p 5 2 oblique rotation. Therefore, we
-will restrict our discussion in the following to the first six
-modes. To address the question of the rotation method to be
-chosen, we note that promax oblique rotation performs better
-when simple structures are present and correlations among
-PCs are high (Finch 2006). We expect our first mode to be
-dominated by the shared dynamics of the seasonal cycle of
-both SST and continental precipitation, which is indeed what
-we find for both promax (not shown here) and varimax solution
-(Fig. 5). This mode, however, is fairly global and as such does
-not represent a simple structure. Furthermore, we observe that
-the correlations among the first six promax-rotated PCs
-range from 20.15 to 0.13 only, underlining that the promax
-oblique solution is close to orthogonal and differences from the varimax solutions only marginal, at least for the first six modes.
-Since the promax oblique solution seemingly does not provide
-a better result, we opt for the somewhat simpler varimax or-
-thogonal rotation. In the following, we will discuss the varimax-
-rotated modes by investigating the real part of the PCs, the
-spatial amplitude and phase functions for both fields, SST and
-continental precipitation, respectively.
-In our representations of the modes, we remove nonsignifi-
-cant, `noisy' phase values (see section 4a) by masking out
-regions in the spatial amplitude and phase function exhibiting a
-max-normalized amplitude of ,0.25.
-
-\paragraph{Mode 1} Mode 1 describes 62.7\% of the covariance between SST
-and continental precipitation, clearly showing the annual cycle
-(Figs. 5 and 12a). As expected, the annual cycle shows itself
-in both variables on a global scale, with the exception of the
-equatorial ocean, where the seasonal SST variations are only
-weak. The phase function correctly identifies the anticorrelation
-between the northern and southern oceans. It also suggests that
-the eastern equatorial Pacific and the equatorial Indian Ocean
-nevertheless show a weak seasonal signal, which is, however,
-positively phase shifted relative to the rest of the southern
-ocean. On the continents, precipitation dominates mainly in
-monsoon areas and the tropics. The phase function illustrates
-the division into June–August (white) and December–February
-(black) dominated rainfall systems and identifies corresponding
-transition zones, as for example over the South American rain
-forest and central North America. It also highlights some in-
-teresting dynamical regions that stand out from their respec-
-tive environments, namely, the west and east coasts of North
-America, the Mediterranean region, and, to a lesser degree, the
-East Asian monsoon region in China.
-
-The obtained mode provides an instructive example to
-highlight the benefits of the complexified approach due to the
-mode’s corresponding narrowband frequency spectrum (Fig. 12a).
-Using the dominant periodicity of mode 1, T1 5 12 months, the
-interpretation of a phase shift u, given by the spatial phase
-function, as time lag t is straightforward and can be computed
-via t 5 T1u/(2p). Doing this for some exemplary locations
-(denoted by red circles in Fig. 5), we observe that the seasonal
-SST maximum of the North Pacific follows the one in the South
-Pacific by 196 days, that is, being almost perfectly anti-
-correlated (Fig. 6). The relative time shifts of the SST and
-precipitation maximum of 81 days in the Indian Ocean and 86
-days at Poyang Lake, China, is close to 3 months and as such
-translates to a phase shift of about 2p/2, something that cannot
-be picked up as feature within one mode when using standard
-MCA. It should also be noted that although the sampling fre-
-quency of SST and precipitation is monthly, the phase function
-is continuous and thus allows us to infer time lags on shorter
-time scales. This is, for instance, the case for the seasonal
-precipitation maximum in Darwin, Australia, which precedes
-the seasonal SST maximum of the South Pacific by 27 days.
+There are two questions that must be addressed before rotation: 1) Orthogonal or oblique rotation? 2) How many modes to rotate? 
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{tele_singular_spectrum.pdf}
-    \caption[TBD]{\textbf{Caption} Description}
+    \includegraphics[width=\textwidth]{tele_singular_spectrum}
+    \caption[TBD]{\textbf{Caption} B. the sum of squared singular values of the whitened cross-covariance matrix is a conserved quantitity in (Hilbert) CPCCA, but not under rotation \cite{cheng_orthogonal_1995}. C. The sum of singular values (whitened covariance) is not in general a quantity conserved within the CPCCA framework. It is conserved, however, under orthogonal rotation. Here, since we use an oblique promax rotation, the cumulative singular values are not conserved. D. mode stability index $\chi$ shows that the highest stability is obtained when 23 modes are rotated which higher modes do not change the solution significantly. E. correlation matrix of expansions coefficents indicates that a weak but noticable correlation between mode 1 and 2 is present. }
     \label{fig:tele:singular_spectrum}
 \end{figure}
 
 
+\paragraph{How many modes to rotate?} The answer here lies to find a good balanace between two counteracting ideas. On the one hand side, we want to rotate as little modes as possible so that we avoid including lots of the noise presumbly present in higher modes.  But on the other hand side, we want to include at least as many modes that we include most of the important shared variability. The final result should also be stable in terms of number of modes to be rotated, so we want to included as many modes, that some modes more ore less won't make a big change in terms of rotated solution, because the included modes just carry so little overall information that it doesn't really change anything. So that's the balance we want to strike. 
+
+Now, in MCA--for which the rotation was first applied to by \citet{cheng_orthogonal_1995}--each mode is typically measred in terms of squared covariance, and the sqaured covariance fraction (SCF) (Equation~\ref{eq:theory:mca:scf}) provides a natural and simple measure to evaliate the modes' importance. Since we moved our problem into the PC space, the total shared variability can be summed up by in total 77 modes. Evaluting only the first 9 modes shows that in terms of squared covariance, virtually all of the squared covariance is captured within the first three modes. Note however, that compared to PCA where we evaluate the modes in terms of explained variance, the squared nature of the SCF will naturally lead to a much faster decay of the SCF. In the end, we want to have a solution that is largely insensitive to the number of rotated modes. Consquently, we choose to apply an objective criterion to determine the number of modes to rotate where the solution is the most stable. For this, we iteratively rotate the first $k$ modes, $k \in [10, 40 ]$, which results in $31$ unique solutions. We then compute for each solution the heterogeneous patterns of the first 10 modes. We argue that if the solution is stable, the heterogeneous patterns shouldn't drastically change from one solution to another. However, given the small fraction of explained squared covariance for higher modes (Figure~\ref{fig:tele:singular_spectrum}~A) we expect that the order of modes may change slightly. Further, we assume that stable and physically interesting modes will be within the first 10 modes. 
+
+To evaluate the stability of the 31 unique solutions we evaluate the similarity between the heterogeneous patterns of the first 10 modes, we compute the cosine similarity\footnote{also known as Tuckers coefficient of congruence}--a non-centered version of the Pearson correlation coefficient--between each possible pair of the 10 heterogeneous patterns. The cosine similarity ranges from -1 to 1, where 1 indicates that the two patterns are identical, 0 indicates that the two patterns are orthogonal to each other, and -1 indicates that the two patterns are anti-correlated. So for each one of the 31 unique solutions, we compare it to the other 30 solutions. This is done by doing the following: For each unique solution, we compare the first 10 heterogeneous patterns to the first 10 heterogeneous patterns of the other 30 solutions, by computing the cosine similarity between each possible pair of patterns. We then look if for a given solution and a given mode, the same mode can be found in any other of the first 10 modes of the other solutions. We consider two patterns two be the same if the cosine similarity is above 0.9. Then for each solution we compute the mode stability index $\chi$ as the fraction of modes that are the same in any of the other solutions. The mode stability index $\chi$ is shown in Figure~\ref{fig:tele:singular_spectrum}~D. We find that the highest stability is obtained when 23 modes are rotated, which higher modes do not change the solution significantly. In the following we will restrict our discussion to the solution obtained by rotating the first 22 modes.
+
+
+\paragraph{Orthogonal or oblique rotation?} The choice between orthogonal and oblique rotation is a trade-off between interpretability and complexity. Orthogonal rotation ensures that the obtained expansion coefficients are uncorrelated with each other, which can be appealing from a mathematical perspective. However, in the context of geophysical data, it is not clear why the expansion coefficients should be uncorrelated. In fact, it is more likely that the expansion coefficients are correlated with each other, since geophysical processes are often linked to each other. Therefore, we choose to apply a oblique rotation to the CPCCA solution using a weak rotation and only use orthogonal varimax rotation in case that the obtained mode are indeed only very weakly correlated, i.e. exhibting absolute pairwise correlation coefficients of the obtained expansion coefficients below \num{0.2}. For an initial rotation to check the degree of correlation between the expansion coefficients, we choose to rotate the first 22 modes with the promax rotation scheme \cite{hendrickson_promax_1964} with a weak rotation power of $p=2$, as recommended by \citet{richman_rotation_1986}. Computing the absolute pairwise correlation coefficients between the first 10 promax-rotated, complex-valued expansion coefficients results in in Pearson corrleation coefficients below \num{0.14} suggesting indeed only weak correlation between the leading modes. We therefore choose to restrict the following discussion to the orthogonal rotation case (promax rotation power $p=1$). However, we present the results of the oblique rotation in the appendix (Figure~\ref{fig:tele:alpha1_power2_mode01}--\ref{fig:tele:alpha1_power2_mode10}).
+
+
+
+The rotated modes exhibit a more slowly decreasing SCF (Fig.~\ref{fig:tele:singular_spectrum}~A) with the first eight modes explainaing each more than \qty{1}{\percent} of the total squared covariance, followed by a sudden jump where higher modes explain considerably less and decreasing exponentially indicating noisy modes. We therefore restrict our discussion to the first eight modes. Note, that neither cumulative SCF nor the sum of squared singular values are conserved under rotation (Figure~\ref{fig:tele:singular_spectrum}~A, B). Only in the special case of orthogonal varimax rotation, the sum of singular values are conserved, however, in our case of oblique promax rotation, this isn't the case either (Figure~\ref{fig:tele:singular_spectrum}~C).
+
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{tele_mode01_power2.pdf}
-    \caption[TBD]{\textbf{Caption} Description}
-    \label{fig:tele:mode01}
+    \includegraphics[width=\textwidth]{tele_a1.00_r22_p1_mode01}
+    \caption[TBD]{\textbf{Caption} Spatial phase function is masked out for regions where the spatial max-normalized amplitude is below \num{0.25} to remove `noisy' phase values and for the sake of simplified visualization.}
+    \label{fig:tele:mode01_a100}
 \end{figure}
+
+
+\paragraph{Mode 1 -- The Seasonal Cycle} Describing whopping \qty{99.3}{\percent} of the squared covariance between SST and continental precipitation with a clear one-year periodicity, this modes clearly represents the annual cycle (Figure \ref{fig:tele:mode01}, \ref{fig:tele:psd}~A). As expected, the annual cycle shows itself in both variables on a global scale, with the exception of the equatorial ocean, where the seasonal SST variations are only weak. The phase function correctly identifies the anticorrelation between the northern and southern oceans. It also suggests that the eastern equatorial Pacific and the equatorial Indian Ocean nevertheless show a weak seasonal signal, which is, however, positively phase shifted relative to the rest of the southern ocean. On the continents, precipitation dominates mainly in
+monsoon areas and the tropics. The phase function illustrates the division into June-August (white-bluish) and December-February (black-redish) dominated rainfall systems and identifies corresponding transition zones, as for example over the South American rain forest and central North America. It also highlights some interesting dynamical regions that stand out from their respective environments, namely, the west and east coasts of North America, the Mediterranean region, and, to a lesser degree, the East Asian monsoon region in China. 
+
+We also note that in general this first mode explains much more of the variance in SST (\qty{80.1}{\percent}) than it does in continental precipitation (\qty{63.8}{\percent}). This makes sense as the seasonal cycle is a much more dominant feature in SST than it is in continental precipitation with the latter being generally a much more noisy variable with a much more complex spatio-temporal structure. Specifically, continental precipitation is much more driven directly by atmospheric variability which has a very high internal variability. Also, the ocean's thermal inertia allows to absorb or release large amounts of heat with only minor changes in temperature, as a results SSTs are in general less variable than atmopsheric variables. And finally, while SSTs change smoothly and slowly over vast spatial scales, continental precipitation is a very localized variable, such that interannual variations in global circulation patterns can produce drastic changes in local precipitation patterns.
+
+finally, we observe a very slight trend apparently superposed on the periodic seasonal cycle presented by the expansion coefficients in Figure~\ref{fig:tele:mode01}~E. We will discuss this in more detail at the end of this section.
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{tele_a1.00_r22_p1_mode02}
+    \caption[TBD]{\textbf{Caption} Description}
+    \label{fig:tele:mode02_a100}
+\end{figure}
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{tele_a1.00_r22_p1_mode03}
+    \caption[TBD]{\textbf{Caption} Description}
+    \label{fig:tele:trends}
+\end{figure}
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{tele_trends}
+    \caption[TBD]{\textbf{Caption} Description}
+    \label{fig:tele:mode03_a100}
+\end{figure}
+
+
+
+\paragraph{Mode 2 -- Global Warming Mode} 
+Mode 2 (\qty{13.1}{\percent} of SCF) represents global warming and the associated changes in precipitation patterns (Figure~\ref{fig:tele:mode02}). The warming
+SST patterns clearly emerge in all major ocean basins, although
+more pronounced in the Northern Hemisphere due to the
+asymmetric response of the northern and southern trade winds
+to global warming (Xie et al. 2010). We also note a pronounced
+warming of the western part of both the Pacific and the
+Atlantic basins, both regions of enhanced ocean heat transport
+(Xie et al. 2010; Hannachi and Trendafilov 2017). Similar to
+these oceanic trends, we also observe global trends in the precipi-
+tation patterns, with decreasing rainfall over the Mediterranean,
+South Africa, Australia, South America, and parts of western
+North America. There seems to be also a decrease of rainfall
+over the west Asian monsoon region. In contrast to that, the
+results suggest increased precipitation over the Indian mon-
+soon region as well as some localized regions in Europe and in
+South and North America. These results are largely in agreement
+with studies based on observational data (Gu and Adler 2015)
+and, more recently, on CMIP5 climate simulations (Giorgi
+et al. 2019). Finally, it should be stressed that both PCs, SST
+and precipitation, only provide a meaningful interpretation for
+phases u ’ 0; 6p (correlation, anticorrelation), due to their
+broadband frequency spectra (Fig. 12c). For phase shifts dif-
+ferent from that, no clear conclusions can be drawn, as for
+example is the case for equatorial Africa where the phase shift
+is approximately 1p/2.
+
+
 
 \paragraph{Mode 2} Mode 2 (7.0\%) can be clearly associated with the ocean–
 atmosphere phenomenon of ENSO (Figs. 7 and 12b). During
@@ -204,48 +198,13 @@ Atlantic clearly exhibits more positive phase values compared
 to the Pacific El Niño region, therefore indicating to be posi-
 tively time shifted relative to the Pacific.
 
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{tele_mode02_power2.pdf}
-    \caption[TBD]{\textbf{Caption} Description}
-    \label{fig:tele:mode02}
-\end{figure}
 
-
-\paragraph{Mode 3} Mode 3 (6.9\%) represents global warming and the associ-
-ated changes in precipitation patterns (Fig. 8). The warming
-SST patterns clearly emerge in all major ocean basins, although
-more pronounced in the Northern Hemisphere due to the
-asymmetric response of the northern and southern trade winds
-to global warming (Xie et al. 2010). We also note a pronounced
-warming of the western part of both the Pacific and the
-Atlantic basins, both regions of enhanced ocean heat transport
-(Xie et al. 2010; Hannachi and Trendafilov 2017). Similar to
-these oceanic trends, we also observe global trends in the precipi-
-tation patterns, with decreasing rainfall over the Mediterranean,
-South Africa, Australia, South America, and parts of western
-North America. There seems to be also a decrease of rainfall
-over the west Asian monsoon region. In contrast to that, the
-results suggest increased precipitation over the Indian mon-
-soon region as well as some localized regions in Europe and in
-South and North America. These results are largely in agreement
-with studies based on observational data (Gu and Adler 2015)
-and, more recently, on CMIP5 climate simulations (Giorgi
-et al. 2019). Finally, it should be stressed that both PCs, SST
-and precipitation, only provide a meaningful interpretation for
-phases u ’ 0; 6p (correlation, anticorrelation), due to their
-broadband frequency spectra (Fig. 12c). For phase shifts dif-
-ferent from that, no clear conclusions can be drawn, as for
-example is the case for equatorial Africa where the phase shift
-is approximately 1p/2.
-
-
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{tele_mode03_power2.pdf}
-    \caption[TBD]{\textbf{Caption} Description}
-    \label{fig:tele:mode03}
-\end{figure}
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=\textwidth]{tele_mode03_power2}
+%     \caption[TBD]{\textbf{Caption} Description}
+%     \label{fig:tele:mode03}
+% \end{figure}
 
 
 \paragraph{Mode 4} Mode 4 (1.6\%) shows a slow-oscillating pattern of SST in
@@ -269,12 +228,12 @@ portant features at about 1–4 years (Fig. 12d), making the
 phase interpretation physically less clear.
 
 
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{tele_mode04_power2.pdf}
-    \caption[TBD]{\textbf{Caption} Description}
-    \label{fig:tele:mode04}
-\end{figure}
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=\textwidth]{tele_mode04_power2}
+%     \caption[TBD]{\textbf{Caption} Description}
+%     \label{fig:tele:mode04}
+% \end{figure}
 
 
 \paragraph{Mode 5} Mode 5 (1.6\%) describes an oscillating SST anomaly mainly
@@ -293,12 +252,12 @@ rainfall in certain regions of Africa, Arabia, and the Americas
 are phase-shifted El Niño Modoki expressions, future work has
 to show if these weak amplitudes are significant.
 
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{tele_mode05_power2.pdf}
-    \caption[TBD]{\textbf{Caption} Description}
-    \label{fig:tele:mode05}
-\end{figure}
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=\textwidth]{tele_mode05_power2}
+%     \caption[TBD]{\textbf{Caption} Description}
+%     \label{fig:tele:mode05}
+% \end{figure}
 
 
 \paragraph{Mode 6} Mode 6 (1.1\%) is characterized by an SST pattern con-
@@ -324,26 +283,34 @@ anticorrelated.
 
 
 
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{tele_mode06_power2.pdf}
-    \caption[TBD]{\textbf{Caption} Description}
-    \label{fig:tele:mode06}
-\end{figure}
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=\textwidth]{tele_mode06_power2}
+%     \caption[TBD]{\textbf{Caption} Description}
+%     \label{fig:tele:mode06}
+% \end{figure}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{tele_mode07_power2.pdf}
-    \caption[TBD]{\textbf{Caption} Description}
-    \label{fig:tele:mode07}
-\end{figure}
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=\textwidth]{tele_mode07_power2}
+%     \caption[TBD]{\textbf{Caption} Description}
+%     \label{fig:tele:mode07}
+% \end{figure}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{tele_mode08_power2.pdf}
-    \caption[TBD]{\textbf{Caption} Description}
-    \label{fig:tele:mode08}
-\end{figure}
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=\textwidth]{tele_mode08_power2}
+%     \caption[TBD]{\textbf{Caption} Description}
+%     \label{fig:tele:mode08}
+% \end{figure}
+
+
+
+Mode 8: ENSO Modoki (?); low correlation of 0.34. Detrending of the expansion coefficients yield a cc of 0.41. When in addition we remove the rather unreliable decade from 1940-1949, the cc increases to 0.52 indicating moderate correlation.
+
+\paragraph{What's going on with the seasonal cycle?}
+Finally, we want to come back to quickly discuss the trend observed in mode 1 and 2 where the expansion coefficients of mode 1 exhibit a very slight trend apparently superposed on the periodic seasonal cycle (Figure~\ref{fig:tele:mode01}~E). This trend in seasonality is obvisouly not real but rather a consequenc of mode mixing due to the limited mathematical complxity the CPCCA framework allows despite being so powerful. Specifically, here the fact the expansion coefficients are mathematically restricted to be (almost) uncorrelated with each other, leads to a mode mixing of the seasonal cycle and the global warming mode. This is most obvious by looking at mode 1 and 2 of the varimax rotated solution (see Appendix Figure~\ref{fig:tele:mode01_power01} and \ref{fig:tele:mode02_power01}). As in the promax rotated solution, both modes show the seasonal cycle and the global warming mode. However, the additional trend in the seasonal cycle is even more pronounced. This can be undestood as follows: Since the global warming mode (mode 2) also contains a seasonal feature that is growing in time representing the growing seasonal changes in the Arctic--as discussed above-- these two processes will exhibit a certain degree of correlation due to the common seasonality. However, in varimax the correlation coefficient of the expansion coefficients must be zero by construction. To enforce uncorrelated expansion coefficients, it seems that the expansion coefficients of mode 1 are forced incorporate a trend that is in anti-phase with mode 2 so that the correlating (seasonal cycle) and anti-correlating (trend) part taken together produce a Peearson correlation coefficient of \num{0}. By relaxing the orthogonal constraint, which we do by performing promax rotation with $p>1$, we allow a certain degree of correlation between the expansion coefficients which mitigates the mode mixing. While higher values of $p$ would allow for even more correlation between the expansion coefficients, thus removing the trend from the seasonal cycle, it also introduces more and more mode mixing in the other sense, in that the seasonal cycle leaks into the other modes as evidenced by the considerable amount of energy around 12 months in the power spectral density (Figure~\ref{fig:tele:psd}A-D).
+
 
 \section{Results}
 Identification of large scale patterns: Seasonal Cycle; El Niño-Southern Oscillation (ENSO), Detection of ENSO-related patterns, spatial distribution of 
@@ -375,12 +342,18 @@ Final thoughts on the importance of advanced data analysis techniques in enhanci
 \mynote{check out \url{https://kls2177.github.io/Climate-and-Geophysical-Data-Analysis/chapters/Week6/filtering_in_freq3.html}}
 
 
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{tele_psd.pdf}
-    \caption[TBD]{\textbf{Caption} Description}
-    \label{fig:tele:psd}
-\end{figure}
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=\textwidth]{tele_psd}
+%     \caption[TBD]{\textbf{Caption} Description}
+%     \label{fig:tele:psd}
+% \end{figure}
+
+
+\paragraph{An what if we maximize correlation? Applying the CPCCA framework}
+
+An important factor in the CPCCA is the degree of fractional whitening $\alpha_i$ \cite{swenson_continuum_2015} where the index $i$ refers to either of the two datasets, SST or continental precipitation (PRCP), $i \in \{\text{SST, PRCP}\}$. Since the two datasets live on different scales, maximizing correlation rather than covariance is of interest. In the CPCCA framework which bridges maximization of correlation and covariance on a continuous scale via the adjustable parameters $\alpha_i$, this can be achieved by choosing small values of $\alpha_i$. Here we choose $\alpha_i = 0.2$ for both datasets following the results of \citet{swenson_continuum_2015} that showed that CPCCA tended to be the most skillfull in terms of capturing the shared variability between two synthetic climate datasets for $\alpha_i$ around \numrange{0.15}{0.20}. 
+
 
 
 \section{Case Study 2: Representation of the Madden-Julian Osciallation}

@@ -13,6 +13,7 @@ import xeofs as xe
 from cartopy.feature import LAND, OCEAN
 from cycler import cycler
 from matplotlib.gridspec import GridSpec
+from statsmodels.stats.multitest import multipletests
 from xarray.backends.api import open_datatree
 
 from utils.plotting import shift_cmap
@@ -36,19 +37,50 @@ def compute_angle(x):
     return xr.apply_ufunc(np.angle, x, dask="allowed", output_dtypes=[float])
 
 
+def _np_pvalue_correction(p_values, alpha=0.05, method="fdr_bh"):
+    shape_in = p_values.shape
+    p_values = p_values.reshape(-1)
+    pvals_corrected = np.zeros_like(p_values) * np.nan
+
+    # Remove NaNs
+    mask = np.isnan(p_values)
+    p_values = p_values[~mask]
+
+    # Apply correction
+    reject, pvals_corrected[~mask], _, _ = multipletests(
+        p_values, alpha=alpha, method=method
+    )
+    return pvals_corrected.reshape(shape_in)
+
+
+def pvalue_correction(pvalues):
+    return xr.apply_ufunc(
+        _np_pvalue_correction,
+        pvalues,
+        input_core_dims=[["lat", "lon"]],
+        output_core_dims=[["lat", "lon"]],
+        kwargs={"alpha": 0.05, "method": "fdr_bh"},
+        dask="allowed",
+        output_dtypes=[float],
+        vectorize=True,
+    )
+
+
 # %%
 # Hilbert Analysis
 # =============================================================================
 case_study = "tele"
-alpha = 0.2
-power = 1
+alpha = 1.00  # 1.00 or 0.00
+n_rot = 22  # 22 or 28
+power = 1  # 1 or 2
 model = "rotated_hilbert_cpcca"
 root_dir = f"/home/nrieger/Projects/cpcca/{case_study}/"
 rot = xe.cross.HilbertCPCCARotator.load(
-    root_dir + f"models/{model}_{alpha:.2f}_p{power}"
+    root_dir + f"models/{model}_a{alpha:.2f}_r{n_rot}_p{power}"
 )
 dt = open_datatree(
-    root_dir + f"models/{model}_{alpha:.2f}_p{power}_individual", engine="zarr"
+    root_dir + f"models/{model}_a{alpha:.2f}_r{n_rot}_p{power}_individual",
+    engine="zarr",
 )
 
 model = xe.cross.HilbertCPCCA.load(root_dir + f"models/hilbert_cpcca_{alpha:.2f}")
@@ -57,8 +89,13 @@ model.data["input_data1"] = model.data["input_data1"].load()
 model.data["input_data2"] = model.data["input_data2"].load()
 
 model_SCF = model.squared_covariance_fraction()
-singular_values_rotated = np.sqrt(rot.data["squared_covariance"])
+singular_values_rotated = np.sqrt(rot.data["squared_covariance"].load())
 singular_values = rot.model_data["singular_values"].load()
+
+# %%
+# Coefficients of congruence // pattern stability
+# =============================================================================
+coef_cong = xr.open_dataarray(root_dir + f"data/congruence_coefficient_{alpha:.2f}.nc")
 
 
 # %%
@@ -70,7 +107,6 @@ dt = dt.isel(mode=idx_sorted).assign_coords(mode=dt.mode)
 indexes = xr.open_dataset(root_dir + "data/index/all_indexes_normed.nc")
 
 # %%
-
 # Components
 Q0, Q1 = dt["sst"]["components"], dt["prcp"]["components"]
 Qa0, Qa1 = abs(Q0), abs(Q1)
@@ -78,6 +114,10 @@ Qa0, Qa1 = abs(Q0), abs(Q1)
 # Heterogeneous patterns
 Qhet0 = dt["sst"]["heterogeneous_patterns"]
 Qhet1 = dt["prcp"]["heterogeneous_patterns"]
+
+Qhet0_pvals = pvalue_correction(dt["sst"]["pvalues"])
+Qhet1_pvals = pvalue_correction(dt["prcp"]["pvalus"])
+
 
 Qhet0 = abs(Qhet0)
 Qhet1 = abs(Qhet1)
@@ -117,34 +157,73 @@ P1 = P1 * shift
 Q0 = Q0 * shift
 Q1 = Q1 * shift
 
+
 # Correlation between indexes and (phase-shifted) scores
-all_corrs = xr.corr(indexes.to_array("index"), P0.real, dim="time")
+def compute_corr(indexes, scores, detrend=False):
+    if detrend:
+        pfit = scores.polyfit("time", deg=1)
+        regression_line = xr.polyval(
+            coord=scores.time, coeffs=pfit.polyfit_coefficients
+        )
+        scores = scores - regression_line
+    return xr.corr(indexes.to_array("index"), scores, dim="time")
+
+
+all_corrs = compute_corr(indexes, P0.real, detrend=False)
+all_corrs_detrended = compute_corr(indexes, P0.real, detrend=True)
+all_corrs_detrended_1950 = compute_corr(
+    indexes, P0.real.sel(time=slice("1950", None)), detrend=True
+)
 
 # Phases
 Qp0, Qp1 = compute_angle(Q0), compute_angle(Q1)
-phase_threshold = 0.25
+Qhet0 = Qhet0.where(Qhet0_pvals <= 0.05)
+Qhet1 = Qhet1.where(Qhet1_pvals <= 0.05)
+
+phase_threshold = 0.125
 Qp0 = Qp0.where(Qhet0 > phase_threshold)
 Qp1 = Qp1.where(Qhet1 > phase_threshold)
 
-Qhet0 = Qhet0.where(Qhet0 > phase_threshold)
-Qhet1 = Qhet1.where(Qhet1 > phase_threshold)
+
+# What is the correlation between the expansion coefficients?
+corr_coef_scores = abs(np.corrcoef(P0, P1))[:n_rot, n_rot:].round(2)[:10, :10]
+corr_coef_scores[np.tril_indices_from(corr_coef_scores)] = 0
+print("Correlation coefficient scores: \n", corr_coef_scores)
 
 
 # %%
 # Plotting
 # =============================================================================
-mode = 2
+mode = 10
 
-mode2index = {
-    1: None,
-    2: "OWI",
-    3: "ONI",
-    4: None,
-    5: "AMMSST",
-    6: None,
-    7: "PDO",
-    8: None,
-}
+
+def get_vmax(mode: int):
+    if mode in [1]:
+        vmax = 1.0
+    elif mode in [2]:
+        vmax = 0.6
+    elif mode in [3, 4]:
+        vmax = 0.4
+    else:
+        vmax = 0.3
+
+    return vmax
+
+
+def get_mode2index(alpha, n_rot, power):
+    mode2index = dict(zip(np.arange(1, 11), [None] * 10))
+
+    if np.isclose(alpha, 1.00) and power == 1:
+        mode2index.update({2: "ONI", 3: "OWI", 4: "EMI", 6: "AMMSST", 9: "PDO"})
+    elif np.isclose(alpha, 1.00) and power == 2:
+        mode2index.update({2: "ONI", 3: "OWI", 6: "PDO", 7: "AMMSST", 8: "EMI"})
+
+    return mode2index
+
+
+mode2index = get_mode2index(alpha, n_rot, power)
+
+
 scf = SCF.sel(mode=mode).values
 ccoeff = CORR.sel(mode=mode).values
 fve_x = FVE_X.sel(mode=mode).values
@@ -152,7 +231,10 @@ fve_y = FVE_Y.sel(mode=mode).values
 
 cmap_twilight = plt.get_cmap("twilight")
 cmap_twilight_shifted = shift_cmap(cmap_twilight, 0.35)
-cmap = {"amplitude": "Blues", "phase": cmap_twilight_shifted}
+cmap_amplitude = sns.color_palette("mako_r", as_cmap=True)
+cmap_amplitude = sns.color_palette("Blues", as_cmap=True)
+cmap = {"amplitude": cmap_amplitude, "phase": cmap_twilight_shifted}
+
 
 data_proj = ccrs.PlateCarree()
 map_proj = {
@@ -174,22 +256,28 @@ cax_phase = fig.add_subplot(gs[1, 2])
 ax_comps = [ax1, ax2, ax3, ax4]
 ax_scores = [ax5]
 
-levels = [0, 0.25, 0.4, 0.55, 0.7, 0.95]
-# levels = [0, 0.25, 0.35, 0.45, 0.55, 0.65]
+vmax = get_vmax(mode)
+
+levels = np.arange(0, vmax, 0.125)
 limits = {
-    "levels": levels,
+    "vmin": 0,
+    "vmax": vmax,
+    # "levels": levels,
     "cmap": cmap["amplitude"],
     "transform": data_proj,
     "cbar_ax": cax_amp,
-    "cbar_kwargs": {"label": "Amplitude [no units]"},
+    "cbar_kwargs": {
+        "label": "Amplitude [no units]",
+        "ticks": [0, 0.2, 0.4, 0.6, 0.8, 1.0],
+    },
 }
 Qhet0.sel(mode=mode).plot(ax=ax1, **limits)
 Qhet1.sel(mode=mode).plot(ax=ax2, **limits)
 
 
+levels = np.arange(-7 / 8, 7 / 8 + 0.001, 2 / 8) * np.pi
 limits = {
-    "vmin": -np.pi,
-    "vmax": np.pi,
+    "levels": levels,
     "cmap": cmap["phase"],
     "transform": data_proj,
     "cbar_ax": cax_phase,
@@ -200,11 +288,12 @@ limits = {
 }
 Qp0.real.sel(mode=mode).plot(ax=ax3, **limits)
 Qp1.real.sel(mode=mode).plot(ax=ax4, **limits)
-cax_phase.set_yticklabels(["$-\pi$", "$-\pi/2$", "0", "$\pi/2$", "$\pi$"])
+cax_phase.set_yticklabels(["$-\pi$", "$-\pi/2$", "0", "$+\pi/2$", "$\pi$"])
+cax_phase.tick_params(size=0)
 
 
-P0.real.sel(mode=mode).plot(ax=ax5, alpha=0.5, label="SST")
-P1.real.sel(mode=mode).plot(ax=ax5, alpha=0.5, label="PRCP")
+(P0.real / P0.real.std("time")).sel(mode=mode).plot(ax=ax5, alpha=0.5, label="SST")
+(P1.real / P1.real.std("time")).sel(mode=mode).plot(ax=ax5, alpha=0.5, label="PRCP")
 index = mode2index[mode]
 if index is not None:
     max_corr = all_corrs.sel(mode=mode, index=mode2index[mode]).item()
@@ -248,7 +337,7 @@ for ax in ax_scores:
 
 
 # Add gridlines
-gl_kws = {"linewidth": 0.2, "color": ".8"}
+gl_kws = dict(linestyle=":", color=".3", linewidth=0.2)
 gl1 = ax1.gridlines(draw_labels=["left"], **gl_kws)
 gl2 = ax2.gridlines(draw_labels=False, **gl_kws)
 gl3 = ax3.gridlines(draw_labels={"left": "y", "bottom": "x"}, **gl_kws)
@@ -278,8 +367,13 @@ for ax, letter in zip(ax_comps, LETTERS):
 
 
 # Save figure
-save_to = get_figure_path("chapter4", f"tele_mode{mode:02d}_power{power}.pdf")
-plt.savefig(save_to, bbox_inches="tight")
+figname = f"tele_a{alpha:.2f}_r{n_rot}_p{power}_mode{mode:02d}"
+save_to_vector = get_figure_path("chapter4", f"pdf/{figname}.pdf")
+save_to_raster = get_figure_path("chapter4", f"raster/{figname}.png")
+
+plt.savefig(save_to_vector, bbox_inches="tight")
+plt.savefig(save_to_raster, bbox_inches="tight")
+
 
 # %%
 # Figure Squared Covariance Fraction and related measures
@@ -287,42 +381,42 @@ plt.savefig(save_to, bbox_inches="tight")
 default_cycler = cycler(color=clrs)
 plt.rc("axes", prop_cycle=default_cycler)
 
-fig = plt.figure(figsize=(7.2, 3))
-gs = GridSpec(1, 3, figure=fig)
+fig = plt.figure(figsize=(7.2, 6.5))
+gs = GridSpec(2, 3, figure=fig, height_ratios=[1, 2], hspace=0.25)
 ax1 = fig.add_subplot(gs[0, 0])
 ax2 = fig.add_subplot(gs[0, 1])
 ax3 = fig.add_subplot(gs[0, 2])
-axes = [ax1, ax2, ax3]
+ax4 = fig.add_subplot(gs[1, 0:1])
+ax5 = fig.add_subplot(gs[1, 1:])
+axes_top = [ax1, ax2, ax3]
 
 SCF.plot(ax=ax1, marker=".")
 model_SCF.plot(ax=ax1, marker=".")
 SCF.cumsum().plot(ax=ax1)
 model_SCF.cumsum().plot(ax=ax1)
 
-singular_values_rotated.plot(ax=ax2)
-singular_values.plot(ax=ax2)
-singular_values_rotated.cumsum().plot(ax=ax2)
-singular_values.cumsum().plot(ax=ax2)
+(singular_values_rotated**2).plot(ax=ax2)
+(singular_values**2).plot(ax=ax2)
+(singular_values_rotated**2).cumsum().plot(ax=ax2)
+(singular_values**2).cumsum().plot(ax=ax2)
 
-(singular_values_rotated**2).plot(ax=ax3, label="Rotated", color=clrs[0])
-(singular_values_rotated**2).cumsum().plot(
+singular_values_rotated.plot(ax=ax3, label="Rotated", color=clrs[0])
+singular_values.plot(ax=ax3, label="Non-rotated", color=clrs[1])
+singular_values_rotated.cumsum().plot(
     ax=ax3, label="Rotated (cumulative)", color=clrs[2]
 )
-(singular_values**2).plot(ax=ax3, label="Non-rotated", color=clrs[1])
-(singular_values**2).cumsum().plot(
-    ax=ax3, label="Non-rotated (cumulative)", color=clrs[3]
-)
+singular_values.cumsum().plot(ax=ax3, label="Non-rotated (cumulative)", color=clrs[3])
 
 
 ax1.set_xlim(0.5, 40)
 ax2.set_xlim(0, 40)
 ax3.set_xlim(0, 40)
 
-ax1.set_ylim(1e-4, 1.25)
-ax2.set_ylim(1e-1, 3e1)
-ax3.set_ylim(1e-1, 3e1)
+ax1.set_ylim(1e-4, 1.15)
+ax2.set_ylim(1e-3, 1e4)
+ax3.set_ylim(1e-2, 1e2)
 
-for ax in axes:
+for ax in axes_top:
     ax.set_yscale("log")
     ax.set_xlabel("Mode")
     ax.set_ylabel("")
@@ -331,35 +425,36 @@ for ax in axes:
 ax1.set_yticks([1e-4, 1e-3, 1e-2, 0.1, 1])
 ax1.set_yticklabels(["0.01 %", "0.1 %", "1%", "10%", "100 %"])
 
-# ax2.axvline(31, ls="--", lw=0.2, color=".5")
-# ax3.axvline(31, ls="--", lw=0.2, color=".5")
-
 ax1.set_title("A | Squared Covariance Fraction (SCF)")
-ax2.set_title("B | Singular Values $\sigma$")
-ax3.set_title("C | Squared Singular Values $\sigma^2$")
+ax2.set_title("B | Squared Singular Values $\sigma^2$")
+ax3.set_title("C | Singular Values $\sigma$")
 
-ax3.legend(ncols=1, bbox_to_anchor=[0, 0], loc="lower left", frameon=False)
+ax3.legend(ncols=2, bbox_to_anchor=[0, 0], loc="lower left", frameon=False)
 
 
 # inset axes
-x1, x2 = 30, 32
-axins1 = ax1.inset_axes([0.4, 0.65, 0.6, 0.2], xlim=(0.5, 10.5), ylim=(0.98, 1.20))
+x1, x2 = 20.5, 23.5
+axins1 = ax1.inset_axes([0.4, 0.55, 0.6, 0.2], xlim=(0.5, 10.5), ylim=(0.98, 1.1))
 axins2 = ax2.inset_axes(
-    [0.7, 0.55, 0.3, 0.2], xlim=(x1, x2), ylim=(21, 25), xticklabels=[], yticklabels=[]
+    [0.7, 0.55, 0.3, 0.2],
+    xlim=(x1, x2),
+    ylim=(800, 1500),
+    xticklabels=[],
+    yticklabels=[],
 )
 axins3 = ax3.inset_axes(
-    [0.7, 0.55, 0.3, 0.2], xlim=(x1, x2), ylim=(17, 21), xticklabels=[], yticklabels=[]
+    [0.7, 0.55, 0.3, 0.2], xlim=(x1, x2), ylim=(30, 50), xticklabels=[], yticklabels=[]
 )
 axins = [axins1, axins2, axins3]
 
-SCF.cumsum().plot(ax=axins1, marker=".", color=clrs[2])
 model_SCF.cumsum().plot(ax=axins1, marker=".", color=clrs[3])
+SCF.cumsum().plot(ax=axins1, marker=".", color=clrs[2])
 
-(singular_values_rotated).cumsum().plot(ax=axins2, color=clrs[2])
-(singular_values).cumsum().plot(ax=axins2, color=clrs[3])
+(singular_values).cumsum().plot(ax=axins3, marker=".", color=clrs[3])
+(singular_values_rotated).cumsum().plot(ax=axins3, marker=".", color=clrs[2])
 
-(singular_values_rotated**2).cumsum().plot(ax=axins3, color=clrs[2])
-(singular_values**2).cumsum().plot(ax=axins3, color=clrs[3])
+(singular_values**2).cumsum().plot(ax=axins2, marker=".", color=clrs[3])
+(singular_values_rotated**2).cumsum().plot(ax=axins2, marker=".", color=clrs[2])
 
 for axr, ax in zip([ax1, ax2, ax3], axins):
     ax.spines["top"].set_visible(True)
@@ -369,12 +464,51 @@ for axr, ax in zip([ax1, ax2, ax3], axins):
     ax.set_ylabel("")
 
 axins1.set_xticks(np.arange(1, 11, 1))
-axins1.set_yticks([1, 1.1, 1.2])
-axins1.set_yticklabels(["100 %", "110 %", "120 %"])
+axins1.set_yticks([1, 1.05, 1.10])
+axins1.set_yticklabels(["100 %", "105 %", "110 %"])
 
+# Stability of patterns
+# -----------------------------------------------------------------------------
+found_pattern = (coef_cong > 0.9).sum("mode2")
+found_pattern.mean(["n_rot2", "mode1"]).plot(ax=ax4, marker=".")
+ax4.set_ylim(0.5, 1)
+ax4.set_xlabel("Number of Rotated Modes")
+ax4.set_ylabel("Mode Stability $\chi$")
+ax4.set_title("D | Stability of Rotated Patterns")
+# -----------------------------------------------------------------------------
+
+# Add Correlation Matrix
+# -----------------------------------------------------------------------------
+corr_mat = abs(np.corrcoef(P0))
+
+# Replance diagonal with NaN
+np.fill_diagonal(corr_mat, np.nan)
+
+labels = np.arange(1, 11)
+sns.heatmap(
+    corr_mat[:10, :10],
+    ax=ax5,
+    vmin=0,
+    vmax=0.3,
+    annot=True,
+    fmt=".2f",
+    cmap="Blues",
+    xticklabels=labels,
+    yticklabels=labels,
+    cbar_kws={"label": "Pearson Correlation Coefficient"},
+)
+ax5.set_xlabel("Mode")
+ax5.set_ylabel("Mode")
+ax5.set_title("E | Correlation Matrix of Expansion Coefficients")
+# -----------------------------------------------------------------------------
 
 # Save figure
-save_to = get_figure_path("chapter4", "tele_singular_spectrum.pdf")
-plt.savefig(save_to, bbox_inches="tight")
+save_to_pdf = get_figure_path("chapter4", "pdf/tele_singular_spectrum.pdf")
+save_to_raster = get_figure_path("chapter4", "raster/tele_singular_spectrum.png")
+plt.savefig(save_to_pdf, bbox_inches="tight")
+plt.savefig(save_to_raster, bbox_inches="tight")
+
+
+# %%
 
 # %%

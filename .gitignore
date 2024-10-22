@@ -2,6 +2,9 @@
 # Ignore folders
 admin
 revisions
+# ignore pdf images to save space
+thesis/content/**/*.pdf
+
 # Python stuff
 __pycache__
 
@@ -314,3 +317,4 @@ TSWLatexianTemp*
 # option is specified. Footnotes are the stored in a file with suffix Notes.bib.
 # Uncomment the next line to have this generated file ignored.
 #*Notes.bib
+
