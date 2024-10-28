@@ -95,16 +95,35 @@ singular_values = rot.model_data["singular_values"].load()
 # %%
 # Coefficients of congruence // pattern stability
 # =============================================================================
-coef_cong = xr.open_dataarray(root_dir + f"data/congruence_coefficient_{alpha:.2f}.nc")
+coef_cong = xr.open_dataset(root_dir + f"data/congruence_coefficient_{alpha:.2f}.nc")
 
 
 # %%
+# Sort according to SCF
 lbda = np.sqrt(rot.data["squared_covariance"].load())
 idx_sorted = np.argsort(dt["scf"].values)[::-1]
 dt = dt.isel(mode=idx_sorted).assign_coords(mode=dt.mode)
 
+# %%
+# Load climate indices
+indexes = xr.open_dataset(root_dir + "data/index/climate_indexes.nc")
+indexes = indexes.to_array("index")
 
-indexes = xr.open_dataset(root_dir + "data/index/all_indexes_normed.nc")
+# Smooth as preprocessed data
+indexes = indexes.rolling(time=7, center=True).mean()
+# Restrict to analized period
+indexes = indexes.sel(time=slice("1940", "2022"))
+# Remove trend from all inideces except OWI (global warming)
+fit = indexes.polyfit("time", deg=1)
+index_trend = xr.polyval(indexes.time, fit.polyfit_coefficients)
+index_trend.loc[{"index": "OWI"}] = 0
+indexes = indexes - index_trend
+# Normalize
+indexes = (indexes - indexes.mean("time")) / indexes.std("time")
+
+# Flip IOD for better comparison
+indexes.loc[{"index": "IOD"}] = -indexes.loc[{"index": "IOD"}]
+
 
 # %%
 # Components
@@ -166,7 +185,7 @@ def compute_corr(indexes, scores, detrend=False):
             coord=scores.time, coeffs=pfit.polyfit_coefficients
         )
         scores = scores - regression_line
-    return xr.corr(indexes.to_array("index"), scores, dim="time")
+    return xr.corr(indexes, scores, dim="time")
 
 
 all_corrs = compute_corr(indexes, P0.real, detrend=False)
@@ -214,7 +233,9 @@ def get_mode2index(alpha, n_rot, power):
     mode2index = dict(zip(np.arange(1, 11), [None] * 10))
 
     if np.isclose(alpha, 1.00) and power == 1:
-        mode2index.update({2: "ONI", 3: "OWI", 4: "EMI", 6: "AMMSST", 9: "PDO"})
+        mode2index.update(
+            {2: "ONI", 3: "OWI", 4: "EMI", 6: "AMMSST", 9: "PDO", 10: "IOD"}
+        )
     elif np.isclose(alpha, 1.00) and power == 2:
         mode2index.update({2: "ONI", 3: "OWI", 6: "PDO", 7: "AMMSST", 8: "EMI"})
 
@@ -298,7 +319,7 @@ index = mode2index[mode]
 if index is not None:
     max_corr = all_corrs.sel(mode=mode, index=mode2index[mode]).item()
     label = f"{index} ($r_p$: {max_corr:.2f})"
-    indexes[index].plot(ax=ax5, lw=1, color=clrs[2], label=label, alpha=0.7)
+    indexes.sel(index=index).plot(ax=ax5, lw=1, color=clrs[2], label=label, alpha=0.7)
 
 
 ax1.set_title(f"Sea Surface Temperature \n{fve_x*100:.1f} %", loc="center")
@@ -367,7 +388,7 @@ for ax, letter in zip(ax_comps, LETTERS):
 
 
 # Save figure
-figname = f"tele_a{alpha:.2f}_r{n_rot}_p{power}_mode{mode:02d}"
+figname = f"tele_a{int(alpha * 100):03d}_r{n_rot}_p{power}_mode{mode:02d}"
 save_to_vector = get_figure_path("chapter4", f"pdf/{figname}.pdf")
 save_to_raster = get_figure_path("chapter4", f"raster/{figname}.png")
 
@@ -470,7 +491,17 @@ axins1.set_yticklabels(["100 %", "105 %", "110 %"])
 # Stability of patterns
 # -----------------------------------------------------------------------------
 found_pattern = (coef_cong > 0.9).sum("mode2")
-found_pattern.mean(["n_rot2", "mode1"]).plot(ax=ax4, marker=".")
+found_pattern.mean(["n_rot2", "mode1"]).to_array("variable").plot.line(
+    ax=ax4, marker=".", x="n_rot1"
+)
+ax4.legend(
+    ["SST", "PRCP"],
+    title="Variable",
+    ncols=1,
+    frameon=False,
+    loc="upper left",
+    title_fontsize="medium",
+)
 ax4.set_ylim(0.5, 1)
 ax4.set_xlabel("Number of Rotated Modes")
 ax4.set_ylabel("Mode Stability $\chi$")
