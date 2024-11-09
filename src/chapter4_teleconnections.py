@@ -88,6 +88,7 @@ model.compute()
 model.data["input_data1"] = model.data["input_data1"].load()
 model.data["input_data2"] = model.data["input_data2"].load()
 
+tsc = model.data["total_squared_covariance"].load()
 model_SCF = model.squared_covariance_fraction()
 singular_values_rotated = np.sqrt(rot.data["squared_covariance"].load())
 singular_values = rot.model_data["singular_values"].load()

@@ -87,6 +87,7 @@
 
 % ******************************Math & Physics *********************************
 \newcommand\bmmax{2}  % avoid error due to too many math alphabets: https://tex.stackexchange.com/a/219345/75215
+\usepackage{aligned-overset}  % for overset in align environment
 \usepackage{bm}
 \usepackage{physics2}
 \usephysicsmodule{ab}
@@ -97,6 +98,7 @@
 \DeclareMathOperator*{\argmax}{argmax}
 \DeclareMathOperator*{\argmin}{argmin}
 \DeclareMathOperator*{\sgn}{sgn}
+\DeclareMathOperator*{\diag}{diag}
 % covariance, correlation
 \DeclareMathOperator{\corr}{corr}
 \DeclareMathOperator{\cov}{cov}

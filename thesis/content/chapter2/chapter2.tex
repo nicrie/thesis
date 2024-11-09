@@ -361,32 +361,46 @@ Since the pattern vectors are unitary, datasets can be expanded as
     \bm{Z}_s =& \bm{P}_s \bm{V}_s^H,
 \end{align}
 
-with the expansion coefficients $\bm{P}_s$. The expansion coefficients $\bm{P}_x$ and $\bm{P}_y$ are uncorrelated with each other:
+with the expansion coefficients $\bm{P}_s$, $s\in [X, Y]$. The expansion coefficients $\bm{P}_x$ and $\bm{P}_y$ are uncorrelated with each other:
 
 \begin{align}
     \bm{P}_x^H \bm{P}_y =& \bm{V}_x^H \bm{Z}_x^H \bm{Z}_y \bm{V}_y \overset{\eqref{eq:theory:mca_cross_covariance}}{=} (N-1) \bm{V}_x^H \bm{C}_{xy} \bm{V}_y \overset{\eqref{eq:theory:mca_svd}}{=} (N-1)\bm{\Sigma}.
 \end{align}
 
-However, the expansion coefficients $\bm{P}_x$ and $\bm{P}_y$ are generally correlated within themselves as indicated by the condition $\bm{P}_s^H\bm{P}_s \neq c \bm{I}_M$ for any arbitrary constant $c$.
+However, the expansion coefficients $\bm{P}_x$ and $\bm{P}_y$ are generally correlated within themselves, i.e. $\bm{P}_s^H\bm{P}_s$ is not a diagonal matrix.
 
-The total covariance, given by the squared Frobenius norm of the cross-covariance matrix, is
+Next, as in PCA, we are interested in the relative importance of each mode in capturing the shared variability between the two datasets. Note that since MCA maximized the \textit{squared} covariance, it is the total squared covariance that is conserved by the decomposition, which is given by the squared Frobenius norm of the cross-covariance matrix:
 
-\begin{align}
-    \Vab{\bm{C}_{xy}}_F^2 = \sum_{i=1}^{M} \sigma_i^2, 
-\end{align}    
+\begin{align}\label{eq:theory:total_squared_covariance}
+    \Vab{\bm{C}}_F^2 &\equiv  \pab{\sum_i^N \sum_j^P \vab{c_{ij}}^2} = \pab{\sum_{i}^{M} \sigma_i^2}.
+\end{align}
+where $M$ is the rank of the cross-covariance matrix. We provide a formal proof for this statement in Appendix~\ref{app:proof:frobenius_norm}.
 
-which shows that each mode captures a fraction of the total squared covariance. The relative importance of each mode can be quantified by the squared covariance fraction $f_{xy, i}$:
+Therefore, the relative importance of mode $k$ can be quantified by the squared covariance fraction $f_{xy, k}$:
 
-\begin{align}
-    f_{xy, i} = \frac{\sigma_i^2}{\sum_{i=1}^{M} \sigma_i^2}.
+\begin{align}\label{eq:theory:mca_scf_singular_values}
+    f_{xy, k} = \frac{\Vab{\sigma_k \bm{v}_{x,k} \bm{v}_{y,k}^H}_F^2}{\Vab{\bm{C}_{xy}}_F^2} = \frac{\sigma_k^2}{\sum_{i=1}^{M} \sigma_i^2}.
 \end{align}
 
-This fraction provides a measure of how much of the shared variability between the two datasets is captured by the $i$\textsuperscript{th} mode. To assess the importance of the patterns themselves, it is necesarry to consider the variance within the individual datasets explained by each mode relative to the total variance of the individual datasets. This can be expressed using the squared Frobenius norm of the individual datasets:
+Alternatively, this expression can be formulated as a residual-based measure:
+
+\begin{align}\label{eq:theory:mca_scf_residual}
+    f_{xy, k} = 1 - \frac{\Vab{(\bm{X} - \bm{X}_k)^H (\bm{Y} - \bm{Y}_k)}_F^2}{\Vab{\bm{X}^H\bm{Y}}_F^2}
+\end{align}
+where $X_k$ and $Y_k$ represent the reconstructed datasets using the $k$\textsuperscript{th} mode.
+
+This fraction provides a measure of how much of the shared variability between the two datasets is captured by the $k$\textsuperscript{th} mode. To assess the importance of the patterns themselves, it is necesarry to consider the variance within the individual datasets explained by each mode relative to the total variance of the individual datasets. This can be expressed using the squared Frobenius norm of the individual datasets:
 
 \begin{align}
-    f_{xx, i} &= \frac{\bm{v}_{x,i}^H\bm{C}_{xx}\bm{v}_{x,i}}{\Vab{\bm{Z}_x}_F^2} = \frac{1}{N-1} \frac{\bm{p}_{x,i}^H\bm{p}_{x,i}}{\Vab{\bm{Z}_x}_F^2},\\
-    f_{yy, i} &= \frac{\bm{v}_{y,i}^H\bm{C}_{yy}\bm{v}_{y,i}}{\Vab{\bm{Z}_y}_F^2} = \frac{1}{N-1} \frac{\bm{p}_{y,i}^H\bm{p}_{y,i}}{\Vab{\bm{Z}_y}_F^2}.
+    f_{ss, k} &= \frac{\bm{v}_{s,k}^H\bm{C}_{ss}\bm{v}_{s,k}}{\tr \left(\bm{Z}_s\right)} = \frac{\bm{p}_{s,k}^H\bm{p}_{s,k}}{\Vab{\bm{Z}_s}_F^2}.
 \end{align}
+
+Note that this projection-based measure of explained variance is mathematically the same in MCA as the following residual-based measure:
+
+\begin{align}\label{eq:theory:mca_explained_variance}
+    f_{ss, i} &= 1 - \frac{\Vab{\bm{Z}_s - \bm{p}_{s,i}\bm{v}_{s,i}^H}_F^2}{\Vab{\bm{Z}_s}_F^2}-
+\end{align}
+
 
 While the squared covariance fraction $f_{xy, i}$ indicates the amount of shared variability between the two datasets, it does not provide information about the strength of the association or coupling between them. To measure this, we use the correlation coefficient $\rho_i$ for the expansion coefficients of mode $i$ between the two datasets:
 
@@ -394,42 +408,70 @@ While the squared covariance fraction $f_{xy, i}$ indicates the amount of shared
     \rho_i = \frac{\cov (\bm{p}_{1, i}, \bm{p}_{2, i}) }{\pab{\var(\bm{p}_{1, i}) \var(\bm{p}_{2, i})}^{1/2}} =  \frac{\sigma_i}{\Vab{\bm{p}_{1, i}}^2 \Vab{\bm{p}_{2, i}}^2}.
 \end{align}
 
-The homogeneous patterns \cite{bretherton_intercomparison_1992} for the pattern vectors are:
+The homogeneous covariance patterns \cite{bretherton_intercomparison_1992} for the pattern vectors are:
 
-\begin{align}
-    \text{HoP}_{x, i} = \cov(\bm{Z}_x, \bm{p}_{x, i}) = \bm{S}_{xx} \bm{v}_{x, i},\\
-    \text{HoP}_{y, i} = \cov(\bm{Z}_y, \bm{p}_{y, i}) = \bm{S}_{yy} \bm{v}_{y, i},
-\end{align}
+\begin{subequations}
+    \begin{align}
+        \bm{h}_{M,x,i} = \cov(\bm{Z}_x, \bm{p}_{x, i}) = \bm{S}_{xx} \bm{v}_{x, i},\\
+        \bm{h}_{M,y,i} = \cov(\bm{Z}_y, \bm{p}_{y, i}) = \bm{S}_{yy} \bm{v}_{y, i},
+    \end{align}
+\end{subequations}
 
-These patterns provide an indicator of which variables or features are important for the covarying components in both fields. The corresponding heterogeneous patterns are defined as:
+These patterns provide an indicator of which variables or features are important for the covarying components in both fields. The corresponding heterogeneous covariance patterns are defined as:
 
-\begin{align}
-    \text{HeP}_{x, i} = \cov(\bm{Z}_x, \bm{p}_{y, i}) = \sigma_i \bm{v}_{y, i},\\
-    \text{HeP}_{y, i} = \cov(\bm{Z}_y, \bm{p}_{x, i}) = \sigma_i \bm{v}_{x, i}.
-\end{align}
+\begin{subequations}
+    \begin{align}\label{eq:theory:mca_heterogeneous_patterns}
+        \bm{h}_{T,x,i} = \cov(\bm{Z}_x, \bm{p}_{y, i}) = \sigma_i \bm{v}_{y, i},\\
+        \bm{h}_{T,y,i} = \cov(\bm{Z}_y, \bm{p}_{x, i}) = \sigma_i \bm{v}_{x, i}.
+    \end{align}
+\end{subequations}
 
-These patterns indicate how well the variables in one field can be predicted from the $i$\textsuperscript{th} expansion coefficient of the other field. One may also use standardized data, $Z_x$ and $Z_y$, to obtain the respective homogeneous and heterogeneous correlation patterns.
+These patterns indicate how well the variables in one field can be predicted from the $i$\textsuperscript{th} expansion coefficient of the other field. One may also use standardized data to obtain the respective homogeneous and heterogeneous correlation patterns.
 
 MCA gained popularity in the field of meterology\footnote{According to \citet[][p. 225]{jolliffe_principal_2002}, the technique was first used in psychology in the 1950s under the name \textit{inter-battery factor analysis}. As a variant of Partial Least Squares (PLS), it was later applied in biomedical sciences by \citet{sampson_neurobehavioral_1989} and was referred to as \textit{PLS-SVD} by \citet{wegelin_survey_2000}. In meteorology, \citet{bretherton_intercomparison_1992} introduced the term \textit{SVD analysis}, which remains in use today \cite[e.g.][]{mori_reconciled_2019}. Occasionally,the method is also called \textit{Canonical Covariance Analysis}, similar to Canonical Correlation Analysis \cite[e.g.][]{cherry_singular_1996,hannachi_patterns_2021}.} through the works of \citet{bretherton_intercomparison_1992} and \citet{wallace_singular_1992}, since when it has been extensively applied \cite[e.g.][]{wallace_singular_1992,tsai_maximum_2009,li_north_2016,barreto_maximum_2017,mori_reconciled_2019,rathore_improving_2021}.
 
-The method's orthogonal patterns ensure efficient dimensionality reduction of the covariance but limit physical interpretability, similar to PCA. To enhance interpretability, rotation of the MCA solution can be employed, as proposed by \citet{cheng_orthogonal_1995}, and later applied by \citet{frankignoul_airsea_2005}. A composite matrix of the left and right singular vectors is constructed and a simplicity criterion (e.g. varimax) is applied:
+The method's orthogonal patterns ensure efficient dimensionality reduction of the covariance but limit physical interpretability, similar to PCA. To enhance interpretability, rotation of the MCA solution can be employed, as proposed by \citet{cheng_orthogonal_1995}, and later applied by \citet{frankignoul_airsea_2005}. A `loaded' composite matrix $L$ of the left and right singular vectors is constructed and a simplicity criterion (e.g. varimax) is applied,
 
 \begin{align}
-    \bm{V}_R = 
+    \bm{L} = 
     \begin{bmatrix}
         \bm{V}_x\\
         \bm{V}_y
     \end{bmatrix}
-    M
+    \Sigma^{1/2},
+\end{align}
+where the term `loaded' refers to the fact that the singular vectors are weighted by the square root of the singular values. The rotated pattern vectors $\bm{V}_{R,s}$ are then obtained by applying the rotation matrix $\bm{R}$ to the `loaded' $\bm{V}_{s}$.
+
+\begin{align}\label{eq:theory:mca_rotated_pattern_vectors}
+    \bm{V}_{R,s} =& \bm{V}_{s} \Sigma^{1/2} \bm{R} \bm{W}_s^{-1}
 \end{align}
 
-In this case, $M$ is a diagonal matrix that weights the augmented pattern matrix. While \citet{cheng_orthogonal_1995} proposed $M=\Sigma^{1/2}$, this choice is not ideal as the singular values $\sigma_i$ are not directly related to the explained covariance of the patterns. Instead, it is more appropriate to weight each mode by the squared singular value, preserving the squared covariance fraction of the first $m$ modes before and after (orthogonal) rotation. Thus, we use
+where $\bm{W}_s^{-1}$ is a diagonal matrix with the elements that normalize the rotated pattern vectors to unit length.
+
+The associated rotated expansion coefficients $\bm{P}_{R,s}$ are then obtained by rotating the original expansion coefficients $\bm{P}_{s}$:
 
 \begin{align}
-    M = \Sigma
+    \bm{P}_{R,x} =& \bm{P}_x \Sigma^{-1/2} \bm{R} \bm{W}_s
 \end{align}
 
-for the weighted (or "loaded") pattern vectors. 
+For an orthogonal rotation, the rotated expansion coefficients remain uncorrelated:
+
+\begin{align}\label{eq:theory:mca_covariance_rotated_expansion_coefficients}
+    \bm{P}_{R,x}^H \bm{P}_{R,y}  =& \pab{ \bm{P}_x \Sigma^{-1/2} \bm{R} \bm{W}_x}^H \pab{ \bm{P}_y \Sigma^{-1/2} \bm{R} \bm{W}_y} \\
+    =& \bm{W}_x \bm{R}^H \Sigma^{-1/2} \bm{P}_x^H \bm{P}_y \Sigma^{-1/2} \bm{R} \bm{W}_y \\
+    =& (N-1) \bm{W}_x \bm{W}_y.
+\end{align}
+
+while the unitary property of the rotated pattern vectors is removed:
+
+\begin{align}
+    \bm{V}_{R,x}^H \bm{V}_{R,y} =& \pab{ \bm{V}_x \Sigma^{1/2} \bm{R} W_x}^H \pab{ \bm{V}_y \Sigma^{1/2} \bm{R} \bm{W}_y^{-1}} \\
+    =& \bm{W}_x \bm{R}^H \Sigma^{1/2} \bm{V}_x^H \bm{V}_y \Sigma^{1/2} \bm{R} \bm{W}_y \\
+    =& \bm{W}_x \bm{R}^H \Sigma \bm{R} \bm{W}_y.
+\end{align}
+
+A drawback of the proposed rotation procedure--and which has apparently gone unreported as far as we know--is that the total squared covariance is \emph{not} conserved by the rotation which makes Equation~\eqref{eq:theory:mca_scf_singular_values} invalid for estimating the relative importance of the rotated modes. We provide a proof of this in the Appendix~\ref{app:proofs:scf}.
+
 
 Beyond rotation for better interpretability, Hilbert MCA can be applied to capture the temporal evolution of coupled patterns, akin to Hilbert PCA (see Section~\ref{sec:theory:hilbert_pca}). This is especially useful for analyzing propagating patterns like the MJO, which involve covarying patterns in different climate variables, such as wind speed in the troposphere and lower stratosphere, and precipitation. By augmenting data with the Hilbert transform, we obtain complexified fields and solve the maximization problem (Equation~\eqref{eq:theory:mca_maximization}) for these augmented data, capturing the temporal evolution of coupled patterns. It seems that Hilbert MCA has seen limited application in climate science \cite[e.g.][]{elipot_observed_2017}. In this thesis we utilize the combined power of Hilbert and rotated MCA to identify and interpret coupled patterns of variability in the climate system.
 

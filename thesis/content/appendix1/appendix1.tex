@@ -2,39 +2,86 @@
 % ******************************* Thesis Appendix A ****************************
 \chapter{Proofs} 
 
-The Frobenius norm $\Vab{\cdot}_F$ of a complex $N\times P$ matrix $\bm{A} \in \mathtt{C}^{N \times P}$ is defined as:
+\section{Squared Covariance is not Preserved Under Rotation}\label{app:proofs:scf}
+What we want to verify is whether the total squared covariance of the first rotated $r$ modes of $\bm{X}$ and $\bm{Y}$ is equal to the total squared covariance of the original first $r$ modes. We will see that this is not the case. To prove this, recall that the total squared covariance of $\bm{X}$ and $\bm{Y}$ is given by the sum of the squared singular values of the cross-covariance matrix $\bm{C} = \bm{X}^H \bm{Y} / (N-1)$, as shown in Equation~\eqref{eq:theory:total_squared_covariance}:
 
-\begin{align}\label{eq:app:frobenius_norm}
-    \Vab{\bm{A}}_F &\equiv  \pab{\sum_i^N \sum_j^P \vab{a_{ij}}^2}^{1/2} = \pab{\sum_{i}^{\min(N, P)} \sigma_i^2(\bm{A})}^{1/2}.
+\begin{align}
+    \Vab{\bm{C}}_F^2 &= \sum_{k=1}^{M} \sigma_k^2.
 \end{align}
 
-This expression reveals that the Frobenius norm is equivalent to the $\ell_2$-norm of the matrix's singular values $\sigma_i$. We can demonstrate this equivalence using the singular value decomposition (SVD) of $\bm{A}$ and leveraging the property that the trace of a matrix remains invariant under cyclic permutations.
+Also, recall that the covariance of the rotated expansion coefficients $\bm{P_{R,x,k}}$ and $\bm{P_{R,y,k}}$ is a diagonal matrix given by:
 
-Starting with the defintion of the Frobenius norm, we have:
+\begin{align}
+    \frac{1}{N-1} \bm{P_{R,x}}^H \bm{P_{R,y}} &\overset{\eqref{eq:theory:mca_covariance_rotated_expansion_coefficients}}{=} \bm{W}_x \bm{W}_y.
+\end{align}
+
+Our first step involves establishing the relationship between the $\bm{W}_x$ and $\bm{W}_y$ matrices and the original singular values $\sigma_k$ of the cross-covariance matrix $\bm{C}$. We can do this by considering the normalization condition of the $k$-th column (mode) of the rotated pattern vectors of the variable $s\in [x, y]$:
+
+\begin{align}
+    1 &= \Vab{\bm{V}_{R,s,k}}^2 \\
+    &=\bm{V}_{R,s,k}^H \bm{V}_{R,s,k} \\
+    \overset{\eqref{eq:theory:mca_rotated_pattern_vectors}}&{=} \pab{\bm{V}_s^H \Sigma^{1/2} \bm{R}_{:,k} (\bm{W}_s^{-1})_{kk}}^H \pab{\bm{V}_s^H \Sigma^{1/2} \bm{R}_{:,k} (\bm{W}_s^{-1})_{kk}} \\
+    &= (\bm{W}_s^{-1})_{kk}^2 \pab{\bm{R}_{:,k}^H \Sigma \bm{R}_{:,k}}
+\end{align}
+
+Solving for $(\bm{W}_s)_{kk}$, we find our desired expression:
+
+\begin{align}
+    (\bm{W}_s)_{kk}^2 &= \pab{\bm{R}_{:,k}^H \Sigma \bm{R}_{:,k}} \implies \bm{W}_x = \bm{W}_y \equiv \bm{W}.
+\end{align}
+
+Note that this also implies that the normalizing diagonal matrices $\bm{W}_s$ are the same for both variables $x$ and $y$, so that the covariance is $\bm{W}^2$.
+
+So, the total squared covariance of the first $r$ rotated modes is then given by,
 
 \begin{align*}
-    \Vab{\bm{A}}_F &= \pab{\tr \pab{\bm{A}^H\bm{A}}}^{1/2}
+    \tr{\bm{W}^4} &= \sum_{k=1}^r \pab{\pab{\bm{R}^H \Sigma \bm{R}}_{kk}}^2 \\
+    &\leq \tr{ \pab{\pab{\bm{R}^H \Sigma \bm{R}}^2}} \\
+    &= \tr \pab{\Sigma^2} \\
+    &= \sum_{k=1}^r \sigma_k^2,
 \end{align*}
 
-Applying the SVD, we can express $\bm{A} = \bm{V}\bm{\Sigma}\bm{V}^H$, leading to:
+which shows that is less than sum of the squared singular values of the cross-covariance matrix, i.e. the total squared covariance before rotation. This implies that the total squared covariance is not preserved under rotation, except for the trivial case where the rotation matrix is the identity matrix.
+
+In contrast, however, we can show that the total covariance \emph{is} preserved under rotation:
 
 \begin{align*}
-    \Vab{\bm{A}}_F &= \pab{\tr \pab{\bm{V}\bm{\Sigma}\bm{U}^H\bm{U}\bm{\Sigma}^H\bm{V}^H}}^{1/2}
+    \tr{\bm{W}^2} &= \sum_{k=1}^r \pab{\bm{R}^H \Sigma \bm{R}}_{kk} \\
+    &= \sum_{k=1}^r \pab{ \sum_{i=1}^r R_{ik}^H \Sigma_{ii} R_{ik}} \\
+    &= \sum_{k=1}^r \pab{ \sum_{i=1}^r \sigma_{i} R_{ik}^2} \\
+    &= \sum_{i=1}^r \sigma_{i} \pab{ \sum_k^r R_{ik}^2} \\
+    &= \sum_{i=1}^r \sigma_k.
 \end{align*}
 
-Since $\bm{U}^H\bm{U}=\bm{I}$, this simplifies to:
+where we made use of the unitary property of the rotation matrix that $\sum_k^r R_{ik}^2 = 1$.
+
+
+\section{Frobenius Norm of the Cross-Covariance Matrix}\label{app:proof:frobenius_norm}
+The total squared covariance between $\bm{X} \in \mathtt{C}^{N \times P}$ and $\bm{Y}\in \mathtt{C}^{N \times Q}$ is quantified using the Frobenius norm $\Vab{\cdot}_F$ of the cross-covariance matrix $\bm{C} = \bm{X}^H \bm{Y} / (N-1)$:
+
+\begin{align}\label{eq:app:frobenius_norm}
+    \Vab{\bm{C}}_F &\equiv  \pab{\sum_i^N \sum_j^P \vab{c_{ij}}^2}^{1/2} = \pab{\sum_{i}^{\min(N, P)} \sigma_i^2(\bm{C})}^{1/2}.
+\end{align}
+
+For the proof of Equation~\eqref{eq:app:frobenius_norm}, consider the singular value decomposition of $\bm{C}$,
+
+\begin{align}
+    \bm{C} &= \bm{V}_x \bm{\Sigma} \bm{V}_y^H,
+\end{align}
+
+where $\bm{V}_x \in \mathtt{C}^{P \times P}$ and $\bm{V}_y \in \mathtt{C}^{Q \times Q}$ are unitary matrices, and $\bm{\Sigma} \in \mathtt{C}^{P \times Q}$ is a diagonal matrix with singular values $\sigma_i(\bm{C})$ on the diagonal.
+
+Using the orthonormality of $\bm{V}_x$ and $\bm{V}_y$ as well as the property that the trace of a matrix remains invariant under cyclic permutations, we find:
 
 \begin{align*}
-    \Vab{\bm{A}}_F &= \pab{\tr \pab{\bm{V}\bm{\Sigma}^2\bm{V}^H}}^{1/2}
+    \Vab{\bm{C}}_F^2 &= \Vab{\bm{V}_x\bm{\Sigma}\bm{V}_y^T}_F^2 \\
+    &= \tr \pab{\pab{\bm{V}_x\bm{\Sigma}\bm{V}_y^T}^T\pab{\bm{V}_x\bm{\Sigma}\bm{V}_y^T}} \\
+    &= \tr \pab{\bm{V}_y\bm{\Sigma}\bm{V}_x^T\bm{V}_x\bm{\Sigma}\bm{V}_y^T} \\
+    &= \tr \pab{\bm{V}_y\bm{\Sigma}^2\bm{V}_y^T} \\
+    &= \tr \pab{\bm{\Sigma}^2} \\
+    &= \sum_{r=1}^k \sigma_r^2.
 \end{align*}
 
 
-Finally using the invariance property of the trace, we obtain:
-
-\begin{align*}
-    \Vab{\bm{A}}_F &= \pab{\sum_{i}^{\min(N, P)} \sigma_i^2(\bm{A})}^{1/2}
-\end{align*}
-
-This concludes the proof that the Frobenius norm of a matrix is indeed the $\ell_2$-norm of its singular values.
 
 
