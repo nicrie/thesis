@@ -2,60 +2,6 @@
 % ******************************* Thesis Appendix A ****************************
 \chapter{Proofs} 
 
-\section{Squared Covariance is not Preserved Under Rotation}\label{app:proofs:scf}
-What we want to verify is whether the total squared covariance of the first rotated $r$ modes of $\bm{X}$ and $\bm{Y}$ is equal to the total squared covariance of the original first $r$ modes. We will see that this is not the case. To prove this, recall that the total squared covariance of $\bm{X}$ and $\bm{Y}$ is given by the sum of the squared singular values of the cross-covariance matrix $\bm{C} = \bm{X}^H \bm{Y} / (N-1)$, as shown in Equation~\eqref{eq:theory:total_squared_covariance}:
-
-\begin{align}
-    \Vab{\bm{C}}_F^2 &= \sum_{k=1}^{M} \sigma_k^2.
-\end{align}
-
-Also, recall that the covariance of the rotated expansion coefficients $\bm{P_{R,x,k}}$ and $\bm{P_{R,y,k}}$ is a diagonal matrix given by:
-
-\begin{align}
-    \frac{1}{N-1} \bm{P_{R,x}}^H \bm{P_{R,y}} &\overset{\eqref{eq:theory:mca_covariance_rotated_expansion_coefficients}}{=} \bm{W}_x \bm{W}_y.
-\end{align}
-
-Our first step involves establishing the relationship between the $\bm{W}_x$ and $\bm{W}_y$ matrices and the original singular values $\sigma_k$ of the cross-covariance matrix $\bm{C}$. We can do this by considering the normalization condition of the $k$-th column (mode) of the rotated pattern vectors of the variable $s\in [x, y]$:
-
-\begin{align}
-    1 &= \Vab{\bm{V}_{R,s,k}}^2 \\
-    &=\bm{V}_{R,s,k}^H \bm{V}_{R,s,k} \\
-    \overset{\eqref{eq:theory:mca_rotated_pattern_vectors}}&{=} \pab{\bm{V}_s^H \Sigma^{1/2} \bm{R}_{:,k} (\bm{W}_s^{-1})_{kk}}^H \pab{\bm{V}_s^H \Sigma^{1/2} \bm{R}_{:,k} (\bm{W}_s^{-1})_{kk}} \\
-    &= (\bm{W}_s^{-1})_{kk}^2 \pab{\bm{R}_{:,k}^H \Sigma \bm{R}_{:,k}}
-\end{align}
-
-Solving for $(\bm{W}_s)_{kk}$, we find our desired expression:
-
-\begin{align}
-    (\bm{W}_s)_{kk}^2 &= \pab{\bm{R}_{:,k}^H \Sigma \bm{R}_{:,k}} \implies \bm{W}_x = \bm{W}_y \equiv \bm{W}.
-\end{align}
-
-Note that this also implies that the normalizing diagonal matrices $\bm{W}_s$ are the same for both variables $x$ and $y$, so that the covariance is $\bm{W}^2$.
-
-So, the total squared covariance of the first $r$ rotated modes is then given by,
-
-\begin{align*}
-    \tr{\bm{W}^4} &= \sum_{k=1}^r \pab{\pab{\bm{R}^H \Sigma \bm{R}}_{kk}}^2 \\
-    &\leq \tr{ \pab{\pab{\bm{R}^H \Sigma \bm{R}}^2}} \\
-    &= \tr \pab{\Sigma^2} \\
-    &= \sum_{k=1}^r \sigma_k^2,
-\end{align*}
-
-which shows that is less than sum of the squared singular values of the cross-covariance matrix, i.e. the total squared covariance before rotation. This implies that the total squared covariance is not preserved under rotation, except for the trivial case where the rotation matrix is the identity matrix.
-
-In contrast, however, we can show that the total covariance \emph{is} preserved under rotation:
-
-\begin{align*}
-    \tr{\bm{W}^2} &= \sum_{k=1}^r \pab{\bm{R}^H \Sigma \bm{R}}_{kk} \\
-    &= \sum_{k=1}^r \pab{ \sum_{i=1}^r R_{ik}^H \Sigma_{ii} R_{ik}} \\
-    &= \sum_{k=1}^r \pab{ \sum_{i=1}^r \sigma_{i} R_{ik}^2} \\
-    &= \sum_{i=1}^r \sigma_{i} \pab{ \sum_k^r R_{ik}^2} \\
-    &= \sum_{i=1}^r \sigma_k.
-\end{align*}
-
-where we made use of the unitary property of the rotation matrix that $\sum_k^r R_{ik}^2 = 1$.
-
-
 \section{Frobenius Norm of the Cross-Covariance Matrix}\label{app:proof:frobenius_norm}
 The total squared covariance between $\bm{X} \in \mathtt{C}^{N \times P}$ and $\bm{Y}\in \mathtt{C}^{N \times Q}$ is quantified using the Frobenius norm $\Vab{\cdot}_F$ of the cross-covariance matrix $\bm{C} = \bm{X}^H \bm{Y} / (N-1)$:
 
