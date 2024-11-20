@@ -2,22 +2,13 @@
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import cmocean.cm as cmo
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-import seaborn as sns
+import utils.visualization as viz
 import xarray as xr
 from matplotlib.gridspec import GridSpec
-
 from utils.tools import get_figure_path
 
-sns.set_context("paper")
-plt.style.use("style/thesis.mplstyle")
-
-
-mpl.rcParams["font.size"] = 7
-mpl.rcParams["axes.linewidth"] = 0.5
-mpl.rcParams["xtick.major.width"] = 0.3
-mpl.rcParams["ytick.major.width"] = 0.3
+viz.set_style()
 
 trends = xr.load_dataset("/home/nrieger/Projects/cpcca/tele/data/trends.nc")
 

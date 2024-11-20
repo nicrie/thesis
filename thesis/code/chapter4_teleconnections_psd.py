@@ -2,26 +2,19 @@
 
 from string import ascii_uppercase as LETTERS
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
+import utils.visualization as viz
 from cycler import cycler
+from matplotlib.gridspec import GridSpec
+from utils.tools import get_figure_path
 from xarray.backends.api import open_datatree
 
-from utils.tools import get_figure_path
-
-# plt.style.use("style/tex.mplstyle")
-sns.set_context("paper")
-plt.style.use("style/thesis.mplstyle")
+viz.set_style()
 
 clrs = sns.color_palette("tab20", n_colors=8, desat=0.9)
-
 default_cycler = cycler(color=[clrs[0], clrs[1], clrs[6], clrs[7], clrs[2]])
 plt.rc("axes", prop_cycle=default_cycler)
-mpl.rcParams["font.size"] = 7
-mpl.rcParams["axes.linewidth"] = 0.5
-mpl.rcParams["xtick.major.width"] = 0.5
-mpl.rcParams["ytick.major.width"] = 0.5
 
 
 # %%
@@ -53,7 +46,6 @@ clr_climate_index = ".5"
 xlim = (1e-2, 0.1)
 ylim = (0, 0.2)
 
-from matplotlib.gridspec import GridSpec
 
 fig = plt.figure(figsize=(7.2, 12))
 gs = GridSpec(15, 2, figure=fig, hspace=1.5)

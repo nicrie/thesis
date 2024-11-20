@@ -3,33 +3,24 @@
 from string import ascii_uppercase as LETTERS
 
 import cartopy.crs as ccrs
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import numpy as np
 import seaborn as sns
+import utils.visualization as viz
 import xarray as xr
 import xeofs as xe
 from cartopy.feature import LAND, OCEAN
 from cycler import cycler
 from matplotlib.gridspec import GridSpec
+from utils.tools import get_figure_path
 from xarray.backends.api import open_datatree
 
-from utils.plotting import shift_cmap
-from utils.tools import get_figure_path
-
-# plt.style.use("style/tex.mplstyle")
-sns.set_context("paper")
-plt.style.use("style/thesis.mplstyle")
+viz.set_style()
 
 clrs = sns.color_palette("tab20", n_colors=8, desat=0.9)
-
 default_cycler = cycler(color=[clrs[0], clrs[1], clrs[6], clrs[7]])
 plt.rc("axes", prop_cycle=default_cycler)
-mpl.rcParams["font.size"] = 7
-mpl.rcParams["axes.linewidth"] = 0.5
-mpl.rcParams["xtick.major.width"] = 0.5
-mpl.rcParams["ytick.major.width"] = 0.5
 
 
 def compute_angle(x):
@@ -161,7 +152,7 @@ fve_x = FVE_X.sel(mode=mode).values
 fve_y = FVE_Y.sel(mode=mode).values
 
 cmap_twilight = plt.get_cmap("twilight")
-cmap_twilight_shifted = shift_cmap(cmap_twilight, 0.35)
+cmap_twilight_shifted = viz.shift_cmap(cmap_twilight, 0.35)
 cmap = {"amplitude": "Blues", "phase": cmap_twilight_shifted}
 
 data_proj = ccrs.PlateCarree()
