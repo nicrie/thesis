@@ -253,14 +253,22 @@ supported!}
 \RequirePackage{ifxetex}  % XeLaTeX
 
 % *********************** Table of Contents & Appendices ***********************
+% \RequirePackage{tocloft}
+% \renewcommand{\cftchapfont}{\sffamily}
+% \renewcommand{\cftsecfont}{\sffamily}
+% \renewcommand{\cftsubsecfont}{\sffamily}
+% \renewcommand{\cftchappagefont}{\sffamily}
+% \renewcommand{\cftsecpagefont}{\sffamily}
+% \renewcommand{\cftsubsecpagefont}{\sffamily}
+
 % add Bibliography, List of figures and tables to contents
 \RequirePackage[nottoc]{tocbibind}
 % Add appendices
 \RequirePackage[title,titletoc]{appendix}
 
-\renewcommand{\contentsname}{Table of contents}
-\renewcommand{\listfigurename}{List of figures}
-\renewcommand{\listtablename}{List of tables}
+% \renewcommand{\contentsname}{Table of Contents}
+% \renewcommand{\listfigurename}{List of Figures}
+% \renewcommand{\listtablename}{List of Tables}
 
 % Hides Contents appearing from TOC, but adds it to bookmarks
 \let\temptableofcontents\tableofcontents
@@ -532,8 +540,12 @@ supported!}
 % ****************************** Font Colors **********************************
 \RequirePackage{xcolor}
 \definecolor{mygrey}{HTML}{080808}
-\definecolor{secondarycolor}{rgb}{0.5, 0.5, 0.5}
-\colorlet{primarycolor}{red!40!black}
+\definecolor{primarycolor}{rgb}{0.1457, 0.2935, 0.4984}
+\definecolor{secondarycolor}{rgb}{0.4894, 0.7285, 0.5675}
+\definecolor{contrastcolor}{rgb}{0.9527, 0.5009, 0.10215}
+\definecolor{greycolor}{rgb}{0.5, 0.5, 0.5}
+
+
 
 
 
@@ -589,10 +601,10 @@ supported!}
     breaklinks=true,
     linktocpage,
     colorlinks=true,
-    linkcolor=red!50!black,
-    urlcolor=red!50!black,
-    citecolor=red!50!black,
-    anchorcolor=red!50!black
+    linkcolor=primarycolor,
+    urlcolor=primarycolor,
+    citecolor=primarycolor,
+    anchorcolor=primarycolor
   }
 
   \ifsetCustomMargin
@@ -716,18 +728,22 @@ wish to left align your text}
   \else
   % Default Style: Sets Page Number at the Top (LE/RO) with Chapter/Section Name
   % on LO/RE and an empty footer
-    \renewcommand{\chaptermark}[1]{\markboth {##1}{}}
-    \renewcommand{\sectionmark}[1]{\markright{\thesection\ ##1}}
+    \renewcommand{\chaptermark}[1]{\markboth {\sffamily\color{greycolor} ##1}{}}
+    \renewcommand{\sectionmark}[1]{\markright{\sffamily\color{greycolor} \thesection\ ##1}}
     \fancyhf{}
     \fancyhead[LO]{\nouppercase \rightmark}
-    \fancyhead[LE,RO]{\bfseries\thepage}
+    \fancyhead[LE,RO]{\sffamily\color{greycolor} \bfseries\thepage}
     \fancyhead[RE]{\nouppercase \leftmark}
+    \renewcommand{\headrule}{%
+      \color{greycolor}% Set the desired color
+      \hrule width\headwidth height\headrulewidth 
+    }
   \fi
 \fi
 }
 
 \setlength{\headheight}{14.5pt}
-%\renewcommand{\headrulewidth}{0.5pt}
+% \renewcommand{\headrulewidth}{0.5pt}
 %\renewcommand{\footrulewidth}{0pt}
 \fancypagestyle{plain}{
   \fancyhead{}

@@ -30,6 +30,7 @@
   % \RequirePackage{helvet} % Uses Utopia Font
   \RequirePackage{mathpazo}  % --- Palatino with math support
   \RequirePackage[scale=0.95]{eulerpx}  % --- Euler math font
+  \usepackage[light]{librefranklin}
 
 
   % % For use with XeLaTeX
@@ -238,10 +239,10 @@
 
 % These options are active only during the draft mode
 % Default text is "Draft"
-%\SetDraftText{DRAFT}
+\SetDraftText{DRAFT}
 
 % Default Watermark location is top. Location (top/bottom)
-% \SetDraftWMPosition{bottom}
+\SetDraftWMPosition{bottom}
 
 % Draft Version - default is v1.0
 \SetDraftVersion{v0.3}
@@ -279,17 +280,42 @@
 \color{black!80}
 
 \def\myrulewidth{0.4mm}
+
 \usepackage[explicit]{titlesec}
 
+% Part style
+\titleformat{\part}[display]
+  {\sffamily\Huge\color{greycolor}\centering}
+  {}
+  {0pt}
+  {\partname~\thepart \\ #1}
 
 % Chapter style
 \titleformat{\chapter}[display]%
-{\relax}{\mbox{}\marginpar{\vspace*{-\baselineskip}\color{secondarycolor}\fontsize{78}{94}\selectfont\thechapter}}{0pt}%
-    {\Huge\bfseries\color{secondarycolor} #1}[\normalsize\vspace*{.8\baselineskip}\titleline{\color{secondarycolor}\titlerule}]% 
+  {\relax}
+  {\mbox{}\marginpar{\vspace*{-\baselineskip}\color{greycolor}\fontsize{78}{94}\selectfont\thechapter}}
+  {0pt}%
+  {\Huge\sffamily\color{greycolor} #1}
+  [\normalsize\vspace*{.8\baselineskip}\titleline{\color{greycolor}\titlerule}]% 
 \titlespacing*{\chapter}{0pt}{0cm}{1cm}
-% --------------------------------
 
 % Section style
-% \newcommand{\hsp}{\hspace{5pt}}
-% \titleformat{\section}[hang]{\Large\bfseries}{\color{primarycolor}\thesection\hsp\textcolor{primarycolor}{|}\hsp}{0pt}{\Large\color{primarycolor} #1}
+\titleformat{\section}
+  {\Large\sffamily\color{primarycolor}}
+  {\thesection}{1em}{#1}
+
+% Subsection style
+\titleformat{\subsection}
+  {\large\sffamily\color{primarycolor}}
+  {\thesubsection}{1em}{#1}
+
+% Subsubsection style
+\titleformat{\subsubsection}
+  {\sffamily\color{primarycolor}}
+  {\thesubsubsection}{1em}{#1}
+
+% Paragraph style
+\titleformat{\paragraph}[runin]
+  {\sffamily\color{primarycolor}}
+  {\theparagraph}{1em}{#1}
 
