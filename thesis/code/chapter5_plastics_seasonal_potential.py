@@ -12,7 +12,6 @@ import PIL
 import seaborn as sns
 import utils.visualization as viz
 import xarray as xr
-from matplotlib import colormaps
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Polygon
 from utils.definitions import nea_ocean_basins
@@ -130,9 +129,9 @@ mari = mari.stack(point=["lat", "lon"]).dropna("point")
 
 # Icons
 icons = {
-    "river": "figs/icons/sources/png/003-river.png",
-    "wild": "figs/icons/sources/png/001-fishing-boat.png",
-    "mari": "figs/icons/sources/png/002-fish.png",
+    "river": "../figs/icons/sources/png/003-river.png",
+    "wild": "../figs/icons/sources/png/001-fishing-boat.png",
+    "mari": "../figs/icons/sources/png/002-fish.png",
 }
 images = {k: PIL.Image.open(fname) for k, fname in icons.items()}
 
@@ -160,12 +159,13 @@ def trans_plastic(x):
     return x ** (0.8) * 1e-2
 
 
+cmap_blue = viz.get_sequential_color_palette()
 cmap = {
-    "river": "mako",
-    "plastic": "mako",
-    "mari": "mako",
-    "wild": "mako",
-    "wild_size": "inferno",
+    "river": cmap_blue,
+    "plastic": cmap_blue,
+    "mari": cmap_blue,
+    "wild": cmap_blue,
+    "wild_size": sns.color_palette("flare", as_cmap=True),
 }
 norm = {
     "river": mcolors.Normalize(vmin=0, vmax=0.6),
@@ -173,6 +173,13 @@ norm = {
     "mari": mcolors.Normalize(vmin=0, vmax=0.6),
     "wild": mcolors.Normalize(vmin=0, vmax=0.6),
     "wild_size": mcolors.Normalize(vmin=0, vmax=1e6),
+}
+colors = {
+    "ocean": "0.9",
+    "land": "0.75",
+    "coastline": ".5",
+    "text": ".3",
+    "beach_ec": "C1",
 }
 
 proj = ccrs.TransverseMercator(central_longitude=0.0, central_latitude=50.0)
@@ -196,7 +203,8 @@ for a, lb in zip(axes_first_row, X_LABELS):
         transform=a.transAxes,
         ha="center",
         va="top",
-        color="w",
+        color=colors["text"],
+        weight=800,
     )
 for a, lb in zip(axes_first_col, Y_LABELS):
     a.text(
@@ -207,7 +215,8 @@ for a, lb in zip(axes_first_col, Y_LABELS):
         ha="left",
         va="center",
         rotation=90,
-        color="w",
+        color=colors["text"],
+        weight=800,
     )
 
 
@@ -215,28 +224,35 @@ for a, lb in zip(axes_first_col, Y_LABELS):
 for i, (a, d) in enumerate(zip(ax, ABC)):
     a.set_extent(extent, crs=ccrs.PlateCarree())
     # set background black
-    a.set_facecolor("black")
-    a.add_feature(cfeature.LAND.with_scale("50m"), color="k", zorder=1)
-    # a.add_feature(LAND.with_scale("50m"), color="k")
-    # a.add_feature(RIVERS.with_scale("50m"), color=".4", lw=0.2)
-    a.coastlines("50m", color=".5", lw=0.2)
-    a.text(0.99, 0.98, f"({d})", transform=a.transAxes, ha="right", va="top", color="w")
+    a.set_facecolor(colors["ocean"])
+    a.add_feature(cfeature.LAND.with_scale("50m"), color=colors["land"], zorder=1)
+    a.coastlines("50m", color=colors["coastline"], lw=0.2)
+    a.text(
+        0.99,
+        0.98,
+        f"({d})",
+        transform=a.transAxes,
+        ha="right",
+        va="top",
+        color=colors["text"],
+        weight=800,
+    )
 
 # Add source icons
 clr_bg = {
-    "river": sns.color_palette("mako", as_cmap=True),
-    "wild": sns.color_palette("mako", as_cmap=True),
-    "mari": sns.color_palette("mako", as_cmap=True),
+    "river": cmap_blue,
+    "wild": cmap_blue,
+    "mari": cmap_blue,
 }
 for a, (src, img) in zip(axes_first_col, icons.items()):
     iax = a.inset_axes([0.0, 0.79, 0.2, 0.2], transform=a.transAxes, zorder=55)
     iax.imshow(images[src])
 
     # set background color
-    iax.patch.set_facecolor(clr_bg[src](0.85))
+    iax.patch.set_facecolor(clr_bg[src](0.25))
     iax.patch.set_alpha(1.0)
     # set border color
-    iax.patch.set_edgecolor("white")
+    iax.patch.set_edgecolor(colors["text"])
     iax.set_xticks([])
     iax.set_yticks([])
 
@@ -250,7 +266,7 @@ for a in [ax[0], ax[2], ax[4]]:
         litter_cl1.lat,
         s=litter_cl1["size"].where(litter_cl1["probability"] > 0.30),
         color="None",
-        ec="#ea60ff",
+        ec=colors["beach_ec"],
         lw=0.75,
         zorder=500,
         transform=ccrs.PlateCarree(),
@@ -261,7 +277,7 @@ for a in [ax[1], ax[3], ax[5]]:
         litter_cl2.lat,
         s=litter_cl2["size"].where(litter_cl2["probability"] > 0.30),
         color="None",
-        ec="#ea60ff",
+        ec=colors["beach_ec"],
         lw=0.75,
         zorder=500,
         transform=ccrs.PlateCarree(),
@@ -275,7 +291,7 @@ ax[0].scatter(
     s=s_river,
     c=river_cl1,
     norm=norm["river"],
-    cmap="mako",
+    cmap=cmap["river"],
     transform=ccrs.PlateCarree(),
 )
 ax[1].scatter(
@@ -284,7 +300,7 @@ ax[1].scatter(
     s=s_river,
     c=river_cl2,
     norm=norm["river"],
-    cmap="mako",
+    cmap=cmap["river"],
     transform=ccrs.PlateCarree(),
 )
 
@@ -295,10 +311,10 @@ ax[0].scatter(
     plastic_stacked.lat,
     s=s_plastic,
     c=plastic_stacked.seasonal_potential.sel(cluster=1),
-    ec="yellow",
+    ec=".3",
     lw=0.2,
     norm=norm["plastic"],
-    cmap="mako",
+    cmap=cmap["plastic"],
     transform=ccrs.PlateCarree(),
     zorder=40,
 )
@@ -307,10 +323,10 @@ ax[1].scatter(
     plastic_stacked.lat,
     s=s_plastic,
     c=plastic_stacked.seasonal_potential.sel(cluster=2),
-    ec="yellow",
+    ec=".3",
     lw=0.2,
     norm=norm["plastic"],
-    cmap="mako",
+    cmap=cmap["plastic"],
     transform=ccrs.PlateCarree(),
     zorder=40,
 )
@@ -328,8 +344,8 @@ for region in nea_ocean_basins:
         val_size = fishing_capture["size"].sel(region=region.number).item()
 
         # Convert values to colors
-        fc = colormaps[cmap["wild"]](norm["wild"](val_sp))
-        ec = colormaps[cmap["wild_size"]](norm["wild_size"](val_size))
+        fc = cmap["wild"](norm["wild"](val_sp))
+        ec = cmap["wild_size"](norm["wild_size"](val_size))
 
         # Define the coordinates of the polygon vertices
         polygon_coords = list(
@@ -358,34 +374,12 @@ for region in nea_ocean_basins:
             ha="center",
             va="center",
             fontsize=6,
-            color="white",
+            color=colors["text"],
             zorder=1000,
-            bbox=dict(facecolor="black", edgecolor="none", alpha=0.7, pad=0.5),
+            bbox=dict(facecolor=colors["ocean"], edgecolor="none", alpha=0.7, pad=0.5),
             transform=ccrs.PlateCarree(),
         )
 
-# ax[2].scatter(
-#     fish_capture_cl1.lon,
-#     fish_capture_cl1.lat,
-#     s=trans_wild(fish_capture_cl1["size"]),
-#     c=fish_capture_cl1.seasonal_potential,
-#     norm=norm["wild"],
-#     ec="None",
-#     lw=0.3,
-#     cmap=cmap["wild"],
-#     transform=ccrs.PlateCarree(),
-# )
-# ax[3].scatter(
-#     fish_capture_cl2.lon,
-#     fish_capture_cl2.lat,
-#     s=trans_wild(fish_capture_cl2["size"]),
-#     c=fish_capture_cl2.seasonal_potential,
-#     norm=norm["wild"],
-#     ec="None",
-#     lw=0.3,
-#     cmap=cmap["wild"],
-#     transform=ccrs.PlateCarree(),
-# )
 
 # Aquaculture
 ax[4].scatter(
@@ -405,7 +399,6 @@ ax[5].scatter(
     mari.lon,
     mari.lat,
     s=trans_mari(mari["size"]),
-    # c="orange",
     c=mari["seasonal_potential"].sel(cluster=2),
     norm=norm["mari"],
     cmap=cmap["mari"],
@@ -424,8 +417,8 @@ def add_legend_background(ax, x, y, dx, dy):
             (x, y),  # bottom left corner coordinates
             dx,  # width
             dy,  # height
-            fc="black",
-            ec="white",
+            fc=colors["ocean"],
+            ec=colors["text"],
             fill=True,
             alpha=1,
             transform=ax.transAxes,
@@ -448,10 +441,10 @@ def add_seasonal_potential_colorbar(
     )
     cbar.set_ticks(ticks)
     cbar.set_ticklabels(ticklabels)
-    cbar.set_label(title, color="white", size=6)  # colorbar title
-    cax.tick_params(axis="x", colors="white", labelsize=6, width=0.5)
+    cbar.set_label(title, color=colors["text"], size=6)  # colorbar title
+    cax.tick_params(axis="x", colors=colors["text"], labelsize=6, width=0.5)
     cax.xaxis.set_label_position("top")  # Move cbar title to the top
-    cbar.outline.set_edgecolor("white")
+    cbar.outline.set_edgecolor(colors["text"])
     cbar.outline.set_linewidth(0.5)
     # Adjust colorbar tick length
     cbar.ax.tick_params(length=2)
@@ -510,7 +503,18 @@ add_seasonal_potential_colorbar(
 
 # Add legend circles (discharge)
 def add_legend_circles(
-    ax, x, y, dx, dy, sizes, labels, trans_func, xlocs=None, yoffset=0, title="", ec="w"
+    ax,
+    x,
+    y,
+    dx,
+    dy,
+    sizes,
+    labels,
+    trans_func,
+    xlocs=None,
+    yoffset=0,
+    title="",
+    ec=colors["text"],
 ):
     lax = ax.inset_axes([x, y, dx, dy], transform=ax.transAxes, zorder=55)
     # lax = ax.inset_axes([0.65, 0.01, 0.3, 0.2], transform=ax.transAxes, zorder=55)
@@ -539,9 +543,15 @@ def add_legend_circles(
             edgecolors=ec,
             facecolors="none",
         )
-        lax.text(x, -0.8, f"{lb}", color="white", fontsize=6, ha="center")
+        lax.text(x, -0.8, f"{lb}", color=colors["text"], fontsize=6, ha="center")
     lax.text(
-        0, 0.45 + yoffset, title, color="white", fontsize=6, ha="center", va="bottom"
+        0,
+        0.45 + yoffset,
+        title,
+        color=colors["text"],
+        fontsize=6,
+        ha="center",
+        va="bottom",
     )
 
 
@@ -551,7 +561,7 @@ sizes = np.array([1e3, 1e4, 1e5])
 labels = ["1", "10", "100"]
 title = "Macroplastics [$t/yr$]"
 add_legend_circles(
-    ax[1], 0.65, 0.21, 0.3, 0.2, sizes, labels, trans_plastic, title=title, ec="yellow"
+    ax[1], 0.65, 0.21, 0.3, 0.2, sizes, labels, trans_plastic, title=title, ec=".3"
 )
 # -> River discharge
 sizes = np.array([1e3, 5e3, 1e4])
@@ -573,7 +583,8 @@ save_to_vector = get_figure_path(
 save_to_raster = get_figure_path(
     "chapter5", "raster", "plastics_seasonal_potential.png"
 )
-plt.savefig(save_to_vector, bbox_inches="tight", dpi=300)
+# vector is to heavy; use raster
+# plt.savefig(save_to_vector, bbox_inches="tight", dpi=300)
 plt.savefig(save_to_raster, bbox_inches="tight", dpi=300)
 plt.show()
 
@@ -608,7 +619,8 @@ for a, lb in zip(axes_first_row, X_LABELS):
         transform=a.transAxes,
         ha="center",
         va="top",
-        color="w",
+        color=colors["text"],
+        weight=800,
     )
 for a, lb in zip(axes_first_col, Y_LABELS):
     a.text(
@@ -619,25 +631,32 @@ for a, lb in zip(axes_first_col, Y_LABELS):
         ha="left",
         va="center",
         rotation=90,
-        color="w",
+        color=colors["text"],
+        weight=800,
     )
-
-
 # Set up axes
 for i, (a, d) in enumerate(zip(ax, ABC)):
     a.set_extent(extent, crs=ccrs.PlateCarree())
     # set background black
-    a.set_facecolor("black")
-    a.add_feature(cfeature.LAND.with_scale("50m"), color="k", zorder=1)
+    a.set_facecolor(".9")
+    a.add_feature(cfeature.LAND.with_scale("50m"), color=".75", zorder=1)
     a.coastlines("50m", color=".5", lw=0.2)
-    a.text(0.99, 0.98, f"({d})", transform=a.transAxes, ha="right", va="top", color="w")
+    a.text(
+        0.99,
+        0.98,
+        f"({d})",
+        transform=a.transAxes,
+        ha="right",
+        va="top",
+        color=colors["text"],
+    )
 
 # Add source icons
 iax = ax[0].inset_axes([0.0, 0.79, 0.2, 0.2], transform=ax[0].transAxes, zorder=55)
 iax.imshow(images["mari"])
 
 # set background color
-iax.patch.set_facecolor(clr_bg["mari"](0.85))
+iax.patch.set_facecolor(clr_bg["mari"](0.15))
 iax.patch.set_alpha(1.0)
 # set border color
 iax.patch.set_edgecolor("white")
@@ -654,7 +673,7 @@ for a in [ax[0], ax[2], ax[4]]:
         litter_cl1.lat,
         s=litter_cl1["size"].where(litter_cl1["probability"] > 0.30),
         color="None",
-        ec="#ea60ff",
+        ec=colors["beach_ec"],
         lw=0.75,
         zorder=500,
         transform=ccrs.PlateCarree(),
@@ -665,7 +684,7 @@ for a in [ax[1], ax[3], ax[5]]:
         litter_cl2.lat,
         s=litter_cl2["size"].where(litter_cl2["probability"] > 0.30),
         color="None",
-        ec="#ea60ff",
+        ec=colors["beach_ec"],
         lw=0.75,
         zorder=500,
         transform=ccrs.PlateCarree(),
@@ -714,8 +733,8 @@ def add_legend_background(ax, x, y, dx, dy):
             (x, y),  # bottom left corner coordinates
             dx,  # width
             dy,  # height
-            fc="black",
-            ec="white",
+            fc=colors["ocean"],
+            ec=colors["text"],
             fill=True,
             alpha=1,
             transform=ax.transAxes,
@@ -745,8 +764,12 @@ labels = ["1", "3", "9"]
 title = "Production areas\n[$60km^{-1}$ coastline]"
 add_legend_circles(ax[5], 0.65, 0.01, 0.3, 0.2, sizes, labels, trans_mari, title=title)
 
-plt.savefig("figs/figure_supp05_mariculture_all.png", dpi=500, bbox_inches="tight")
+save_to_raster = get_figure_path(
+    "chapter5", "raster", "plastics_seasonal_potential_mariculture.png"
+)
+plt.savefig(save_to_raster, bbox_inches="tight", dpi=300)
 plt.show()
+
 # %%
 
 
@@ -765,7 +788,7 @@ for a, lb in zip(axes_first_row, X_LABELS):
         transform=a.transAxes,
         ha="center",
         va="top",
-        color="w",
+        color=colors["text"],
     )
 for a, lb in zip(axes_first_col, Y_LABELS):
     a.text(
@@ -776,28 +799,35 @@ for a, lb in zip(axes_first_col, Y_LABELS):
         ha="left",
         va="center",
         rotation=90,
-        color="w",
+        color=colors["text"],
     )
 
 
 # Set up axes
 for i, (a, d) in enumerate(zip(ax, ABC)):
     a.set_extent(extent, crs=ccrs.PlateCarree())
-    # set background black
-    a.set_facecolor("black")
-    a.add_feature(cfeature.LAND.with_scale("50m"), color="k", zorder=1)
-    a.coastlines("50m", color=".5", lw=0.2)
-    a.text(0.99, 0.98, f"({d})", transform=a.transAxes, ha="right", va="top", color="w")
+    a.set_facecolor(colors["ocean"])
+    a.add_feature(cfeature.LAND.with_scale("50m"), color=colors["land"], zorder=1)
+    a.coastlines("50m", color=colors["coastline"], lw=0.2)
+    a.text(
+        0.99,
+        0.98,
+        f"({d})",
+        transform=a.transAxes,
+        ha="right",
+        va="top",
+        color=colors["text"],
+    )
 
 # Add source icons
 iax = ax[0].inset_axes([0.0, 0.79, 0.2, 0.2], transform=ax[0].transAxes, zorder=55)
 iax.imshow(images["mari"])
 
 # set background color
-iax.patch.set_facecolor(clr_bg["mari"](0.85))
+iax.patch.set_facecolor(clr_bg["mari"](0.15))
 iax.patch.set_alpha(1.0)
 # set border color
-iax.patch.set_edgecolor("white")
+iax.patch.set_edgecolor(colors["text"])
 iax.set_xticks([])
 iax.set_yticks([])
 
@@ -811,7 +841,7 @@ for a in [ax[0], ax[2], ax[4]]:
         litter_cl1.lat,
         s=litter_cl1["size"].where(litter_cl1["probability"] > 0.30),
         color="None",
-        ec="#ea60ff",
+        ec=colors["beach_ec"],
         lw=0.75,
         zorder=500,
         transform=ccrs.PlateCarree(),
@@ -822,7 +852,7 @@ for a in [ax[1], ax[3], ax[5]]:
         litter_cl2.lat,
         s=litter_cl2["size"].where(litter_cl2["probability"] > 0.30),
         color="None",
-        ec="#ea60ff",
+        ec=colors["beach_ec"],
         lw=0.75,
         zorder=500,
         transform=ccrs.PlateCarree(),
@@ -875,8 +905,8 @@ def add_legend_background(ax, x, y, dx, dy):
             (x, y),  # bottom left corner coordinates
             dx,  # width
             dy,  # height
-            fc="black",
-            ec="white",
+            fc=colors["ocean"],
+            ec=colors["text"],
             fill=True,
             alpha=1,
             transform=ax.transAxes,
@@ -906,7 +936,12 @@ labels = ["1", "3", "9"]
 title = "Production areas\n[$60km^{-1}$ coastline]"
 add_legend_circles(ax[5], 0.65, 0.01, 0.3, 0.2, sizes, labels, trans_mari, title=title)
 
-plt.savefig("figs/figure_supp05_mariculture_bivalve.png", dpi=500, bbox_inches="tight")
+
+save_to_raster = get_figure_path(
+    "chapter5", "raster", "plastics_seasonal_potential_mariculture_bivalve.png"
+)
+plt.savefig(save_to_raster, bbox_inches="tight", dpi=300)
 plt.show()
+
 
 # %%

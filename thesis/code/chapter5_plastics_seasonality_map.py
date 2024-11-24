@@ -4,13 +4,12 @@ import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import numpy as np
+import utils.visualization as viz
 import xarray as xr
 from cartopy.crs import NearsidePerspective, PlateCarree, TransverseMercator
 from cartopy.feature import LAND, OCEAN, RIVERS
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Rectangle
-
-import utils.visualization as viz
 from utils.tools import get_figure_path
 
 viz.set_style()
@@ -22,7 +21,7 @@ viz.set_style()
 YEAR = 2001
 QUANTITY = "absolute"
 VARIABLE = "Plastic"
-base_path = f"/home/nrieger/Projects/basura/seasonality_ospar/data/gpr/{QUANTITY}/{VARIABLE}/{YEAR}/"
+base_path = f"/home/nrieger/projects/MINKE/seasonality_ospar/data/gpr/{QUANTITY}/{VARIABLE}/{YEAR}/"
 results = xr.open_dataset(base_path + "effect_size_seasons.nc")
 
 # %%

@@ -2,11 +2,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import utils.visualization as viz
 import xarray as xr
 from cycler import cycler
 from matplotlib.gridspec import GridSpec
-
-import utils.visualization as viz
 from utils.statistics import weighted_percentile
 from utils.tools import get_figure_path
 
@@ -26,7 +25,7 @@ QUANTITY = "absolute"
 VARIABLE = "Plastic"
 YEAR = 2001
 
-path_root = "/home/nrieger/Projects/basura/seasonality_ospar/data/"
+path_root = "/home/nrieger/Projects/MINKE/seasonality_ospar/data/"
 path_gpr = path_root + f"gpr/{QUANTITY}/{VARIABLE}/{YEAR}/"
 path_clustering = path_root + f"clustering/pca/{QUANTITY}/{VARIABLE}/{YEAR}/"
 path_ospar = path_root + "beach_litter/ospar/"
@@ -145,13 +144,9 @@ ess2_m = xr.concat([ess2_m, ess2_annual_m], dim="season")
 
 # %%
 # Plotting
-cmap = viz.get_sequential_color_palette(as_cmap=True)
-cmap_clrs = viz.get_sequential_color_palette(as_cmap=False, n_colors=4)
-clr_highlight1 = cmap_clrs[2]
-clr_highlight2 = "C3"
 
 
-def create_cluster_plot(percentiles, perc_ref, ax, color="C0", lw=1):
+def create_cluster_plot(percentiles, perc_ref, ax, lw=1):
     """Create a cluster plot with weighted percentiles.
 
     Args:
@@ -161,6 +156,7 @@ def create_cluster_plot(percentiles, perc_ref, ax, color="C0", lw=1):
         color (str, optional): Color of the shaded area. Defaults to "C0".
         lw (int, optional): Line width. Defaults to 1.
     """
+    colors = viz.get_sequential_color_palette(as_cmap=False, n_colors=5)[1:-1]
 
     coords_quantile = percentiles.coords["quantile"]
     quantiles = coords_quantile.values
@@ -177,7 +173,7 @@ def create_cluster_plot(percentiles, perc_ref, ax, color="C0", lw=1):
     # Add reference line (sample median)
     y_ref = perc_ref.sel(quantile=0.5, season=SEASONS).values
     yy = np.vstack([y_ref, y_ref])
-    ax.plot(xx, yy, c="C0", lw=lw * 0.5, zorder=15, ls="-")
+    ax.plot(xx, yy, c="C3", lw=lw * 0.5, zorder=15, ls="-")
 
     # Add data for model percentiles
     for q in quantiles:
@@ -193,20 +189,20 @@ def create_cluster_plot(percentiles, perc_ref, ax, color="C0", lw=1):
                     "{:.0f}".format(percentiles.loc[season, q]),
                     ha="left",
                     va="center",
-                    color=color,
+                    color=colors[-1],
                     size=7,
                     zorder=100,
                     bbox=dict(facecolor="w", edgecolor="w", alpha=0.8, pad=0.5),
                 )
 
     for i, season in enumerate(SEASONS):
-        for j, cols in enumerate(combs):
+        for j, (cols, clr) in enumerate(zip(combs, colors)):
             hdi = 100 * (cols[1] - cols[0])
             ax.fill_between(
                 xx[:, i],
                 percentiles.loc[season, cols[0]],
                 percentiles.loc[season, cols[1]],
-                color=color,
+                color=clr,
                 alpha=factors[cols[0]],
                 zorder=5,
                 label="{:.0f} %".format(hdi),
@@ -216,13 +212,19 @@ def create_cluster_plot(percentiles, perc_ref, ax, color="C0", lw=1):
 # %%
 # Figure 4
 # =============================================================================
+cmap = viz.get_sequential_color_palette(as_cmap=True)
+cmap_clrs = viz.get_sequential_color_palette(as_cmap=False, n_colors=4)
+clr_highlight1 = cmap_clrs[1]
+clr_highlight2 = "C2"
+
 fig = plt.figure(figsize=(7.2, 4))
 gs = GridSpec(1, 2, figure=fig, wspace=0.1)
 ax1 = plt.subplot(gs[0, 0])
 ax2 = plt.subplot(gs[0, 1])
 
-create_cluster_plot(cluster1_centroid_m, cluster1_centroid, ax1, clr_highlight1, lw=2)
-create_cluster_plot(cluster2_centroid_m, cluster2_centroid, ax2, clr_highlight1, lw=2)
+
+create_cluster_plot(cluster1_centroid_m, cluster1_centroid, ax1, lw=2)
+create_cluster_plot(cluster2_centroid_m, cluster2_centroid, ax2, lw=2)
 
 cluster1_centroid.sel(quantile=0.5)
 

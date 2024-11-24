@@ -4,13 +4,12 @@ import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import utils.visualization as viz
 import xarray as xr
 from cartopy.crs import PlateCarree, TransverseMercator
 from cartopy.feature import LAND, OCEAN, RIVERS
 from cycler import cycler
 from matplotlib.gridspec import GridSpec
-
-import utils.visualization as viz
 from utils.tools import get_figure_path
 
 viz.set_style()
@@ -25,7 +24,7 @@ plt.rc("axes", prop_cycle=default_cycler)
 YEAR = 2001
 QUANTITY = "absolute"
 VARIABLE = "Plastic"
-base_path = f"/home/nrieger/Projects/basura/seasonality_ospar/data/clustering/pca/{QUANTITY}/{VARIABLE}/{YEAR}/"
+base_path = f"/home/nrieger/projects/MINKE/seasonality_ospar/data/clustering/pca/{QUANTITY}/{VARIABLE}/{YEAR}/"
 
 pca_result = xr.open_dataset(base_path + "pca_clustering.nc", engine="netcdf4")
 components = pca_result.comps
