@@ -111,6 +111,7 @@
 % Hilbert transform
 \newcommand{\HT}[1]{\mathcal{H}\{#1\}}
 
+\newcommand{\itm}{\unit{items/100.m}}
 
 
 % *********************************** SI Units *********************************
@@ -279,43 +280,4 @@
 % Font color of document text
 \color{black!80}
 
-\def\myrulewidth{0.4mm}
-
-\usepackage[explicit]{titlesec}
-
-% Part style
-\titleformat{\part}[display]
-  {\sffamily\Huge\color{greycolor}\centering}
-  {}
-  {0pt}
-  {\partname~\thepart \\ #1}
-
-% Chapter style
-\titleformat{\chapter}[display]%
-  {\relax}
-  {\mbox{}\marginpar{\vspace*{-\baselineskip}\color{greycolor}\fontsize{78}{94}\selectfont\thechapter}}
-  {0pt}%
-  {\Huge\sffamily\color{greycolor} #1}
-  [\normalsize\vspace*{.8\baselineskip}\titleline{\color{greycolor}\titlerule}]% 
-\titlespacing*{\chapter}{0pt}{0cm}{1cm}
-
-% Section style
-\titleformat{\section}
-  {\Large\sffamily\color{primarycolor}}
-  {\thesection}{1em}{#1}
-
-% Subsection style
-\titleformat{\subsection}
-  {\large\sffamily\color{primarycolor}}
-  {\thesubsection}{1em}{#1}
-
-% Subsubsection style
-\titleformat{\subsubsection}
-  {\sffamily\color{primarycolor}}
-  {\thesubsubsection}{1em}{#1}
-
-% Paragraph style
-\titleformat{\paragraph}[runin]
-  {\sffamily\color{primarycolor}}
-  {\theparagraph}{1em}{#1}
-
+% \def\myrulewidth{0.4mm}

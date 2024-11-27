@@ -1,21 +1,21 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                                                                            %%
-%% Class ``PhD Thesis PSnPDF''                                                %%
+%% Class ``PhD Thesis''                                                       %%
 %%                                                                            %%
-%% A PhD thesis LaTeX template for Cambridge University Engineering Department%%
+%% A PhD thesis LaTeX template adapted from Krishna Kumar                     %%
 %%                                                                            %%
-%% Version: v2.3.1                                                             %%
-%% Authors: Krishna Kumar                                                     %%
-%% License: MIT License (c) 2016 Krishna Kumar                                %%
+%% Version: v0.1                                                              %%
+%% Authors: Niclas Rieger                                                     %%
+%% License: MIT License (c) 2024 Niclas Rieger                                %%
 %% GitHub Repo: https://github.com/kks32/phd-thesis-template/                 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % ************************** Class Identification ******************************
-\newcommand\fileversion{2.3.1}
-\newcommand\filedate{2016/04/23}
+\newcommand\fileversion{0.1}
+\newcommand\filedate{2024/11/27}
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{PhDThesisPSnPDF}[\filedate\space A PhD thesis class file
- by Krishna Kumar (v\fileversion)]
+ by Niclas Rieger (v\fileversion), adapted from Krishna Kumar's template]
 \typeout{https://github.com/kks32/phd-thesis-template/}
 
 
@@ -215,7 +215,7 @@ footnotes.}
   \ClassWarning{PhDThesisPSnPDF}{Draft is ON. Don't forget to turn it
     off in your final version. This enhanced `draft' mode adds watermark 
     with timestamp, line numbering, and version number. Use `draftclassic'
-    if you prefer the \cite{} lassic draft mode. To tweak options see
+    if you prefer the classic draft mode. To tweak options see
     `preamble.tex'}}%
 
 
@@ -254,6 +254,9 @@ supported!}
 
 % *********************** Table of Contents & Appendices ***********************
 % \RequirePackage{tocloft}
+% \renewcommand{\cftpartfont}{\scshape}       % Sets the part title in small caps
+% \renewcommand{\cftpartpagefont}{\scshape}   % Sets the part page number in small caps
+
 % \renewcommand{\cftchapfont}{\sffamily}
 % \renewcommand{\cftsecfont}{\sffamily}
 % \renewcommand{\cftsubsecfont}{\sffamily}
@@ -672,8 +675,56 @@ wish to left align your text}
 }
 \fi
 
+% ************************** Chapter Title Styles ******************************
+\usepackage[explicit]{titlesec}
+
+% Part style
+\titleformat{\part}[display]
+  {\sffamily\Huge\color{greycolor}\centering}
+  {}
+  {0pt}
+  {\partname~\thepart \\ #1}
+
+% Chapter style
+\titleformat{\chapter}[display]%
+  {\relax}
+  {\mbox{}\marginpar{\vspace*{-\baselineskip}\color{greycolor}\fontsize{78}{94}\selectfont\thechapter}}
+  {0pt}%
+  {\LARGE\sffamily\color{greycolor} #1}
+  [\normalsize\vspace*{.8\baselineskip}\titleline{\color{greycolor}\titlerule}]% 
+\titlespacing*{\chapter}{0pt}{0cm}{1cm}
+
+% Section style
+\titleformat{\section}
+  {\large\sffamily\color{primarycolor}}
+  {\thesection}{1em}{#1}
+
+% Subsection style
+\titleformat{\subsection}
+  {\sffamily\color{primarycolor}}
+  {\thesubsection}{1em}{#1}
+
+% Subsubsection style
+\titleformat{\subsubsection}
+  {\sffamily\color{primarycolor}}
+  {\thesubsubsection}{1em}{#1}
+
+% Paragraph style
+\titleformat{\paragraph}[runin]
+  {\sffamily\color{primarycolor}}
+  {\theparagraph}{1em}{#1}
+
+
 
 % ************************** TOC and Hide Sections *****************************
+\usepackage{titletoc}
+\titlecontents{part}
+  [0pt] % Left margin
+  {\addvspace{1.0em}\bfseries\scshape} % Above code
+  {} % Numberless
+  {\bfseries\scshape\color{primarycolor}} % Numbered entry
+  {\hfill\contentspage} % Filler and page number
+
 \newcommand{\nocontentsline}[3]{}
 \newcommand{\tochide}[2]{
 	\bgroup\let
@@ -682,64 +733,44 @@ wish to left align your text}
 % Removes pagenumber appearing from TOC
 \addtocontents{toc}{\protect\thispagestyle{empty}}
 
+% \makeatletter
+% % Ensure \l@part is defined correctly here
+% \renewcommand{\l@part}[2]{%
+%   \addpenalty{-\@highpenalty}%
+%   \vskip 1.0em \@plus\p@ %
+%   \setlength\@tempdima{3em}%
+%   \begingroup
+%     \parindent \z@ 
+%     \rightskip \@pnumwidth
+%     \parfillskip -\@pnumwidth
+%     \leavevmode
+%     \bfseries\scshape #1\hfil % Bold and small caps for part title
+%     \hb@xt@\@pnumwidth{\hss #2}% Right-align page number
+%     % Remove or comment out the following line to prevent dotted lines
+%     % \@dottedtocline{0}{0em}{3em}{#1}{#2}%
+%   \endgroup
+% }
+% \makeatother
 
 % ***************************** Header Formatting ******************************
 % Custom Header with Chapter Number, Page Number and Section Numbering
-
 \RequirePackage{fancyhdr} % Define custom header
-
-% Style 1: Sets Page Number at the Top and Chapter/Section Name on LE/RO
-\fancypagestyle{PageStyleI}{
-  \renewcommand{\chaptermark}[1]{\markboth{##1}{}}
-  \renewcommand{\sectionmark}[1]{\markright{\thesection\ ##1\ }}
-  \fancyhf{}
-  \fancyhead[RO]{\nouppercase \rightmark\hspace{0.25em} | 
-    \hspace{0.25em} \bfseries{\thepage}}
-  \fancyhead[LE]{ {\bfseries\thepage} \hspace{0.25em} | 
-    \hspace{0.25em} \nouppercase \leftmark}
-}
-
-% Style 2: Sets Page Number at the Bottom with Chapter/Section Name on LO/RE
-\fancypagestyle{PageStyleII}{
-  \renewcommand{\chaptermark}[1]{\markboth{##1}{}}
-  \renewcommand{\sectionmark}[1]{\markright{\thesection\ ##1}}
-  \fancyhf{}
-  \fancyhead[RO]{\bfseries\nouppercase \rightmark}
-  \fancyhead[LE]{\bfseries \nouppercase \leftmark}
-  \fancyfoot[C]{\thepage}
-}
-
 
 % Set Fancy Header Command is defined to Load FancyHdr after Geometry is defined
 \newcommand{\setFancyHdr}{
-
 \pagestyle{fancy}
-
-\ifPHD@pageStyleI
-  % Style 1: Sets Page Number at the Top and Chapter/Section Name on LE/RO
-  \pagestyle{PageStyleI}
-
-\else
-  \ifPHD@pageStyleII
-
-  % Style 2: Sets Page Number at the Bottom with Chapter/Section Name on LO/RE
-  \pagestyle{PageStyleII}
-
-  \else
-  % Default Style: Sets Page Number at the Top (LE/RO) with Chapter/Section Name
-  % on LO/RE and an empty footer
-    \renewcommand{\chaptermark}[1]{\markboth {\sffamily\color{greycolor} ##1}{}}
-    \renewcommand{\sectionmark}[1]{\markright{\sffamily\color{greycolor} \thesection\ ##1}}
-    \fancyhf{}
-    \fancyhead[LO]{\nouppercase \rightmark}
-    \fancyhead[LE,RO]{\sffamily\color{greycolor} \bfseries\thepage}
-    \fancyhead[RE]{\nouppercase \leftmark}
-    \renewcommand{\headrule}{%
-      \color{greycolor}% Set the desired color
-      \hrule width\headwidth height\headrulewidth 
-    }
-  \fi
-\fi
+% Sets Page Number at the Top (LE/RO) with Chapter/Section Name
+% on LO/RE and an empty footer
+  \renewcommand{\chaptermark}[1]{\markboth {\sffamily\color{greycolor} ##1}{}}
+  \renewcommand{\sectionmark}[1]{\markright{\sffamily\color{greycolor} \thesection\ ##1}}
+  \fancyhf{}
+  \fancyhead[LO]{\nouppercase \rightmark}
+  \fancyhead[LE,RO]{\sffamily\color{greycolor} \bfseries\thepage}
+  \fancyhead[RE]{\nouppercase \leftmark}
+  \renewcommand{\headrule}{%
+    \color{greycolor}% Set the desired color
+    \hrule width\headwidth height\headrulewidth 
+  }
 }
 
 \setlength{\headheight}{14.5pt}
@@ -757,7 +788,7 @@ wish to left align your text}
   Custom margin is chosen, but geometry package is not loaded. Please load the
   `geometry' package in the preamble.}}}
 \else
-\setFancyHdr % Apply fancy header settings otherwise apply it in preamble
+  \setFancyHdr % Apply fancy header settings otherwise apply it in preamble
 \fi
 
 % **************** Clear Header Style on the Last Empty Odd pages **************

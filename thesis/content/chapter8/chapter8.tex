@@ -1,9 +1,7 @@
 %!TEX root = ../thesis.tex
 %*******************************************************************************
-%****************************** Eight Chapter **********************************
+%****************************** Seventh Chapter **********************************
 %*******************************************************************************
-\chapter{Future Work}
-
 
 % **************************** Define Graphics Path **************************
 \ifpdf
@@ -12,5 +10,212 @@
     \graphicspath{{content/chapter8/figs/vector/}{content/chapter8/figs/}}
 \fi
 
+\part[Pattern Identification in the Scarce Data Regime]{Pattern Identification\\in the Scarce Data Regime}\label{part:scarce_data}
+
+\chapter[A Bayesian Machine Learning Approach to Seasonal Variations in Beach Litter Pollution]{A Bayesian Machine Learning Approach to\\Seasonal Variations in Beach Litter Pollution}\label{chapter:beach_litter}
+
+\nomenclature[z-nea]{NEA}{North-East Atlantic}
+\nomenclature[z-lgcp]{LGCP}{Log-Gaussian Cox Process}
+
+\begin{itemize}
+    \item \highlightnames{1}{\fullcite{rieger_seasonal_2024}},
+\end{itemize}
 
 
+Macroplastic pollution is a pervasive global environmental challenge, adversely affecting marine ecosystems, wildlife and human health. Understanding temporal variations is crucial for identifying pollution sources and developing effective mitigation policies. However, in-situ data from beach surveys are often irregular, both spatially and temporally, and highly variable, complicating robust statistical conclusions. Here we employ a Bayesian machine learning framework to investigate seasonal variations, identify regional hotspots and elucidate their anthropogenic drivers. Using data from 3,866 surveys across 168 western European beaches, we leverage a spatial log-Gaussian Cox Process to enhance statistical inference by integrating information from nearby beaches. Distinct seasonal patterns emerge, with winter and spring exhibiting the highest pollution levels, while pronounced regional differences highlight seasonal pollution hotspots in the western Iberian Peninsula, French coastline, Irish Sea and Skagerrak region. These peaks are attributed to riverine emissions and aquaculture activities, highlighting the potential impact of these sources on beach pollution. Our findings advocate for enhanced, time-specific monitoring to effectively manage litter hotspots, emphasizing the importance of aquaculture-related plastic emissions.
+
+\section{\label{sec:introduction}Introduction}
+
+Beach litter, predominantly composed of plastics \cite{morales-caselles_inshoreoffshore_2021, lacroix_abundance_2023}, has emerged as a significant environmental challenge, confronting societies globally and across Europe with its adverse impacts on marine ecosystems \cite{chenet_plastic_2021}, wildlife \cite{thiel_impacts_2018,alexiadou_ingestion_2019,barboza_microplastics_2020}, and human health \cite{van_cauwenberghe_microplastics_2014,rochman_anthropogenic_2015}. The surge in plastic production, from two million tonnes in 1950 to over 400 million tonnes annually, has notably exacerbated marine pollution \cite{geyer_production_2017,geyer_production_2020}. Current estimates indicate that marine plastic input ranges between 0.5 and 0.7 million tonnes per year \cite{kaandorp_global_2023, zhang_plastic_2023}, resulting in a standing stock of approximately 3-3.4 million tonnes of marine plastic litter \cite{kaandorp_global_2023}. Despite covering less than 0.02\% of the global marine environment (Supplementary Notes~1), beaches likely accumulate up to 2\% of the global marine plastics \cite{kaandorp_global_2023}, leading to relatively high concentrations of pollution in these areas compared to other parts of the marine environment. Recent studies suggest a balanced contribution of plastic pollution from land-based activities and marine sources, particularly from fishing-related activities, each accounting for about half of the total \cite{li_plastic_2016,kaandorp_global_2023}. Concurrently, aquaculture production has witnessed significant growth \cite{paolo_satellite_2024,fao_state_2022}, now accounting for 50\% of global fish production \cite{fao_state_2022}, and increasingly contributing to marine pollution \cite{bringer_coastal_2021,lin_environmental_2023,kruger_plastic_2020,hinojosa_floating_2009}.
+
+Seasonal variations in beach litter in the North-East Atlantic present a complex picture, with various studies reporting differing peak pollution periods across seasons \cite{gago_characteristics_2014,declerck_transport_2019,schulz_multi-criteria_2013,ruiz_modelling_2022,watts_through_2017,asensio-montesinos_seasonal_2019,ruiz_modelling_2022,rios_spatio-temporal_2018,williams_beach_2017}, yet a consistent large-scale seasonal pattern remains elusive \cite{schulz_multi-criteria_2013,nelms_marine_2017}, possibly because of insufficient survey data \cite{schulz_baseline_2019, haarr_global_2022}. Improved understanding of beach litter seasonality is vital for identifying the anthropogenic sources and setting effective, evidence-based management policies. Notably, seasonality in plastic emissions has been observed from riverine discharges \cite{lebreton_river_2017,van_emmerik_seasonality_2019, van_emmerik_river_2023} and capture fisheries \cite{kroodsma_tracking_2018,paolo_satellite_2024}, while the seasonal dynamics of marine aquaculture (mariculture) contributions are less documented. The anticipated rise in global plastic waste and seafood demand \cite{lebreton_future_2019, fredheim_future_2018}, driven by population growth and socioeconomic factors, highlights the necessity to explore these seasonal dynamics comprehensively.
+
+Our study aims to (1) investigate the seasonal variations of anthropogenic beach litter, (2) identify regions where these seasonal variations are particularly pronounced--referred to as `seasonal hotspots', and (3) understand the underlying drivers. Focusing on the North-East Atlantic (NEA), we used the OSPAR dataset \cite{ospar_comission_convention_1992}, one of the most comprehensive in-situ beach litter datasets globally. Despite its extensive coverage, the infrequent surveys of many beaches present challenges in detecting statistically significant seasonality \cite{schulz_multi-criteria_2013,schulz_baseline_2019,grundlehner_towards_2023}. Therefore, we employed a spatial log-Gaussian Cox Process \cite{moller_log_1998} (LGCP) to model macroplastic distributions, leveraging its Bayesian machine learning framework to model complex spatial patterns while allowing robust statistical inference. In particular, it allows us to more accurately model probability distributions of beach litter by including information from nearby beaches by exploiting spatial patterns of autocorrelation \cite{grundlehner_towards_2023}. Additionally, we examined the potential sources of beach litter, namely rivers, fishing activities and marine aquaculture, in the NEA region for their potential to contribute to seasonal variations in beach litter.
+
+
+This study seeks to enrich the discourse on sustainable, evidence-based management strategies for beach litter \cite{likens_role_2010,van_loon_european_2020}, aligning with the EU's Marine Strategy Framework Directive (MSFD) and directly supporting the marine litter objectives outlined in the OSPAR North East Atlantic Environment Strategy 2030 \cite{ospar_commission_strategy_2021}. By providing insights into the seasonal dynamics and sources of beach litter, our research underscores the need for targeted actions to prevent and significantly reduce marine litter inputs, in line with OSPAR's Strategic Objective 4. While our focus is regional, these efforts also contribute to broader Sustainable Development Goals (SDGs) mainly related to marine life conservation (SDG 14). Furthermore, being a major source of microplastics entering the marine environment \cite{strokal_river_2023}, better management and mitigation of macroplastics emissions can support efforts regarding good health (SDG 3) and clean water (SDG 6).
+
+
+
+\section{Results and Discussion}
+
+
+\subsection{Seasonal Variations of Anthropogenic Beach Litter in the North-East Atlantic}
+
+
+ur analysis, utilizing 3866 surveys from the OSPAR dataset over two decades (2001 - 2020) and encompassing 168 beaches along the western European coastlines, employs a spatial LGCP model (Methods \ref{sec:methods}) to evaluate macroplastic pollution across the four seasons: winter, spring, summer and autumn. Macroplastic pollution was defined as the number of all artificial polymer materials larger than 2.5 cm per 100m of beach length (Methods~\ref{sec:methods:ospar}). We found that median macroplastic levels peak in spring, reaching 232 items per 100 meters of beachline (\itm), with a 95\% Bayesian credible interval (CI) ranging from 79 to 440 \itm. Pollution levels are slightly lower in winter (184 \itm), autumn (174 \itm) and summer (154 \itm), although the broad CIs suggest these differences are not statistically significant (Supplementary Table~1). These results are consistent with previously estimated annual medians for this region  \cite{hanke_eu_2019,lacroix_abundance_2023}.
+
+A more detailed per-beach analysis reveals distinct interseasonal variations in macroplastic pollution, with 15\% of beaches exhibiting such differences at a 95\% confidence level (Figure~\ref{fig01}, Methods~\ref{sec:methods:inference}) increasing to 39\% when the confidence threshold is adjusted to 80\%. 
+
+Further examination of seasonal variation patterns (Figure~\ref{fig02}A) shows that the most common scenario, observed in 36\% of confidence-weighted beaches, involves increased plastic litter in spring compared to summer. Conversely, increased summer litter over spring is the least common scenario, observed in only 9\% of cases. These variations highlight the complex and diverse seasonal patterns of beach litter with a general trend for higher litter accumulation in winter/spring compared to summer/autumn. Among beaches exhibiting seasonal variations, a dominant pattern emerges where winter and spring seasons experience 95\% to 118\% more plastic pollution than the summer and autumn seasons (Figure\ref{fig02}~B). In contrast, beaches following a summer/autumn $>$ winter/spring pattern show a smaller increase, ranging from 60\% to 78\% more macroplastics. The substantial range of confidence intervals for these estimates suggests only weak statistical support for the idea that relative differences are stronger in one season compared to another (Supplementary Table~2).
+
+These findings are consistent with a growing body of scientific evidence showing pronounced seasonal variations of beach litter across various beaches worldwide \cite{cheung_seasonal_2016,simeonova_seasonal_2017,pelamatti_seasonal_2019,orthodoxou_seasonal_2022}, particularly in the NEA region \cite{gago_characteristics_2014,declerck_transport_2019,schulz_multi-criteria_2013,ruiz_modelling_2022,watts_through_2017,asensio-montesinos_seasonal_2019,rios_spatio-temporal_2018}, although a clear large-scale pattern remains elusive. For example, two regional but weak patterns were reported \cite{schulz_multi-criteria_2013} exhibiting an increase in autumn/winter pollution in the wider Atlantic region and a spring peak specifically in the North Sea. In contrast, a comprehensive study focusing on UK beaches found no pronounced seasonal patterns \cite{nelms_marine_2017}. The discrepancy may stem from the insufficient statistical power of both studies. The neighborhood-aware LGCP model approach in our study allows better estimations of litter distributions for each beach by taking into account pollution levels from beaches nearby. Our model suggests that 60\% to 77\% of beaches, depending on the season, in the OSPAR dataset provide useful information for neighboring beaches (Supplementary Notes~2). This is supported by the fact that a non-Bayesian analysis, isolating each beach for individual analysis, finds interseasonal variations for only 12\% of beaches at a 95\% confidence level and 24\% at an 80\% confidence level (Supplementary Figure~1). This discrepancy underscores the LGCP model's capability to more accurately estimate beach litter distributions by incorporating pollution levels from surrounding areas. 
+
+Moreover, our results are corroborated by recent studies based on numerical simulations \cite{xu_seasonality_2024} and satellite measurements \cite{cozar_proof_2024}, which show pronounced seasonal cycles in floating marine debris on large spatial scales, suggesting that beach litter should follow similar patterns.
+
+% Reproduced with permission from Springer Nature
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{fishing_aquaculture_intensity_near_coastline}
+    \caption[TBD]{TBD. Reproduced with permission from Springer Nature.}
+    \label{fig:TBD}
+\end{figure}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{lgcp_model_evaluation}
+    \caption[TBD]{TBD. Reproduced with permission from Springer Nature.}
+    \label{fig:TBD}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{lgcp_model_trace_plots}
+    \caption[TBD]{TBD. Reproduced with permission from Springer Nature.}
+    \label{fig:TBD}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{ospar_variance_seasonality}
+    \caption[TBD]{TBD. Reproduced with permission from Springer Nature.}
+    \label{fig:TBD}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{plastic_clustering_explained_variance}
+    \caption[TBD]{TBD. Reproduced with permission from Springer Nature.}
+    \label{fig:TBD}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{plastic_overdispersion}
+    \caption[TBD]{TBD. Reproduced with permission from Springer Nature.}
+    \label{fig:TBD}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{plastics_clusters_boxplot}
+    \caption[TBD]{TBD. Reproduced with permission from Springer Nature.}
+    \label{fig:TBD}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{plastics_clusters_fraction_map}
+    \caption[TBD]{TBD. Reproduced with permission from Springer Nature.}
+    \label{fig:TBD}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{plastics_seasonal_potential}
+    \caption[TBD]{TBD. Reproduced with permission from Springer Nature.}
+    \label{fig:TBD}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{plastics_seasonal_potential_mariculture}
+    \caption[TBD]{TBD. Reproduced with permission from Springer Nature.}
+    \label{fig:TBD}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{plastics_seasonal_potential_mariculture_bivalve}
+    \caption[TBD]{TBD. Reproduced with permission from Springer Nature.}
+    \label{fig:TBD}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{plastics_seasonality_map_isolated}
+    \caption[TBD]{TBD. Reproduced with permission from Springer Nature.}
+    \label{fig:TBD}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{plastics_seasonality_map_lgcp}
+    \caption[TBD]{TBD. Reproduced with permission from Springer Nature.}
+    \label{fig:TBD}
+\end{figure}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{production_nea_wild_capture_aquaculture}
+    \caption[TBD]{TBD}
+    \label{fig:TBD}
+\end{figure}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{river_discharge_pdfs}
+    \caption[TBD]{TBD}
+    \label{fig:TBD}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.95\textwidth]{river_discharge_seasonality}
+    \caption[TBD]{TBD}
+    \label{fig:TBD}
+\end{figure}
+
+
+
+\subsection{Identification of Seasonal Hotspots}
+
+Our analysis reveals that seasonal variations in plastic pollution are not uniformly distributed but are spatially clustered, exhibiting stark differences across various European coastal regions (Figure~\ref{fig01}). Notably, the western Iberian Peninsula, the western French coastline, the Irish Sea, and the Skagerrak exhibit strong seasonal patterns. Conversely, the North Sea region displays relatively low seasonal beach litter variations. By comparing standardized variance of macroplastic with the seasonal effect size on a per-beach level, we identified a strong correlation ($+0.60$), suggesting that the observed variability in OSPAR beach pollution levels can be partially attributed to seasonal factors (Supplementary Figure~2). 
+
+To further explore these observations, we employed Principal Component Analysis (PCA)-driven clustering to discern underlying seasonal variation patterns (see Methods~\ref{sec:methods:clustering}). This analysis yielded two principal clusters indicative of distinct seasonal behaviors (Figure~\ref{fig03}):
+
+\begin{itemize}
+    \item \textbf{Cluster $C1^+$} is characterized by a marked increase in plastic pollution during \textbf{spring}, predominantly observed in the Skagerrak and, to a lesser extent, along the French and Iberian western coastlines.
+    \item \textbf{Cluster $C2^+$} exhibits heightened plastic abundance in the \textbf{winter/spring} seasons, spatially similar to cluster $C1^+$, strongly influenced by beaches along the western Iberian and French coastlines and around the Irish Sea.
+\end{itemize}
+
+Both clusters highlight a comparative increase in pollution during the winter/spring months over summer/autumn, a pattern reported in previous studies for these specific regions \cite{svard_analys_2013,kanstrup_plastic_2018,le_moigne_cleanatlantic_2021, gago_characteristics_2014,declerck_transport_2019,ruiz_modelling_2022,schulz_multi-criteria_2013}. However, our clustering supports the notion that even within these regions, beaches with different seasonal patterns than those reported as dominant may occur, indicating high spatial variability on small scales. This variability may explain the divergent findings in some studies \cite{schulz_multi-criteria_2013,gago_characteristics_2014,watts_through_2017,rios_spatio-temporal_2018,asensio-montesinos_seasonal_2019,ruiz_modelling_2022}.
+
+Utilizing our PCA-derived cluster weights alongside LGCP-modeled beach litter distributions, we calculated weighted percentiles for each cluster, revealing substantial seasonal differences (Figure~\ref{fig04}). For instance, the cluster $C1^+$ shows median pollution levels escalating from 207 \itm in autumn to 643 \itm in spring. This springtime peak signifies a more than 200\% increase in median plastic pollution levels compared to autumn, identifying a strong seasonal hotspot. 
+
+Conversely, winter/spring cluster $C2^+$ presents a more uniform distribution between seasons, with the most considerable relative increase observed as a 150\% rise in winter compared to summer. This pattern suggests that cluster $C2^+$ more closely represents the general seasonal trend across European beaches, whereas $C1^+$ captures regions with more extreme seasonal fluctuations.
+
+These seasonal pollution levels are well above the European Union threshold value (EU TV) of 20 \itm for beach litter \cite{van_loon_european_2020}, underscoring the urgent need for targeted litter management strategies. Specifically, our results for cluster $C1^+$ indicate that relying on annual medians as a measure of beach litter pollution, which suggests a pollution level of 274 \itm in agreement with previous research \cite{schulz_baseline_2019,hanke_eu_2019, van_loon_european_2020,lacroix_abundance_2023}, can be misleading as it fails to account for seasonal pollution peaks.
+
+
+
+\subsection{Drivers of Seasonal Hotspots in Anthropogenic Beach Litter}
+
+To illuminate the origins of the identified seasonal hotspots for beach litter in the NEA, particularly during spring ($C1^{+}$) and winter/spring ($C2^{+}$), we examined the relationship between these hotspots and the global sources of marine litter: riverine macroplastic emissions \cite{lebreton_river_2017,meijer_more_2021,strokal_river_2023,kaandorp_global_2023, zhang_plastic_2023, gonzalez-fernandez_floating_2021}, fishing \cite{kroodsma_tracking_2018,kaandorp_global_2023,paolo_satellite_2024} and aquaculture activities \cite{tian_can_2022, skirtun_plastic_2022,kruger_plastic_2020,paolo_satellite_2024}.
+
+We analyzed the latest data on simulated riverine emissions of macrolitter \cite{strokal_river_2023}. Given that these data represent average annual emissions, we employed high-resolution reanalysis data of river discharge to infer seasonal variation \cite{mazzetti_reforecasts_2023}, approximating the amount of macroplastics entering the ocean from rivers at different times of the year (Methods \ref{sec:methods:seasonal_potential}).
+
+To assess the impact of fishing-related activities, we utilized high-resolution daily data on fishing intensity \cite{kroodsma_tracking_2018}. For estimating seasonal variations in local litter emissions from mariculture, we employed a recently developed dataset of mariculture production locations \cite{clawson_mapping_2022}, combining it with seasonal information derived from changes in mean monthly ocean wave energies as a proxy for adverse weather conditions \cite{skirtun_plastic_2022,global_ghost_gear_initiative_best_2021} (Methods \ref{sec:methods:seasonal_potential}, Supplementary Figure~3). Additionally, to enhance our analysis, we proposed two alternative scenarios for the seasonality of mariculture production: one using monthly national export statistics and the other using river discharge data for farms situated in rivers \cite{rocha_global_2022}.
+
+To quantify each source's potential to create the observed seasonal beach litter patterns, we calculated both the coefficient of variation ($c_{\text{v}}$) and the Pearson correlation coefficient ($c_{\text{r}}$) of monthly climatologies. The former measures the magnitude of seasonal variations, while the latter indicates the degree of similarity between the seasonal variations of beach litter and litter sources. We then introduced a seasonal potential metric ($\Phi$), calculated as $\Phi = \max (c_{\text{v}}c_{\text{r}}, 0)$, which identifies the strongest seasonal signals in the potential sources of beach litter, prioritizing those with strong variability and temporal alignment with the observed litter patterns (Methods~\ref{sec:methods:seasonal_potential}).
+
+Our analysis revealed that both riverine discharge and mariculture exhibit a strong seasonal potential $\Phi$ to explain the seasonal variations in beach litter during the winter/spring pattern (Figure~\ref{fig05}).  In contrast, fisheries display a low seasonal potential, close to zero (Figure~\ref{fig05}C-D), due to relatively minor seasonal variations that typically peak during summer in most regions. This indicates that fisheries are less likely to substantially contribute to seasonal beach litter variations. Furthermore, since less than $5\%$ of wild capture occurs within the first 4 km of the coastline--with the majority happening tens of kilometers offshore (Supplementary Figure~4)--macroplastic emissions from fishing vessels are likely to diffuse over space and time \cite{sebille_physical_2020}.
+
+Interestingly, our findings suggest that numerous small-scale rivers (annual mean discharge $\sim 10$~$m^3s^{-1}$), rather than larger ones, are more likely responsible for the observed seasonal variations (Figure~\ref{fig05}A-B, Supplementary Figure~5). Smaller rivers tend to exhibit more pronounced seasonal fluctuations than larger rivers (Supplementary Figure~6), underscoring their importance as pathways for macroplastics from continental to marine environments \cite{gonzalez-fernandez_floating_2021}. Our analysis supports previous studies indicating that major rivers are minor contributors to floating litter variability in the North Sea \cite{thiel_spatio-temporal_2011}, where the potential influence of large river systems like the Rhine is comparatively low (Figure~\ref{fig05}A-B, Supplementary Figure~6).
+
+To further investigate the drivers of seasonal variations, we computed the relative fractions of plastic items likely linked to land, fishing or mariculture activities (Methods~\ref{sec:methods:ospar}). This analysis aimed to determine if the seasonal patterns observed in absolute item counts could be explained by an increase in the relative fraction of these three sources. We modeled the fraction for each source and season separately using Gaussian Processes in the logit-transformed space. Subsequently, we performed PCA-clustering for each source, similar to the approach used in Figure~\ref{fig03}, resulting in one significant cluster per source.
+
+By examining these clusters, we found that only the mariculture-related items displayed a winter/spring pattern similar to cluster $C2^{+}$ of the absolute item counts (Figure~\ref{fig03}, Supplementary Figure~7). Additionally, the spatial pattern of mariculture-related items largely aligns with the identified hotspots along the western Iberian and French coastlines. This suggests that an increase in mariculture-related items could partially explain the rise in absolute item counts during winter/spring. In contrast, the temporal and spatial patterns of clusters derived from land and fisheries fractions did not match any cluster patterns found for absolute item counts. While there is a growing number of studies noting the importance of plastic emissions from mariculture systems \cite{kruger_plastic_2020,tian_can_2022,skirtun_plastic_2022}, not much is known about their seasonality. Previous results from mariculture-exposed sandy beaches along the coast of Chile suggest considerable seasonality of fishing/mariculture-related items \cite{thiel_anthropogenic_2013}. More recently, pronounced seasonal variations in the abundance of microplastics were found in a predominantly bivalve-mariculture-influenced bay in Thailand \cite{ruangpanupan_seasonal_2023}.
+
+To test whether bivalve aquaculture in the NEA provide a potential source of beach litter variability, we computed the seasonal potential specifically for bivalves/invertebrates (mainly mussels and oysters farming in the NEA). The results were very similar to those for all mariculture production (Supplementary Figure~8,~9). The primary difference is that bivalves/invertebrates production is less concentrated along the Norwegian coastline, which is predominantly salmon mariculture \cite{fao_state_2022}. This difference better matches the observed seasonal patterns of beach litter; however, it is not entirely conclusive due to the relatively low number of surveyed beaches in that area, complicating validation.
+
+It is important to note that not all items can be confidently linked to these specific sources, as $60.1 \%$ of items found in the NEA have degraded to the point where they are unrecognizable and are categorized generically (e.g. "large plastics" or "others"; see Methods~\ref{sec:methods:ospar}). These low numbers of identifiable items likely reduce the confidence in the model's ability to detect certain patterns (Supplementary Figure~7).
+
+Additionally, our study makes a few key simplifications. Firstly, our approach assumes that seasonal variations in macroplastics is mainly due to local sources, while the impact of more distant sources is negligible. Although simulation studies show that plastics can travel vast oceanic distances and in some cases remote contributions can outweigh local ones \cite{chassignet_tracking_2021, chenillat_fate_2021,onink_global_2021}, recent studies indicated that coastal areas mainly accumulate locally sourced macroplastics \cite{morales-caselles_inshoreoffshore_2021}. Furthermore, our own analysis suggests that there are hardly coherent spatial structures on length scales beyond 100 km (Supplementary Notes~2, Supplementary Table~1). This leads us to believe the impact of distant plastics on our findings is minimal.
+
+Secondly, our analysis overlooks ocean dynamics and their role in distributing plastics \cite{sebille_physical_2020}, which may cause seasonal variations in beach litter independent of the original source's constancy. We posit that, given the predominance of local sources for beach macroplastics in Europe, ocean transport effects are secondary, though exceptions may exist \cite{neumann_marine_2014}.
+
+Lastly, while methods are available to trace beach litter back to its sources \cite{van_duinen_identifying_2022, pierard_attribution_2022}, they rely on knowing each source's relative contribution, challenging to determine for fish capture versus mariculture \cite{skirtun_plastic_2022}. Global estimates on source shares exist  \cite{lebreton_evidence_2018,kaandorp_global_2023}, but regional data may vary greatly \cite{bringer_coastal_2021,morales-caselles_inshoreoffshore_2021, strokal_river_2023}. The tracking of fishing activity is feasible through automatic identification system positions \cite{kroodsma_tracking_2018}, yet our understanding of the timing and scale of plastic emissions from mariculture remains limited \cite{paolo_satellite_2024,tian_can_2022}.
