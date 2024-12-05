@@ -604,10 +604,10 @@ supported!}
     breaklinks=true,
     linktocpage,
     colorlinks=true,
-    linkcolor=primarycolor,
-    urlcolor=primarycolor,
-    citecolor=primarycolor,
-    anchorcolor=primarycolor
+    linkcolor=secondarycolor,
+    urlcolor=secondarycolor,
+    citecolor=secondarycolor,
+    anchorcolor=secondarycolor
   }
 
   \ifsetCustomMargin
@@ -696,7 +696,7 @@ wish to left align your text}
 
 % Section style
 \titleformat{\section}
-  {\large\sffamily\color{primarycolor}}
+  {\bfseries\sffamily\color{primarycolor}}
   {\thesection}{1em}{#1}
 
 % Subsection style
@@ -722,8 +722,9 @@ wish to left align your text}
   [0pt] % Left margin
   {\addvspace{1.0em}\bfseries\scshape} % Above code
   {} % Numberless
-  {\bfseries\scshape\color{primarycolor}} % Numbered entry
+  {\bfseries\scshape\color{greycolor}} % Numbered entry
   {\hfill\contentspage} % Filler and page number
+
 
 \newcommand{\nocontentsline}[3]{}
 \newcommand{\tochide}[2]{
@@ -761,12 +762,12 @@ wish to left align your text}
 \pagestyle{fancy}
 % Sets Page Number at the Top (LE/RO) with Chapter/Section Name
 % on LO/RE and an empty footer
-  \renewcommand{\chaptermark}[1]{\markboth {\sffamily\color{greycolor} ##1}{}}
-  \renewcommand{\sectionmark}[1]{\markright{\sffamily\color{greycolor} \thesection\ ##1}}
+  \renewcommand{\chaptermark}[1]{\markboth {\sffamily\small\color{greycolor} ##1}{}}
+  \renewcommand{\sectionmark}[1]{\markright{\sffamily\small\color{greycolor} \thesection\ ##1}}
   \fancyhf{}
-  \fancyhead[LO]{\nouppercase \rightmark}
-  \fancyhead[LE,RO]{\sffamily\color{greycolor} \bfseries\thepage}
-  \fancyhead[RE]{\nouppercase \leftmark}
+  \fancyhead[LO]{\nouppercase \small \rightmark}
+  \fancyhead[LE,RO]{\sffamily\small\color{greycolor} \bfseries\thepage}
+  \fancyhead[RE]{\nouppercase \small\leftmark}
   \renewcommand{\headrule}{%
     \color{greycolor}% Set the desired color
     \hrule width\headwidth height\headrulewidth 
@@ -1250,3 +1251,14 @@ wish to left align your text}
 }
 }
 
+
+
+% *****************************************************************************
+% ************************* Quote Environments *******************************
+% *****************************************************************************
+\usepackage[xcolor,leftbars]{changebar}
+\newenvironment{textquote}%
+{\begin{quote}%
+  \begin{changebar}\cbcolor{gray}\color{mygrey}}%
+  {\end{changebar}%
+\end{quote}}
