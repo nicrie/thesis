@@ -501,7 +501,7 @@ Our goal is to verify whether the total squared covariance of the first $R$ rota
 
 First, recall that the total squared covariance between $\bm{Z}_x$ and $\bm{Z}_y$ is given by the sum of the squared singular values $\sigma_k^2$ of their cross-covariance matrix $\bm{C}_{xy}$ (Equation~\eqref{eq:theory:total_squared_covariance}):
 
-\begin{align}
+\begin{align}\label{eq:theory:mca_total_squared_covariance2}
     \Vab{\bm{C}_{xy}}_F^2 &= \sum_{k=1}^{M} \sigma_k^2.
 \end{align}
 
@@ -521,8 +521,8 @@ Using the expression for the rotated pattern vectors, we have:
 \begin{align*}
     1 &= \Vab{\bm{\tilde{V}}_{R,s,k}}^2 \\
     &=\bm{\tilde{V}}_{R,s,k}^H \bm{\tilde{V}}_{R,s,k} \\
-    \overset{\eqref{eq:theory:mca_rotated_pattern_vectors}}&{=} \pab{\bm{\tilde{V}}_s^H \Sigma^{1/2} \bm{R}_{:,k} (\bm{W}_s^{-1})_{kk}}^H \pab{\bm{\tilde{V}}_s^H \Sigma^{1/2} \bm{R}_{:,k} (\bm{W}_s^{-1})_{kk}} \\
-    &= (\bm{W}_s^{-1})_{kk}^2 \pab{\bm{R}_{:,k}^H \Sigma \bm{R}_{:,k}},
+    \overset{\eqref{eq:theory:mca_rotated_pattern_vectors}}&{=} \pab{\bm{\tilde{V}}_s^H \bm{\Sigma}^{1/2} \bm{R}_{:,k} (\bm{W}_s^{-1})_{kk}}^H \pab{\bm{\tilde{V}}_s^H \bm{\Sigma}^{1/2} \bm{R}_{:,k} (\bm{W}_s^{-1})_{kk}} \\
+    &= (\bm{W}_s^{-1})_{kk}^2 \pab{\bm{R}_{:,k}^H \bm{\Sigma} \bm{R}_{:,k}},
 \end{align*}
 
 where $\bm{R}_{:,k}$ is the $k$\textsuperscript{th} column of the rotation matrix $\bm{R}$.
@@ -530,39 +530,46 @@ where $\bm{R}_{:,k}$ is the $k$\textsuperscript{th} column of the rotation matri
 Solving for $(\bm{W}_s)_{kk}$, we find:
 
 \begin{align}
-    (\bm{W}_s)_{kk}^2 &= \pab{\bm{R}_{:,k}^H \Sigma \bm{R}_{:,k}}.
+    (\bm{W}_s)_{kk}^2 &= \pab{\bm{R}_{:,k}^H \bm{\Sigma} \bm{R}_{:,k}} \implies \bm{W}_s^2 = \diag \pab{\bm{R}^H \bm{\Sigma} \bm{R}}.
 \end{align}
 
-This equation holds for both $\bm{W}_x$ and $\bm{W}_y$ implying that $\bm{W}_x = \bm{W}_y \equiv \bm{W}$. Therefore, the covariance between the rotated expansion coefficients simplifies to $\bm{W}^2$.
+This equation holds for both $\bm{W}_x$ and $\bm{W}_y$ implying that $\bm{W}_x = \bm{W}_y \equiv \bm{W}$. Therefore, the covariance between the rotated expansion coefficients, Equation~\eqref{eq:theory:mca_total_squared_covariance2}, simplifies to $\bm{W}^2$. Using the orthogonality of $\bm{R}$ and the fact that $\bm{\Sigma}$ is a diagonal matrix, we can find simplified expression for the diagonal elements of $\bm{W}^2$:
 
-The total squared covariance of the first $R$ rotated modes is then:
+\begin{align}\label{eq:theory:mca_rotated_covariance_elements}
+    \pab{\bm{W}^2}_{kk} &= \sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i
+\end{align}
+
+For deriving the total squared covariance of the first $R$ rotated modes, we will make use of the Jensen inequality, which can be stated in its general, finite form as:
+
+\begin{align}\label{eq:theory:jensen_inequality}
+    f \pab{\frac{\sum_{i} a_i x_i}{\sum_{i} a_i}} \leq \frac{\sum_i a_i f(x_i)}{\sum_i a_i},
+\end{align}
+
+where $f$ is a real convex function and $a_i$ are positive weights. The total squared covariance of the first $R$ rotated modes is then:
 
 \begin{align}
-    \tr{\bm{W}^4} &= \sum_{k=1}^r \pab{\pab{\bm{R}^H \Sigma \bm{R}}_{kk}}^2 \nonumber\\
-    &\leq \tr{ \pab{\pab{\bm{R}^H \Sigma \bm{R}}^2}} \nonumber\\
-    &= \tr \pab{\Sigma^2} \nonumber\\
-    &= \sum_{k=1}^r \sigma_k^2.
+    \tr{\bm{W}^4} &= \sum_{k=1}^{R} \pab{\bm{W}^2}_{kk}^2 \nonumber\\
+    \overset{\eqref{eq:theory:mca_rotated_covariance_elements}}&{=} \sum_{k=1}^{R} \pab{\sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i}^2 \nonumber\\
+    \overset{\eqref{eq:theory:jensen_inequality}}&{\leq} \sum_{k=1}^{R} \pab{\sum_{i=1}^{R} \bm{R}_{ik}^2 }  \pab{\sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i^2} \nonumber\\
+    &= \sum_{i=1}^{R} \sigma_i^2 \sum_{k=1}^{R} \bm{R}_{ik}^2 \nonumber\\
+    &= \sum_{i=1}^R \sigma_i^2.
 \end{align}
 
-The inequality arises because the sum of the squares of the diagonal elements is less than or equal to the trace of the squared matrix. This shows that the total squared covariance after rotation is generally less than before rotation, unless the rotation matrix $\bm{R}$ is the identity matrix. Thus, total squared covariance is not preserved under rotation.
+The inequality in the third line can be simplified since $\bm{R}$ is orthogonal, so $\sum_{i=1}^{R} \bm{R}_{ik}^2 = 1$. The final result shows that the total squared covariance of the first $R$ rotated modes is less than or equal to the total squared covariance of the original modes. This shows that the total squared covariance after rotation is generally less than before rotation, unless the rotation matrix $\bm{R}$ is the identity matrix. Thus, total squared covariance is not preserved under rotation.
 
 \subsubsection*{Total Covariance Is Preserved Under Rotation}
 
-In contrast, the total covariance (without squaring) remains unchanged under rotation. Here's how we can show this:
+In contrast, the total covariance (without squaring) remains unchanged under rotation. We can show this following a similar approach to above:
 
 \begin{align}
-    \tr{\bm{W}^2} &= \sum_{k=1}^R \pab{\bm{R}^H \Sigma \bm{R}}_{kk} \nonumber\\
-    &= \sum_{k=1}^R \pab{ \sum_{i=1}^R r_{ik}^H \Sigma_{ii} r_{ik}} \nonumber\\
-    &= \sum_{k=1}^R \pab{ \sum_{i=1}^R \sigma_{i} r_{ik}^2} \nonumber\\
-    &= \sum_{i=1}^R \sigma_{i} \pab{ \sum_k^R r_{ik}^2} \nonumber\\
-    &= \sum_{i=1}^R \sigma_k.
+    \tr{\bm{W}^2} &= \sum_{k=1}^{R} \sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i \nonumber\\
+    &= \sum_{i=1}^{R} \sigma_i \sum_{k=1}^{R} \bm{R}_{ik}^2 \nonumber\\
+    &= \sum_{i=1}^R \sigma_i.
 \end{align}
 
-where we used the orthonormality of the rotation matrix $\bm{R}$, which ensures that for the $i$\textsuperscript{th} row $\bm{r}_i$ of $\bm{R}$, the sum of the squares of its elements equals ones ($\sum_k^R r_{ik}^2 = 1$). This shows that the total covariance is preserved under rotation. 
+The implication is that Equation~\eqref{eq:theory:mca_rotated_covariance_fraction} can be used to assess the relative importance of each rotated mode. However, it is important to interpret this with caution. While total covariance remains invarint before and after rotation, it does not hold as an invariant for MCA itself. Therefore, Equation~\eqref{eq:theory:mca_rotated_covariance_fraction} should be viewed as a general measure of the relative importance of the rotated modes rather than the amount of explained covariance between $\bm{Z}_x$ and $\bm{Z}_y$.
 
-The implication is that Equation~\eqref{eq:theory:mca_rotated_covariance_fraction} can be used to assess the relative importance of each rotated mode. However, it is important to interpret this with caution. While total covariance remains invariont before and after rotation, it does not hold as an invariant for MCA itself. Therefore, Equation~\eqref{eq:theory:mca_rotated_covariance_fraction} should be viewed as a general measure of the relative importance of each mode rather than the amount of explained covariance between $\bm{Z}_x$ and $\bm{Z}_y$.
-
-Unfortunately, because total squared covariance is not preserved under rotation, we encounter a limitation. In MCA, total squared covariance is an invariant, but this invariance does not hold after rotation. Conversely, total covariance is preserved under rotation but is not an invariant within MCA. For practical applications of this method (discussed in Section~\ref{sec:tele}), we choose to use the SCF as a measure of relative importance, acknowledging that it does not sum to one after rotation.
+Unfortunately, because total squared covariance is not preserved under rotation, we encounter a limitation. In MCA, total squared covariance is an invariant, but this invariance does not hold after rotation. Conversely, total covariance is preserved under rotation but is not an invariant within MCA. For the practical applications presented in Chapter~\ref{chapter:tele}, we choose to use the SCF as a measure of relative importance, acknowledging that it does not sum to one after rotation.
 
 Finally, before applying rotated MCA to real-world data, we must make two key decisions: (1) determining the optimal number of modes to rotate, and (2) choosing between orthogonal or oblique rotation.
 
@@ -631,7 +638,7 @@ However, a common drawback of CCA is that its leading modes may exhibit strong c
 
 In practice, a balance is desired between maximizing covariance (as in MCA) and maximizing correlation (as in CCA). To achieve this, \citet{swenson_continuum_2015} introduced the Continuum Power Canonical Correlation Analysis (CPCCA) framework \cite{swenson_continuum_2015}. CPCCA partially whitens\footnote{Whitening, also known as sphering, refers to the process of transforming a dataset so that its features or variables are uncorrelated and each has unit variance. This often involves adjusting the data to have a zero mean and an identity covariance matrix. See \citet{delsole_predictability_2007} for more details on its relevance in climate science.} the datasets using a fractional whitening parameter, $\alpha_s$, allowing for a continuous adjustment between maximizing correlation (CCA) and maximizing covariance (MCA). This provides a flexible framework to identify shared patterns between datasets.
 
-In this thesis, we extended the CPCCA framework similarly to our approach with MCA by applying it to Hilbert complexified data and incorporating an additional rotation step for enhanced interpretability, resulting in rotated Hilbert CPCCA. We utilized both MCA and CPCCA to identify and interpret ocean-atmospheric teleconnections in the climate system (Section~\ref{sec:tele}), and the Madden-Julian Oscillation (Section~\ref{sec:mjo}).
+In this thesis, we extended the CPCCA framework similarly to our approach with MCA by applying it to Hilbert complexified data and incorporating an additional rotation step for enhanced interpretability, resulting in rotated Hilbert CPCCA. We utilized both MCA and CPCCA to identify and interpret ocean-atmospheric teleconnections in the climate system (Chapter~\ref{chapter:tele}), and the Madden-Julian Oscillation (Chapter~\ref{chapter:mjo}).
 
 
 \mynote{add PCA preprocessing as a common step in CPCCA}

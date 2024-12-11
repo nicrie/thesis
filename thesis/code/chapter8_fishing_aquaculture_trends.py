@@ -16,8 +16,9 @@ total = total_aqua_fish_production.sum("production_type")
 aqua = total_aqua_fish_production.sel(production_type="aqua")
 wild = total_aqua_fish_production.sel(production_type="wild")
 
-color_palette = viz.get_sequential_color_palette(as_cmap=False, n_colors=4)
-clrs = {"wild": color_palette[3], "aqua": color_palette[2], "text": "0.9"}
+palette = viz.get_sequential_color_palette(as_cmap=False, n_colors=4)
+
+clrs = {"wild": palette[2], "aqua": palette[1], "text": "0.9"}
 
 # %%
 # Figure
@@ -27,17 +28,28 @@ fig = plt.figure(figsize=(7.2, 3.5), dpi=300)
 ax1 = fig.add_subplot(121)
 ax2 = fig.add_subplot(122)
 ax1.fill_between(
-    total.year, total / 1e6, aqua / 1e6, color=clrs["wild"], label="Wild", alpha=0.7
+    total.year,
+    total / 1e6,
+    aqua / 1e6,
+    color=clrs["wild"],
+    label="Wild",
+    alpha=0.7,
+    ec="0.9",
 )
 ax1.fill_between(
-    total.year, aqua / 1e6, color=clrs["aqua"], label="Aquaculture", alpha=0.7
+    total.year, aqua / 1e6, color=clrs["aqua"], label="Aquaculture", alpha=0.7, ec="0.9"
 )
 
 # relative
 ax2.fill_between(
-    total.year, 100 * total / total, 100 * aqua / total, color=clrs["wild"], alpha=0.7
+    total.year,
+    100 * total / total,
+    100 * aqua / total,
+    color=clrs["wild"],
+    alpha=0.7,
+    ec=".9",
 )
-ax2.fill_between(total.year, 100 * aqua / total, color=clrs["aqua"], alpha=0.7)
+ax2.fill_between(total.year, 100 * aqua / total, color=clrs["aqua"], alpha=0.7, ec=".9")
 
 # add horizontal lines at 2, 4, 6, 8, 10 million tonnes
 for y in range(2, 13, 2):
@@ -124,14 +136,18 @@ ax1.set_ylim(0, 12)
 ax2.set_ylim(0, 100)
 ax1.set_xlim(1950, 2020)
 ax2.set_xlim(1950, 2020)
-# fig.suptitle("Wild vs aquaculture fish production in the north-east Atlantic", y=0.98)
+
 
 sns.despine(fig, trim=True, left=True)
 
+save_to_vector = get_figure_path(
+    "chapter8", "vector", "production_nea_wild_capture_aquaculture.svg"
+)
 save_to_raster = get_figure_path(
     "chapter8", "raster", "production_nea_wild_capture_aquaculture.png"
 )
 plt.savefig(save_to_raster, bbox_inches="tight", dpi=300)
+plt.savefig(save_to_vector, bbox_inches="tight", dpi=300)
 plt.show()
 
 # %%

@@ -1,4 +1,6 @@
 # %%
+from string import ascii_uppercase
+
 import matplotlib as mpl
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
@@ -8,33 +10,10 @@ import utils.visualization as viz
 import xarray as xr
 from cartopy.crs import PlateCarree, TransverseMercator
 from cartopy.feature import LAND, OCEAN, RIVERS
-from cycler import cycler
 from matplotlib.gridspec import GridSpec
 from utils.tools import get_figure_path
 
 viz.set_style()
-clrs = sns.color_palette("tab20", n_colors=8, desat=0.9)
-default_cycler = cycler(color=[clrs[0], clrs[1], clrs[2], clrs[3], clrs[-1]])
-plt.rc("axes", prop_cycle=default_cycler)
-
-
-# %%
-# Load data
-# =============================================================================
-YEAR = 2001
-QUANTITY = "absolute"
-VARIABLE = "Plastic"
-base_path = f"/home/nrieger/projects/MINKE/seasonality_ospar/data/clustering/pca/{QUANTITY}/{VARIABLE}/{YEAR}/"
-
-pca_result = xr.open_dataset(base_path + "pca_clustering.nc", engine="netcdf4")
-components = pca_result.comps
-pcs = pca_result.scores
-confidence = pca_result.confidence_pos
-effect_size = pca_result.effect_size_pos
-
-exp_var_ratio = pca_result.expvar_ratio_pos.quantile([0.5, 0.025, 0.975], "n") * 100
-mid1, low1, up1 = exp_var_ratio.sel(mode=1)
-mid2, low2, up2 = exp_var_ratio.sel(mode=2)
 
 
 def trans_effect_size(s):
@@ -45,18 +24,83 @@ def trans_prob(c):
     return c
 
 
+def load_data(path, sign="+"):
+    """Load PCA clustering results from a NetCDF file.
+
+    Parameters
+    ----------
+    path : str
+        Path to the NetCDF file.
+    sign : str, optional
+        Sign of the cluster, by default "+".
+
+    """
+    try:
+        pca_result = xr.open_dataset(path + "pca_clustering.nc", engine="netcdf4")
+    except FileNotFoundError:
+        print(f"File not found: {path}")
+        return None
+    if sign == "+":
+        pcs = pca_result.scores
+        confidence = pca_result.confidence_pos
+        effect_size = pca_result.effect_size_pos
+        exp_var_ratio = (
+            pca_result.expvar_ratio_pos.quantile([0.5, 0.025, 0.975], "n") * 100
+        )
+    elif sign == "-":
+        pcs = -pca_result.scores
+        confidence = pca_result.confidence_neg
+        effect_size = pca_result.effect_size_neg
+        exp_var_ratio = (
+            pca_result.expvar_ratio_neg.quantile([0.5, 0.025, 0.975], "n") * 100
+        )
+    else:
+        raise ValueError("Invalid sign")
+
+    return xr.Dataset(
+        {"s": effect_size, "c": confidence, "pcs": pcs, "quantiles": exp_var_ratio},
+    )
+
+
+# %%
+# Load data
+# =============================================================================
+YEAR = 2001
+QUANTITY = "absolute"
+NAMES = ["Cluster C1$^+$", "Cluster C2$^+$"]
+path_project = "/home/nrieger/Projects/MINKE/seasonality_ospar/data/"
+path = path_project + f"clustering/pca/{QUANTITY}/Plastic/{YEAR}/"
+ds = load_data(path, "+")
+
+
 # %%
 # Figure 3
 # =============================================================================
-seasons = ["Winter", "Spring", "Summer", "Autumn"]
+seasons = ds.season
+season_labels = ["Win", "Spr", "Sum", "Aut"]
 extent = [-15, 13, 34, 64]
 proj = TransverseMercator(central_latitude=50)
 
-norm = mcolors.Normalize(vmin=0.0, vmax=0.8)
+colors = {
+    "ocean": "0.9",
+    "land": "0.75",
+    "coastline": ".5",
+    "rivers": ".6",
+    "text": ".3",
+    "beach_ec": "C1",
+}
 
+max_probability = 0.8
+norm = mcolors.Normalize(vmin=0.0, vmax=max_probability)
 cmap = viz.get_sequential_color_palette(as_cmap=True)
 cmap_clrs = viz.get_sequential_color_palette(as_cmap=False, n_colors=4)
 clr_highlight = cmap_clrs[2]
+
+palettes = {
+    1: [".5", clr_highlight, ".5", ".5"],
+    2: [clr_highlight, clr_highlight, ".5", ".5"],
+}
+
 
 fig = plt.figure(figsize=(7.2, 4.6))
 gs = GridSpec(
@@ -67,154 +111,138 @@ gs = GridSpec(
     wspace=0.0,
     width_ratios=[1, 1, 0.05],
 )
-ax1 = fig.add_subplot(gs[0, 0], projection=proj)
-ax2 = fig.add_subplot(gs[0, 1], projection=proj)
+ax = [fig.add_subplot(gs[0, i], projection=proj) for i in range(2)]
 cax = fig.add_subplot(gs[0, 2])
 
-for ax in [ax1, ax2]:
-    ax.add_feature(OCEAN, color=".9")
-    ax.add_feature(LAND, color=".75")
-    ax.add_feature(RIVERS.with_scale("10m"), edgecolor=".6", lw=0.5)
-    ax.set_extent(extent, crs=PlateCarree())
+for i, a in enumerate(ax):
+    mode = i + 1
 
-ax1.scatter(
-    components.lon,
-    components.lat,
-    s=trans_effect_size(effect_size.sel(mode=1)),
-    c=confidence.sel(mode=1).values,
-    norm=norm,
-    cmap=cmap,
-    transform=PlateCarree(),
-    ec=".3",
-    lw=0.5,
-    alpha=0.5,
-)
-ax2.scatter(
-    components.lon,
-    components.lat,
-    s=trans_effect_size(effect_size.sel(mode=2)),
-    c=confidence.sel(mode=2).values,
-    norm=norm,
-    cmap=cmap,
-    transform=PlateCarree(),
-    ec=".3",
-    lw=0.5,
-    alpha=0.5,
-)
+    # Map background
+    a.set_extent(extent, crs=PlateCarree())
+    a.add_feature(OCEAN, facecolor=colors["ocean"])
+    a.add_feature(LAND, facecolor=colors["land"])
+    a.add_feature(RIVERS.with_scale("10m"), edgecolor=colors["rivers"], lw=0.5)
 
-cbar3 = fig.colorbar(
+    # Spatial distribution of clusters
+    a.scatter(
+        ds["s"].lon,
+        ds["s"].lat,
+        s=trans_effect_size(ds["s"].sel(mode=mode)),
+        c=ds["c"].sel(mode=mode).values,
+        norm=norm,
+        cmap=cmap,
+        transform=PlateCarree(),
+        ec=colors["text"],
+        lw=0.5,
+        alpha=0.5,
+    )
+    # Cluster centroid in lower right corners
+    xticks = np.arange(0.0, 3.5)
+    axin = a.inset_axes(
+        [0.55, 0.02, 0.43, 0.29],
+        fc=colors["ocean"],
+        frameon=True,
+        transform=a.transAxes,
+    )
+    axin.patch.set_alpha(0.3)
+    df_pcs = ds["pcs"].sel(mode=mode, drop=True).to_dataframe().reset_index()
+    sns.barplot(
+        df_pcs,
+        x="season",
+        y="pcs",
+        hue=df_pcs["season"],
+        palette=palettes[mode],
+        zorder=1,
+        ax=axin,
+        err_kws={"color": colors["text"]},
+    )
+    sns.despine(ax=axin, right=False, top=False)
+    axin.set_title("PC scores", color=colors["text"], size=7, y=0.8)
+    axin.set_xticks(xticks)
+    axin.set_xticklabels(season_labels, color=colors["text"], size=5, y=0.2)
+    axin.set_yticks([])
+    axin.set_xlabel("")
+    axin.set_ylabel("")
+    axin.set_ylim(-0.5, 0.9)
+    axin.tick_params(axis="x", length=0)
+
+    # Title
+    a.text(
+        0.01,
+        0.99,
+        "{:} | {:}".format(ascii_uppercase[i], NAMES[i]),
+        transform=a.transAxes,
+        fontsize=10,
+        fontweight="bold",
+        color=colors["text"],
+        va="top",
+    )
+
+    # Explained variance
+    ax_expvar = a.inset_axes(
+        [0.01, 0.8, 0.4, 0.08], facecolor=".1", frameon=False, transform=a.transAxes
+    )
+    mid, lower, upper = ds["quantiles"].sel(mode=mode)
+    sns.barplot(
+        x=[mid.item()],
+        y=["Explained Variance"],
+        ax=ax_expvar,
+        color=clr_highlight,
+        edgecolor=colors["text"],
+        linewidth=1,
+    )
+    ax_expvar.errorbar(
+        x=mid,
+        y=["Explained Variance"],
+        xerr=[[mid - lower], [upper - mid]],
+        fmt="none",
+        color=colors["text"],
+        capsize=2,
+    )
+
+    ax_expvar.text(
+        5,
+        0,
+        f"{mid.item():.1f}%",
+        color=colors["ocean"],
+        ha="left",
+        va="center",
+        size=6,
+        weight="bold",
+    )
+    ax_expvar.text(
+        0,
+        0.7,
+        "Explained variance",
+        va="center",
+        color=colors["text"],
+        style="italic",
+        size=6,
+        transform=ax_expvar.transData,
+    )
+
+    ax_expvar.set_xlim([0, 50])
+    ax_expvar.set_ylim([-0.5, 0.5])
+    ax_expvar.set_xticks([])
+    ax_expvar.set_yticks([])
+    ax_expvar.set_xlabel("")
+    ax_expvar.spines[["left", "right", "top", "bottom"]].set_visible(False)
+
+
+# Add vertical colorbar to the right border
+cbar = fig.colorbar(
     mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
     cax=cax,
     label="Confidence in Cluster Membership",
 )
-cbar3.set_ticks([0, 0.2, 0.4, 0.6, 0.8])
-cbar3.ax.set_yticklabels(["0%", "20%", "40%", "60%", "80%"])
-
-xticks = np.arange(0.0, 3.5)
-modes = [1, 2]
-titles = ["A | Cluster $C1^+$", "B | Cluster $C2^+$"]
-axin_titles = ["PC$1^+$ scores", "PC$2^+$ scores"]
-palettes = [
-    [".5", clr_highlight, ".5", ".5"],
-    [clr_highlight, clr_highlight, ".5", ".5"],
-]
-for ax, mode, palette, intitle, title in zip(
-    [ax1, ax2], modes, palettes, axin_titles, titles
-):
-    axin = ax.inset_axes([0.53, 0.05, 0.45, 0.2], transform=ax.transAxes)
-    axin.patch.set_alpha(0.3)
-    df_pcs = pcs.sel(mode=mode, drop=True).to_dataframe().reset_index()
-    sns.barplot(
-        df_pcs,
-        x="season",
-        y="scores",
-        hue="season",
-        palette=palette,
-        zorder=1,
-        ax=axin,
-        err_kws={"color": ".3"},
-    )
-    axin.set_title(intitle, color=".3", size=8)
-    axin.set_xticks(xticks)
-    axin.set_xticklabels(seasons, color=".3", size=5, y=0.2)
-    axin.set_xlabel("")
-    axin.set_yticks([])
-    axin.set_ylim([-0.5, 0.7])
-    axin.set_ylabel("")
-    axin.tick_params(axis="x", length=0)
-
-    sns.despine(ax=axin, left=False, bottom=False, right=False, top=False)
-
-    ax.text(
-        0.01,
-        0.99,
-        title,
-        transform=ax.transAxes,
-        fontsize=10,
-        fontweight="bold",
-        color=".3",
-        va="top",
-    )
-
-# Explained variance
-# -----------------------------------------------------------------------------
-ax_expvar1 = ax1.inset_axes(
-    [0.01, 0.8, 0.4, 0.08], facecolor=".1", frameon=False, transform=ax1.transAxes
-)
-ax_expvar2 = ax2.inset_axes(
-    [0.01, 0.8, 0.4, 0.08], facecolor=".1", frameon=False, transform=ax2.transAxes
-)
-
-for ax, mid in zip([ax_expvar1, ax_expvar2], [mid1, mid2]):
-    sns.barplot(
-        x=[mid.item()],
-        y=["Explained Variance"],
-        ax=ax,
-        color=clr_highlight,
-        edgecolor=".9",
-        linewidth=1,
-    )
-    ax.errorbar(
-        x=mid,
-        y=["Explained Variance"],
-        xerr=[[mid1 - low1], [up1 - mid1]],
-        fmt="none",
-        color=".3",
-        capsize=2,
-    )
-
-    ax.text(
-        5,
-        0,
-        f"{mid.item():.1f}%",
-        color=".9",
-        ha="left",
-        va="center",
-        weight="bold",
-    )
-    ax.text(
-        0,
-        0.5,
-        "Explained variance",
-        color=".3",
-        style="italic",
-        size=8,
-        transform=ax.transData,
-    )
-    ax.set_xlim([0, 50])
-    ax.set_ylim([-0.5, 0.5])
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_xlabel("")
-    ax.spines["left"].set_visible(False)
-    ax.spines["right"].set_visible(False)
-    ax.spines["top"].set_visible(False)
-    ax.spines["bottom"].set_visible(False)
+cticks = np.arange(0, 0.9, 0.1)
+cbar.set_ticks(cticks)
+cbar.ax.set_yticklabels([f"{t:.0%}" for t in cticks])
 
 
-save_to_vector = get_figure_path("chapter8", "vector/figure03.svg")
-save_to_raster = get_figure_path("chapter8", "raster/figure03.png")
-plt.savefig(save_to_vector, bbox_inches="tight", dpi=150)
+save_to_vector = get_figure_path("chapter8", "vector/plastics_clusters_map.svg")
+save_to_raster = get_figure_path("chapter8", "raster/plastics_clusters_map.png")
+# plt.savefig(save_to_vector, bbox_inches="tight", dpi=150)
 plt.savefig(save_to_raster, bbox_inches="tight", dpi=150)
 
 # %%
