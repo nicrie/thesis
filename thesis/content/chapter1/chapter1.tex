@@ -12,10 +12,40 @@
 \fi
 
 
-\begin{itemize}
-    \item complexity of our environment: more and more data are available (Earth observation data, satellites, reanalysis, citizen science) to describe very complex systems; research becomes more and more data-driven
-    \item dimensionality reduction methods and non-linear modelling approaches are important to get a better understanding
-    \item software tools are necessary to lower the barrier to entry for non-experts
-\end{itemize}
+1 Setting the Stage: The Complexity of Modern Environmental Data
+
+- Emphasize how environmental data have grown dramatically in volume and variety, driven by advances in Earth observation platforms (satellites, remote sensors) and reanalyses.
+- Highlight that this wealth of information spans multiple spatial and temporal scales, capturing everything from global ocean-atmosphere interactions to localized beach surveys.
+- Stress that while large, regular datasets (e.g., climate reanalyses, satellite imagery) enable us to analyze high-dimensional systems, smaller, irregularly sampled datasets (e.g., citizen science campaigns or sparse in situ measurements) also hold valuable insights but are harder to interpret.
+
+2 The Spectrum of Data Regimes: Dense vs. Sparse
+
+- Introduce the concept of two contrasting data regimes that the thesis will address:
+- Dense data regime: High-dimensional, regularly sampled, large-scale datasets typical of climate sciences and Earth system modeling. Here, the challenge lies in simplifying complex, massive datasets to identify key patterns.
+- Sparse data regime: Scattered, irregular datasets with limited observations in space and time, such as macroplastic pollution surveys on European beaches. Here, the challenge is to extract meaningful structure and make robust inferences despite data scarcity.
+
+3 Explorative vs. Hypothesis-Driven Approaches
+
+- Distinguish between two modes of scientific inquiry:
+- Explorative research: Methods like Principal Component Analysis (PCA), Maximum Covariance Analysis (MCA), and the study of lagged teleconnections. These techniques help discover patterns without strong prior hypotheses, guiding researchers toward new insights in complex, data-rich domains.
+- Hypothesis-driven research: Methods like Gaussian Process Regression (GPR) and Log-Gaussian Cox Processes (LGCPs) that test specific hypotheses—for instance, whether seasonal patterns of macroplastic pollution exist and can be attributed to certain environmental or anthropogenic drivers.
+
+4 Bridging Methodologies and Domains
+
+- Argue that advanced machine learning and dimension reduction techniques can serve both explorative and hypothesis-driven goals.
+- Explain that the thesis aims to show how a unified statistical and computational framework can handle both extremes—dense and sparse data—to extract meaningful patterns.
+
+5 Lowering Barriers with Software Tools
+
+- Introduce the idea that sophisticated methods must be made accessible.
+_ Highlight the xeofs Python library developed to implement PCA, MCA, and related techniques seamlessly with modern data structures like xarray and scalable tools like dask.
+- Emphasize that providing accessible software can lower the entry barrier for domain scientists, enabling them to focus on research questions rather than coding intricacies.
+
+6 A Red Thread: Contrasting Two Data Realms
+
+- Preview that the thesis will use the narrative device of contrasting big/dense data with sparse/irregular data throughout.
+- Show how methods adapted for each scenario serve as building blocks of a more general approach to environmental data science, where both explorative insights and hypothesis testing are essential.
+
+
 
 \clearpage

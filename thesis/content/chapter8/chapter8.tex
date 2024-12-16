@@ -117,7 +117,7 @@ The Yeo-Johnson transformation, accommodating both positive and zero-valued data
 
 The parameter $\lambda$ was estimated via maximum likelihood estimation using all beaches and seasons, resulting in $\lambda = 4.27 \times 10^{-3} \approx 0$.
 
-The covariance function $K$ of the $\mathcal{GP}$ models the spatial correlation. A combination of two Matérn $3/2$ kernels \cite{williams_gaussian_2006} was chosen to capture different scales of spatial dependence:
+The covariance function $K$ of the $\mathcal{GP}$ models the spatial correlation. A combination of two Matérn $3/2$ kernels \cite{rasmussen_gaussian_2006} was chosen to capture different scales of spatial dependence:
 
 \begin{align}
     k(b,b') &= k_1^{\left[3/2\right]}(b, b') + k_2^{\left[3/2\right]}(b, b'),
