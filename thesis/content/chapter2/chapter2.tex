@@ -3,7 +3,6 @@
 %*********************************** First Chapter *****************************
 %*******************************************************************************
 
-\part{Theoretical Foundations}\label{part:theory}
 \chapter{Introduction}\label{chapter:intro}
 
 \ifpdf
@@ -12,11 +11,45 @@
     \graphicspath{{content/chapter2/figs/vector/}{content/chapter2/figs/}}
 \fi
 
-\begin{itemize}
-    \item complexity of our environment: more and more data are available (Earth observation data, satellites, reanalysis, citizen science) to describe very complex systems; research becomes more and more data-driven
-    \item dimensionality reduction methods and non-linear modelling approaches are important to get a better understanding
-    \item software tools are necessary to lower the barrier to entry for non-experts
-\end{itemize}
 
+
+
+Core Themes of the Thesis
+    Introduce the main objective: to develop and apply advanced dimensionality reduction and machine learning techniques to identify meaningful patterns in both dense and sparse environmental data regimes.
+    Explain how the thesis integrates theory and practice, bridging fundamental statistical methods and real-world environmental applications.
+
+From Foundations to Applications
+    Outline the theoretical foundations presented in Part I (Dimensionality Reduction and Gaussian Process Modeling).
+    Show how these foundations enable the exploration of large-scale climate data (PCA, MCA, lagged teleconnections) in Part II. This represents the explorative domain, where abundant data encourage the search for emergent patterns.
+    Transition to Part III, where the methods pivot to handling sparse, irregular datasets (macroplastic pollution on beaches) through a Bayesian machine learning lens (GPR, LGCP), representing hypothesis-driven research in data-poor regimes.
+
+Methodological Unification and Evolution
+    Highlight that PCA and MCA are classical dimensionality reduction techniques tailored to large datasets, while GPR and LGCP offer probabilistic modeling and uncertainty quantification suitable for sparse observations.
+    Emphasize that these methods are not merely tools in isolation but form part of a continuum. The thesis will show how carefully chosen methods can be adapted or extended to tackle a broad range of environmental data challenges.
+
+Synergy with Software Tools
+    Describe how xeofs contributes to practical climate data analysis, making dimensionality reduction methods more accessible and scalable.
+    Assert that such tools democratize the application of advanced methods, enabling environmental scientists and policymakers to leverage complex techniques without requiring deep coding or mathematical expertise.
+
+A Roadmap for the Thesis
+    Provide a brief guide to the thesis structure:
+        Part I: Theoretical Foundation --- Lays out the statistical and computational underpinnings, detailing PCA, MCA, and Gaussian Process methods.
+        Part II: Dense Data Regime --- Demonstrates how these methods uncover large-scale climate patterns and teleconnections, illustrating the power of explorative analysis.
+        Part III: Sparse Data Regime --- Applies Bayesian machine learning (GPR, LGCP) to scarce datasets, testing hypotheses about seasonal patterns in marine litter distributions.
+        Conclusion \& Outlook --- Reflects on the insights gained, the lessons learned, and future directions for integrating these approaches.
+
+Anticipated Contributions
+    Conclude the introduction by stating the thesis' anticipated contributions:
+        A conceptual framework linking exploration and hypothesis testing in environmental data science.
+        Novel methodological insights and tools (including xeofs) that facilitate data-driven discovery.
+        Practical demonstrations that complex environmental issues can be informed by advanced techniques, helping to guide research and policy decisions in a data-rich but unevenly sampled world.
+
+
+
+3 Explorative vs. Hypothesis-Driven Approaches
+
+- Distinguish between two modes of scientific inquiry:
+- Explorative research: Methods like Principal Component Analysis (PCA), Maximum Covariance Analysis (MCA), and the study of lagged teleconnections. These techniques help discover patterns without strong prior hypotheses, guiding researchers toward new insights in complex, data-rich domains.
+- Hypothesis-driven research: Methods like Gaussian Process Regression (GPR) and Log-Gaussian Cox Processes (LGCPs) that test specific hypotheses—for instance, whether seasonal patterns of macroplastic pollution exist and can be attributed to certain environmental or anthropogenic drivers.
 
 \clearpage
