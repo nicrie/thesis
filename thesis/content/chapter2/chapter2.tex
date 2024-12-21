@@ -3,53 +3,82 @@
 %*********************************** First Chapter *****************************
 %*******************************************************************************
 
-\chapter{Introduction}\label{chapter:intro}
-
 \ifpdf
     \graphicspath{{content/chapter2/figs/raster/}{content/chapter2/figs/pdf/}{content/chapter2/figs/}}
 \else
     \graphicspath{{content/chapter2/figs/vector/}{content/chapter2/figs/}}
 \fi
 
+\chapter{Introduction}\label{chapter:intro}
 
 
+The unprecedented growth in environmental data volume, variety, and complexity presents significant challenges for researchers striving to extract meaningful patterns from these vast datasets. The Earth system's physical, chemical, and biological processes are inherently complex, characterized by multi-scale interactions and emergent phenomena spanning wide ranges of spatial and temporal scales. This complexity is mirrored in the diversity of environmental data sources, from climate model outputs and satellite observations to in situ measurements and citizen science contributions. These data vary significantly in their structure: some are dense, regularly sampled, and presented on uniform grids, while others are sparse, irregular, and collected through ad hoc surveys. Navigating this diverse data landscape effectively requires advanced statistical and computational methods capable of addressing both dense and sparse regimes. This thesis seeks to address these challenges by leveraging dimensionality reduction and machine learning techniques to identify meaningful patterns across the spectrum of environmental data densities and complexities.
 
-Core Themes of the Thesis
-    Introduce the main objective: to develop and apply advanced dimensionality reduction and machine learning techniques to identify meaningful patterns in both dense and sparse environmental data regimes.
-    Explain how the thesis integrates theory and practice, bridging fundamental statistical methods and real-world environmental applications.
+To achieve this, the thesis employs both explorative and hypothesis-driven approaches as complementary methods \cite[e.g.][]{kell_here_2004}. Explorative research is particularly well-suited for dense datasets, where nonparametric models can uncover hidden structures without strong prior assumptions. These models learn relationships directly from the data, making them ideal for revealing unknown or complex systems. In contrast, hypothesis-driven methods are critical for sparse datasets, where specific theories must be tested despite limited observations. Bayesian methods, in particular, excel in such scenarios, enabling inference, uncertainty quantification, and hypothesis testing in challenging contexts \cite[e.g.][]{datta_nonseparable_2016}. By integrating these approaches, the thesis aims to provide insights into environmental data that can inform future research, decision-making, and policy development.
 
-From Foundations to Applications
-    Outline the theoretical foundations presented in Part I (Dimensionality Reduction and Gaussian Process Modeling).
-    Show how these foundations enable the exploration of large-scale climate data (PCA, MCA, lagged teleconnections) in Part II. This represents the explorative domain, where abundant data encourage the search for emergent patterns.
-    Transition to Part III, where the methods pivot to handling sparse, irregular datasets (macroplastic pollution on beaches) through a Bayesian machine learning lens (GPR, LGCP), representing hypothesis-driven research in data-poor regimes.
+A prime example of an explorative method is Principal Component Analysis (PCA), which is widely used to identify hidden structures and relationships in dense datasets without requiring predefined hypotheses. Advances in randomized linear algebra have made PCA scalable to high-dimensional datasets \cite{halko_finding_2011, erichson_sparse_2020}, enhancing its utility for large-scale climate data analysis \cite{velegar_scalable_2019}. Even prior to these computational advances, PCA has been instrumental in identifying emergent climate patterns such as large-scale oscillations and teleconnections, i.e. climatic processes that originate in one region but influence distant areas \cite[e.g.][]{hannachi_patterns_2021}. These successes stem in part from the development of extensions that address limitations in PCA, such as orthogonality, linearity, and stationarity \cite{hannachi_patterns_2021}.
 
-Methodological Unification and Evolution
-    Highlight that PCA and MCA are classical dimensionality reduction techniques tailored to large datasets, while GPR and LGCP offer probabilistic modeling and uncertainty quantification suitable for sparse observations.
-    Emphasize that these methods are not merely tools in isolation but form part of a continuum. The thesis will show how carefully chosen methods can be adapted or extended to tackle a broad range of environmental data challenges.
+Maximum Covariance Analysis (MCA) is a related method that identifies dominant patterns in datasets, but unlike PCA, it focuses on shared variability across multiple datasets. This makes MCA particularly useful for analyzing climatic teleconnections between different physical variables. In this thesis, extensions commonly applied to PCA are adapted to overcome similar limitations in MCA, enabling more nuanced analyses. These methods are applied to a real-world case study exploring large-scale climate modes, revealing shared variability between oceanic and atmospheric systems across seasonal to decadal timescales. These insights provide valuable starting points for future hypothesis-driven research.
 
-Synergy with Software Tools
-    Describe how xeofs contributes to practical climate data analysis, making dimensionality reduction methods more accessible and scalable.
-    Assert that such tools democratize the application of advanced methods, enabling environmental scientists and policymakers to leverage complex techniques without requiring deep coding or mathematical expertise.
+Conversely, Gaussian Process Regression (GPR) is a powerful tool for hypothesis testing, thanks to its Bayesian framework, which allows for principled probabilistic statements about data \cite{rasmussen_gaussian_2006}. As a nonparametric model, GPR learns the relationship between inputs and outputs directly from the data, making it well-suited for exploring complex systems. The Bayesian nature of GPR is particularly advantageous for sparse datasets, where irregular sampling and limited observations require robust uncertainty quantification. This thesis applies log-Gaussian Cox process (LGCP) regression, an advanced form of GPR, to a case study on marine plastic pollution. The study tests the hypothesis that beach litter pollution exhibits significant seasonal variations and investigates potential drivers of these patterns. By combining explorative and hypothesis-driven approaches, the thesis aims to deepen our understanding of the Earth system, supporting more informed decision-making and environmental policy development.
 
-A Roadmap for the Thesis
-    Provide a brief guide to the thesis structure:
-        Part I: Theoretical Foundation --- Lays out the statistical and computational underpinnings, detailing PCA, MCA, and Gaussian Process methods.
-        Part II: Dense Data Regime --- Demonstrates how these methods uncover large-scale climate patterns and teleconnections, illustrating the power of explorative analysis.
-        Part III: Sparse Data Regime --- Applies Bayesian machine learning (GPR, LGCP) to scarce datasets, testing hypotheses about seasonal patterns in marine litter distributions.
-        Conclusion \& Outlook --- Reflects on the insights gained, the lessons learned, and future directions for integrating these approaches.
-
-Anticipated Contributions
-    Conclude the introduction by stating the thesis' anticipated contributions:
-        A conceptual framework linking exploration and hypothesis testing in environmental data science.
-        Novel methodological insights and tools (including xeofs) that facilitate data-driven discovery.
-        Practical demonstrations that complex environmental issues can be informed by advanced techniques, helping to guide research and policy decisions in a data-rich but unevenly sampled world.
+The application of these methods highlights a broader challenge: bridging the gap between theoretical foundations and practical implementation. While statistical and machine learning methods offer significant potential, their application is often hindered by computational demands and the need for programming expertise. This is particularly true for large-scale environmental datasets, which are high-dimensional, complex, and computationally intensive to analyze \cite{fan_challenges_2013}. Open-source software (OSS) provides a solution, democratizing access to advanced tools and enabling domain scientists to focus on research questions rather than technical hurdles \cite{ince_case_2012}. In climate science, projects like \textit{Pangeo} \cite{pangeo} have facilitated big data analysis through tools like \xarray{} \cite{hoyer_xarray_2017} and \dask{} \cite{dask_development_team_dask_2016}, which simplify multidimensional data manipulation and enable parallel, distributed computing. Building on this ecosystem, this thesis introduces the \xeofs{} Python library, which streamlines the application of advanced dimensionality reduction techniques to large-scale environmental datasets. By leveraging \xarray{} and \dask{}, \xeofs{} provides a user-friendly interface for exploring and analyzing complex data, bridging the gap between theoretical methods and real-world applications.
 
 
+\section*{Outline of the Thesis}
 
-3 Explorative vs. Hypothesis-Driven Approaches
+This thesis is organized as follows:
 
-- Distinguish between two modes of scientific inquiry:
-- Explorative research: Methods like Principal Component Analysis (PCA), Maximum Covariance Analysis (MCA), and the study of lagged teleconnections. These techniques help discover patterns without strong prior hypotheses, guiding researchers toward new insights in complex, data-rich domains.
-- Hypothesis-driven research: Methods like Gaussian Process Regression (GPR) and Log-Gaussian Cox Processes (LGCPs) that test specific hypotheses—for instance, whether seasonal patterns of macroplastic pollution exist and can be attributed to certain environmental or anthropogenic drivers.
+\paragraph{1. Theoretical Foundations}
+In Part~\ref{part:theory}, the statistical and computational principles underlying the methods used in this thesis are introduced. Chapter~\ref{chapter:dimred} focuses on PCA and MCA as dimensionality reduction techniques, while Chapter~\ref{chapter:gpr} presents Gaussian Process Modeling.
+
+\paragraph{2. Pattern Identification in Dense Data Regimes}
+In Part~\ref{part:dense_data}, the focus shifts to practical applications in dense datasets. Chapter~\ref{chapter:xeofs} introduces \xeofs{}, a Python library for advanced and scalable dimensionality reduction of climate data. Chapter~\ref{chapter:tele} applies these techniques to identify lagged teleconnections between sea surface temperature (SST) and continental precipitation within high-dimensional climate datasets.
+
+\paragraph{3. Pattern Identification in Sparse Data Regimes}
+Part~\ref{part:scarce_data} addresses sparse datasets, with Chapter~\ref{chapter:beach_litter} presenting a case study on seasonal variations in beach litter pollution. This chapter demonstrates the application of Bayesian machine learning, specifically LGCP regression, to overcome challenges posed by data scarcity and irregularity.
+
+Finally, Chapter~\ref{chapter:conclusion} summarizes the key findings of the thesis and discusses future research directions, emphasizing the importance of advanced methods for understanding the Earth system in both dense and sparse data contexts.
+
+\section*{Anticipated Contributions}
+
+This section summarizes the key scientific contributions of this thesis. The first part highlights contributions directly addressed within the thesis chapters, while the second part lists additional relevant publications by the author.
+
+\subsection*{Pattern Identification in the Dense Data Regime}
+
+The first contribution focuses on identifying meaningful teleconnection patterns between the ocean and the atmosphere using high-dimensional climate reanalysis data:
+
+\begin{itemize}
+    \item \highlightnames{1}{\fullcite{rieger_lagged_2021}}.
+\end{itemize}
+
+This work introduces a novel approach to studying lagged teleconnections between sea surface temperature (SST) and continental precipitation through rotated Hilbert MCA. By integrating the Hilbert transform and varimax rotation, the method overcomes limitations of traditional MCA, such as its reliance on orthogonal modes and its inability to detect out-of-phase relationships. The study identifies lagged interactions associated with well-known climate phenomena, including ENSO, the Atlantic Meridional Mode, and the Pacific Decadal Oscillation, while also accounting for variability induced by the seasonal cycle and global warming.
+
+Building upon this foundation, Chapter~\ref{chapter:tele} extends the analysis in several ways. The temporal and spatial scope is expanded with newly available data, and an improved approach for determining the number of rotated modes is introduced to enhance the robustness of the results. Additionally, the chapter explores methodological innovations by shifting from covariance to correlation as a metric of shared variability \cite{swenson_continuum_2015}, offering a broader perspective on teleconnection patterns.
+
+In Chapter~\ref{chapter:xeofs}, based on the contribution:
+
+    \highlightnames{1}{\fullcite{rieger_xeofs_2024}},
+
+the \xeofs{} library is introduced. This open-source Python library is designed for dimensionality reduction in climate science, seamlessly integrating with \xarray{} \cite{hoyer_xarray_2017} and \dask{} \cite{dask_development_team_dask_2016} to address challenges associated with large, multidimensional datasets. The library supports traditional and advanced methods, such as rotated and Hilbert PCA/MCA, and incorporates features like out-of-memory computations, randomized linear algebra for scalability \cite{halko_finding_2011, erichson_randomized_2019}, and built-in significance testing through bootstrapping. These innovations make \xeofs{} an accessible and efficient tool for non-experts, enabling scalable analysis of complex environmental data.
+
+
+\subsection*{Pattern Identification in the Sparse Data Regime}
+
+The thesis also addresses the challenges of sparse and irregular data, focusing on seasonal variations in beach litter pollution. This contribution is captured in:
+
+    \highlightnames{1}{\fullcite{rieger_seasonal_2024}}.
+
+This work applies a spatial LGCP model to quantify and analyze seasonal patterns of macroplastic pollution across 168 beaches in the North-East Atlantic. The study identifies seasonal hotspots where macroplastic levels peak during winter and spring, highlighting riverine discharges and mariculture-related activities as key drivers of these patterns. These findings underscore the importance of targeted mitigation strategies, such as seasonal cleanup efforts and enhanced monitoring of litter sources, to address this pervasive environmental issue.
+
+
+Beyond the work included in this thesis, the author has contributed to the following publications during the course of this research:
+
+\begin{itemize}
+    \item Sabourdy, M., Etourneau, J., Crostal, X., Antoniades, D., Dalaiden, Q., \textbf{Rieger, N.}, Caley, T., Huguet, A., Sicre, M.A., Toro, M., Oliva, M., Klein, V., Liboudan, E., Bracannot, P., Escutia, C. and Giralt, S. Northern Antarctic Peninsula Air Temperature Variability Over the Last Millennia Controlled by ENSO and SAM. Under revision in \emph{Nature Geoscience}.
+    \item vom Stein, M., Hoppe, M., \textbf{Rieger, N.} and Wolf, K. D. Guiding Future Design Studies on Tactile Interfaces. Submitted to \emph{Communications Engineering}.
+    \item Barathieu, H., Caley, T., Roche, D., \textbf{Rieger, N.}, Happé, T., Waelbroeck, C. Reconstructing Past Ocean Density to Evaluate Numerical Climate Models at the Last Glacial Maximum (LGM). Manuscript in preparation.
+    \item Caley, T., \textbf{Rieger, N.} and Roche, D. Past Ocean SSS From Planktonic Foraminifera Calcite and Evaluation of Climate Models. Manuscript in preparation.
+\end{itemize}
 
 \clearpage

@@ -121,6 +121,13 @@
 \newcommand{\low}{\text{low}}
 \newcommand{\high}{\text{high}}
 
+% xeofs related
+\newcommand{\xeofs}{\textsc{xeofs}}
+\newcommand{\Xeofs}{\textsc{Xeofs}}
+\newcommand{\eofs}{\textsc{eofs}}
+\newcommand{\xarray}{\textsc{xarray}}
+\newcommand{\Xarray}{\textsc{Xarray}}
+\newcommand{\dask}{\textsc{Dask}}
 
 % *********************************** SI Units *********************************
 \usepackage{siunitx} % use this package module for SI units
@@ -234,6 +241,9 @@
 
 %\renewcommand{\nomname}{Symbols}
 
+% Reduce the vertical space between items slightly
+% \setlength{\nomitemsep}{1cm}
+\setlength{\nomitemsep}{-\parsep}
 
 % ********************************* Appendix ***********************************
 
@@ -255,7 +265,7 @@
 \SetDraftWMPosition{bottom}
 
 % Draft Version - default is v1.0
-\SetDraftVersion{v0.3}
+\SetDraftVersion{v0.4}
 
 % Draft Text grayscale value (should be between 0-black and 1-white)
 % Default value is 0.75

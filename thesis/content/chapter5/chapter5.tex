@@ -2,18 +2,6 @@
 %*******************************************************************************
 %****************************** Fourth Chapter **********************************
 %*******************************************************************************
-\nomenclature[z-hpc]{HPC}{High Performance Computing}
-
-\newcommand{\xeofs}{\textsc{xeofs}}
-\newcommand{\Xeofs}{\textsc{Xeofs}}
-\newcommand{\eofs}{\textsc{eofs}}
-\newcommand{\xarray}{\textsc{xarray}}
-\newcommand{\Xarray}{\textsc{Xarray}}
-\newcommand{\dask}{\textsc{Dask}}
-
-\part[Pattern Identification in the Dense Data Regime]{Pattern Identification\\in the Dense Data Regime}\label{part:dense_data}
-
-\chapter[Bridging Theory and Practice with Advanced Dimensionality Reduction in Python]{Bridging Theory and Practice with\\Advanced Dimensionality Reduction in Python}\label{chapter:xeofs}
 
 % **************************** Define Graphics Path **************************
 \ifpdf
@@ -21,6 +9,12 @@
 \else
     \graphicspath{{content/chapter5/figs/vector/}{content/chapter5/figs/}}
 \fi
+
+
+\part[Pattern Identification in the Dense Data Regime]{Pattern Identification\\in the Dense Data Regime}\label{part:dense_data}
+
+\chapter[Bridging Theory and Practice with Advanced Dimensionality Reduction in Python]{Bridging Theory and Practice with\\Advanced Dimensionality Reduction in Python}\label{chapter:xeofs}
+
 
 Over the pas few decades, Earth system sciences have experienced an exponential increase in the volume and complexity of data \cite{overpeck_climate_2011}, driven by the proliferation of Earth observations satellites \cite{gomes_overview_2020}, high-resolution climate models \cite{hassani_big_2019} and citizen science contributions \cite{fritz_role_2017}. As a result, researchers must now navigate the immense challenge of analyzing vast datasets to extract meaningful insights about Earth's climate system \cite{schnase_big_2016}. Dimensionality reduction techniques have become indispensable for addressing this challenge by simplifying complex data and revealing key underlying patterns.
 
@@ -65,7 +59,7 @@ These characteristics have led to the widespread adoption of tools like \xarray\
 
 However, applying dimensionality reduction techniques such as PCA and MCA (Section~\ref{sec:theory}) presents several challenges. Climate datasets typically require significant pre-processing, including variable weighting (Section~\ref{sec:theory:pca}), removing invalid grid points (e.g., land cells in sea surface temperature data), and reshaping multidimensional arrays into 2D matrices. After analysis, researchers must reverse this process -- transforming the 2D results back into their original multidimensional form, reinserting missing data (such as land grid cells), and removing weights. This workflow can be cumbersome, error-prone, and time-consuming.
 
-Earlier tools, such as the \eofs\ and \textsc{xMCA} libraries, addressed PCA and MCA applications in climate science. However, they lack full compatibility with \xarray\ and \dask\, limiting their scalability and effectiveness when dealing with large datasets. For example, these libraries do not support \xarray{}'s \texttt{Dataset} object, and neither leverages randomized linear algebra techniques \cite{halko_finding_2011,erichson_randomized_2019}, which can significantly improve computational performance for large datasets.
+Earlier tools, such as the \eofs\ \cite{dawson_eofs_2016} and \textsc{xMCA} \cite{he_xmca_2020} libraries, addressed PCA and MCA applications in climate science. However, they lack full compatibility with \xarray\ and \dask\, limiting their scalability and effectiveness when dealing with large datasets. For example, these libraries do not support \xarray{}'s \texttt{Dataset} object, and neither leverages randomized linear algebra techniques \cite{halko_finding_2011,erichson_randomized_2019}, which can significantly improve computational performance for large datasets.
 
 In addition, researchers often need more than dimensionality reduction. Assessing the statistical significance of the extracted patterns, for example, requires bootstrapping techniques \cite{efron_bootstrap_1979}, adding further complexity to the analysis process. Implementing these advanced methods often requires substantial coding expertise, which can be a barrier for many scientists \cite{wilson_good_2016}.
 
