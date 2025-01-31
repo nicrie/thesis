@@ -161,6 +161,7 @@
 %\usepackage{cleveref} %Referencing without need to explicitly state fig /table
 \RequirePackage[
   backend=biber,
+  bibencoding=utf8,
   style=nature,
   citestyle=numeric-comp,
   sorting=nyt,
@@ -288,6 +289,24 @@
 \fi
 
 % Example todo: \mynote{Hey! I have a note}
+
+% *****************************************************************************
+% ***************************** Python Code ***********************************
+% *****************************************************************************
+% \usepackage{pythonhighlight}
+% \usepackage[utf8]{inputenc}
+\usepackage{listings}
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily,
+    keywordstyle=\color{blue},
+    stringstyle=\color{red},
+    commentstyle=\color{green},
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+}
 
 
 % *****************************************************************************

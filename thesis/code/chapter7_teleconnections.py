@@ -15,7 +15,6 @@ from cycler import cycler
 from matplotlib.gridspec import GridSpec
 from statsmodels.stats.multitest import multipletests
 from utils.tools import get_figure_path
-from xarray.backends.api import open_datatree
 
 viz.set_style()
 
@@ -63,13 +62,13 @@ def pvalue_correction(pvalues):
 case_study = "tele"
 alpha = 1.00  # 1.00 or 0.00
 n_rot = 22  # 22 or 28
-power = 1  # 1 or 2
+power = 2  # 1 or 2
 model = "rotated_hilbert_cpcca"
 root_dir = f"/home/nrieger/Projects/cpcca/{case_study}/"
 rot = xe.cross.HilbertCPCCARotator.load(
     root_dir + f"models/{model}_a{alpha:.2f}_r{n_rot}_p{power}"
 )
-dt = open_datatree(
+dt = xr.open_datatree(
     root_dir + f"models/{model}_a{alpha:.2f}_r{n_rot}_p{power}_individual",
     engine="zarr",
 )
@@ -94,7 +93,7 @@ coef_cong = xr.open_dataset(root_dir + f"data/congruence_coefficient_{alpha:.2f}
 # Sort according to SCF
 lbda = np.sqrt(rot.data["squared_covariance"].load())
 idx_sorted = np.argsort(dt["scf"].values)[::-1]
-dt = dt.isel(mode=idx_sorted).assign_coords(mode=dt.mode)
+dt = dt.isel(mode=idx_sorted).update({"mode": dt.mode})
 
 # %%
 # Load climate indices
@@ -314,8 +313,8 @@ if index is not None:
     indexes.sel(index=index).plot(ax=ax5, lw=1, color=clrs[2], label=label, alpha=0.7)
 
 
-ax1.set_title(f"Sea Surface Temperature \n{fve_x*100:.1f} %", loc="center")
-ax2.set_title(f"Precipitation \n{fve_y*100:.1f} %", loc="center")
+ax1.set_title(f"Sea Surface Temperature \n{fve_x * 100:.1f} %", loc="center")
+ax2.set_title(f"Precipitation \n{fve_y * 100:.1f} %", loc="center")
 ax5.set_title("")
 ax5.text(
     0.02,
@@ -329,7 +328,7 @@ ax5.text(0.5, 1, f"Mode {mode}", ha="center", va="top", transform=ax5.transAxes)
 ax5.text(
     0.98,
     1,
-    f"SCF: {scf*100:.1f} %, Corr: {ccoeff:.2f}",
+    f"SCF: {scf * 100:.1f} %, Corr: {ccoeff:.2f}",
     ha="right",
     va="top",
     transform=ax5.transAxes,
@@ -526,7 +525,7 @@ ax5.set_title("E | Correlation Matrix of Expansion Coefficients")
 # -----------------------------------------------------------------------------
 
 # Save figure
-save_to_pdf = get_figure_path("chapter7", "vector" "tele_singular_spectrum.svg")
+save_to_pdf = get_figure_path("chapter7", "vectortele_singular_spectrum.svg")
 save_to_raster = get_figure_path("chapter7", "raster", "tele_singular_spectrum.png")
 plt.savefig(save_to_pdf, bbox_inches="tight")
 plt.savefig(save_to_raster, bbox_inches="tight")
