@@ -395,12 +395,12 @@ where $M$ is the rank of the cross-covariance matrix. The result shows that the 
 Alternatively, this expression can be formulated as a residual-based measure \cite{swenson_continuum_2015}:
 
 \begin{align}\label{eq:theory:mca_scf_residual}
-    f_{xy, k} = 1 - \frac{\Vab{(\bm{Z}_{x} - \bm{Z}_{x,k})^H (\bm{Z}_{y} - \bm{Z}_{y,k})}_F^2}{\Vab{\bm{Z}_{x}^H\bm{Z}_{y}}_F^2}
+    f_{xy, k} = 1 - \frac{\Vab{(\bm{Z}_{x} - \bm{\hat{Z}}_{x,k})^H (\bm{Z}_{y} - \bm{\hat{Z}}_{y,k})}_F^2}{\Vab{\bm{Z}_{x}^H\bm{Z}_{y}}_F^2}
 \end{align}
 
-where $\bm{Z}_{x,k}$ and $\bm{Z}_{y,k}$ represent the shared variability of the $k$\textsuperscript{th} mode reconstructed in the original data space using Equation~\eqref{eq:theory:mca_reconstruction}. This fraction provides a measure of how much of the shared variability between the two datasets is captured by the $k$\textsuperscript{th} mode. 
+where $\bm{\hat{Z}}_{x,k}$ and $\bm{\hat{Z}}_{y,k}$ represent the shared variability of the $k$\textsuperscript{th} mode reconstructed in the original data space using Equation~\eqref{eq:theory:mca_reconstruction}. This fraction provides a measure of how much of the shared variability between the two datasets is captured by the $k$\textsuperscript{th} mode. 
 
-To assess the relative importance of the patterns in relation to each dataset, it is necesarry to consider the variance within the individual datasets explained by each mode relative to the total variance of the individual datasets. This can be expressed using the squared Frobenius norm of the individual datasets:
+To assess the relative importance of the patterns in relation to each dataset, it is necessary to consider the variance within the individual datasets explained by each mode relative to the total variance of the individual datasets. This can be expressed using the squared Frobenius norm of the individual datasets:
 
 \begin{align}
     f_{ss, k} &= \frac{\bm{v}_{s,k}^H\bm{C}_{ss}\bm{v}_{s,k}}{\tr \left(\bm{Z}_s\right)} = \frac{\bm{p}_{s,k}^H\bm{p}_{s,k}}{\Vab{\bm{Z}_s}_F^2}.
@@ -409,13 +409,13 @@ To assess the relative importance of the patterns in relation to each dataset, i
 Note that this projection-based measure of explained variance is mathematically the same in MCA as the following residual-based measure:
 
 \begin{align}\label{eq:theory:mca_explained_variance}
-    f_{ss, k} &= 1 - \frac{\Vab{\bm{Z}_s - \bm{Z}_{s,k}^2}}{\Vab{\bm{Z}_s}_F^2}
+    f_{ss, k} &= 1 - \frac{\Vab{\bm{Z}_s - \bm{\hat{Z}}_{s,k}^2}}{\Vab{\bm{Z}_s}_F^2}
 \end{align}
 
 While the squared covariance fraction $f_{xy, k}$ indicates the amount of shared variability between the two datasets, it does not provide information about the strength of the association or coupling between them. To measure this, we use the correlation coefficient $\rho_k$ for the expansion coefficients of mode $k$ between the two datasets:
 
 \begin{align}
-    \rho_k = \frac{\cov (\bm{p}_{1, k}, \bm{p}_{2, k}) }{\pab{\var(\bm{p}_{1, k}) \var(\bm{p}_{2, k})}^{1/2}} =  \frac{\sigma_k}{\Vab{\bm{p}_{1, k}}^2 \Vab{\bm{p}_{2, k}}^2}.
+    \rho_k = \frac{\cov (\bm{p}_{x, k}, \bm{p}_{y, k}) }{\pab{\var(\bm{p}_{x, k}) \var(\bm{p}_{y, k})}^{1/2}} =  \frac{\sigma_k}{\Vab{\bm{p}_{x, k}}^2 \Vab{\bm{p}_{y, k}}^2}.
 \end{align}
 
 The homogeneous covariance patterns \cite{bretherton_intercomparison_1992} for the pattern vectors are:

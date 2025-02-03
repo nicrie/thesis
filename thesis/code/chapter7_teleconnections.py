@@ -62,7 +62,7 @@ def pvalue_correction(pvalues):
 case_study = "tele"
 alpha = 1.00  # 1.00 or 0.00
 n_rot = 22  # 22 or 28
-power = 2  # 1 or 2
+power = 1  # 1 or 2
 model = "rotated_hilbert_cpcca"
 root_dir = f"/home/nrieger/Projects/cpcca/{case_study}/"
 rot = xe.cross.HilbertCPCCARotator.load(
@@ -93,7 +93,7 @@ coef_cong = xr.open_dataset(root_dir + f"data/congruence_coefficient_{alpha:.2f}
 # Sort according to SCF
 lbda = np.sqrt(rot.data["squared_covariance"].load())
 idx_sorted = np.argsort(dt["scf"].values)[::-1]
-dt = dt.isel(mode=idx_sorted).update({"mode": dt.mode})
+dt.isel(mode=idx_sorted).update({"mode": dt.mode})
 
 # %%
 # Load climate indices
@@ -204,7 +204,7 @@ print("Correlation coefficient scores: \n", corr_coef_scores)
 # %%
 # Plotting
 # =============================================================================
-mode = 10
+mode = 1
 
 
 def get_vmax(mode: int):
@@ -312,6 +312,11 @@ if index is not None:
     label = f"{index} ($r_p$: {max_corr:.2f})"
     indexes.sel(index=index).plot(ax=ax5, lw=1, color=clrs[2], label=label, alpha=0.7)
 
+# Plot 12-month running mean for seasonal cycle only
+if mode == 1:
+    (P0.real / P0.real.std("time")).sel(mode=mode).rolling(time=12, center=True).mean(
+        "time"
+    ).plot(ax=ax5, color=clrs[2], label="SST (12MMM)")
 
 ax1.set_title(f"Sea Surface Temperature \n{fve_x * 100:.1f} %", loc="center")
 ax2.set_title(f"Precipitation \n{fve_y * 100:.1f} %", loc="center")
@@ -383,7 +388,7 @@ figname = f"tele_a{int(alpha * 100):03d}_r{n_rot}_p{power}_mode{mode:02d}"
 save_to_vector = get_figure_path("chapter4", f"pdf/{figname}.pdf")
 save_to_raster = get_figure_path("chapter4", f"raster/{figname}.png")
 
-plt.savefig(save_to_vector, bbox_inches="tight")
+# plt.savefig(save_to_vector, bbox_inches="tight")
 plt.savefig(save_to_raster, bbox_inches="tight")
 
 
