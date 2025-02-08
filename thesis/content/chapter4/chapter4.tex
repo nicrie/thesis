@@ -1,6 +1,6 @@
 %!TEX root = ../thesis.tex
 %*******************************************************************************
-%****************************** Third Chapter *********************************
+%****************************** Fourth Chapter *********************************
 %*******************************************************************************
 \ifpdf
     \graphicspath{{content/chapter4/figs/raster/}{content/chapter4/figs/pdf/}{content/chapter4/figs/}}
@@ -11,125 +11,408 @@
 
 \chapter{Gaussian Process Modeling}\label{chapter:gpr}
 
-Environmental data often reside at opposite ends of a complexity spectrum. On one side, we may have dense, high-dimensional observations sampled regularly in space and time, as seen in satellite imagery or climate reanalyses. On the other, we frequently encounter sparse, irregular datasets with few measurements over large areas or long periods. In this chapter, we focus on the latter scenario and introduce Gaussian processes (GPs) as a flexible, nonparametric framework for identifying patterns and making predictions in such challenging settings. By placing a prior distribution over an infinite-dimensional space of functions, GPs adapt naturally to the complexity of the observed data and provide principled uncertainty quantification.
+Environmental data often reside at opposite ends of a complexity spectrum. On one side, we may have dense, high-dimensional observations (e.g., satellite imagery or climate reanalyses) sampled regularly in space and time. On the other side, datasets may consist of only a few measurements, sampled irregularly over large areas or long periods. In this chapter, we focus on the latter scenario---specifically, spatially sparse and irregularly sampled datasets. We introduce Gaussian processes (GPs) as a flexible, nonparametric framework for identifying patterns and making predictions in these settings. By placing a prior distribution over an infinite-dimensional space of functions, GPs adapt naturally to the complexity of the observed data and provide principled uncertainty quantification.
 
-Gaussian process models have been widely applied in regression, classification, and spatial statistics. They encompass a variety of well-known techniques, unifying them under a single, coherent framework. For instance, Bayesian linear regression arises from a GP with a linear kernel \cite[cf.][]{mackay_introduction_1998}, kriging in geostatistics can be viewed as GP interpolation with a specific class of covariance functions \cite[cf.][]{cressie_statistics_2015}, and the Kalman filter---ubiquitous in weather forecasting and data assimilation \cite[e.g.][]{evensen_ensemble_2003}---can be interpreted as a GP in the state-space domain. These connections highlight both the theoretical elegance and the wide practical relevance of Gaussian processes.
+Gaussian process models have been widely applied in regression, classification, and spatial statistics. They encompass a variety of well-known techniques, unifying them under a single, coherent framework. For instance, Bayesian linear regression arises from a GP with a linear kernel \cite[cf.][]{mackay_introduction_1998}, kriging in geostatistics can be viewed as GP interpolation with a specific class of covariance functions \cite[cf.][]{cressie_statistics_1993}, and the Kalman filter---ubiquitous in weather forecasting and data assimilation \cite[e.g.][]{evensen_ensemble_2003}---can be interpreted as a special case of GP regression in the state-space domain\footnote{This equivalence holds under the assumption of a linear-Gaussian state-space model with a GP kernel that exactly mirrors the covariance structure of that model; see, e.g., \citet{hartikainen_kalman_2010} for a detailed discussion.}.
 
-However, a key drawback of traditional GP implementations is their computational and memory complexity. Inversion of the $N \times N$ covariance matrix typically requires $\mathcal{O}(N^3)$ computations and $\mathcal{O}(N^2)$ storage, which can be prohibitive for large datasets. Recent developments in sparse approximations, inducing points, and scalable inference algorithms help alleviate these challenges, making GPs feasible in a broader range of applications.
+This chapter provides a concise introduction to Gaussian processes and their relevant extensions for this thesis. We first outline the basic framework and theory of GPs (Section~\ref{sec:gp:intro}) and its Bayesian embedding (Section~\ref{sec:gp:bayes}), followed by their application in regression tasks (Section~\ref{sec:gp:regression}). We then extend the discussion to generalized Gaussian process models (GGPMs) for non-Gaussian likelihoods (Section~\ref{sec:gp:generalized}), and finally explore the application of GPs in spatial and spatio-temporal modeling (Section~\ref{sec:gp:spatial}). These foundations set the stage for the log-Gaussian Cox process framework employed in Chapter~\ref{chapter:beach_litter} to analyze sparse observations of macroplastic pollution along European coastlines.
 
-This chapter provides a concise introduction to Gaussian processes and their extensions relevant to this thesis. We begin by introducing the basic framework of GPs (Section~\ref{sec:gp:intro}) and their application to regression tasks (Section~\ref{sec:gp:regression}). We then discuss generalized Gaussian process models (GGPMs) that extend GPs to handle non-Gaussian likelihoods (Section~\ref{sec:gp:generalized}). Finally, we explore the relevance of GPs in spatial and spatio-temporal modeling (Section~\ref{sec:gp:spatial}). These foundations set the stage for the log-Gaussian Cox process framework employed in Chapter~\ref{chapter:beach_litter} to analyze sparse observations of macroplastic pollution along European coastlines.
-
-Sections~\ref{sec:gp:intro} and~\ref{sec:gp:regression} follow standard references such as \citet{rasmussen_gaussian_2006}, \citet{bishop_pattern_2006}, and \citet{mackay_introduction_1998}, which provide a deeper exploration of Gaussian process theory and methods.
+Sections~\ref{sec:gp:intro}~to~\ref{sec:gp:regression} follow standard references such as \citet{rasmussen_gaussian_2006}, \citet{bishop_pattern_2006}, and \citet{mackay_introduction_1998}, which provide a deeper exploration of Gaussian process theory and methods.
 
 \section{Introduction to Gaussian Processes}\label{sec:gp:intro}
 
-A Gaussian process is a nonparametric Bayesian model that places a prior distribution over functions, rather than over a finite set of parameters. In contrast to parametric models with fixed complexity, GPs allow complexity to arise naturally from the data. They assume that any finite collection of function values follows a joint Gaussian distribution, enabling flexible modeling of complex, nonlinear relationships. This is particularly appealing in environmental modeling, where the underlying physical processes are often intricate and not easily reduced to a small set of parameters.
+A Gaussian process is a nonparametric\footnote{Although GPs are often described as "nonparametric", they do have hyperparameters (e.g., length-scales, variances). The term "nonparametric" here refers to the infinite-dimensional function space being modeled, rather than the absence of any parameters. In other words, the GP prior does not restrict the function to a specific finite-parameter family (like polynomials of fixed degree) but instead allows the data to determine the function's complexity, subject to the kernel assumptions.} Bayesian model that places a prior distribution over functions, rather than over a finite set of parameters. In contrast to parametric models with fixed complexity, GPs allow complexity to arise naturally from the data. They assume that any finite collection of function values follows a joint Gaussian distribution, enabling flexible modeling of complex, nonlinear relationships. This is particularly appealing in environmental modeling, where the underlying physical processes are often intricate and not easily reduced to a small set of parameters.
 
-A GP $f(\bm{x})$ is fully characterized by its mean function $m(\bm{x})$ and covariance function $k(\bm{x}, \bm{x}')$. Formally:
+A GP $f(\bm{x})$ is fully characterized by its mean function $m(\bm{x})$ and covariance function $k(\bm{x}, \bm{x}')$. Formally, we write:
 
 \begin{equation}
-    f(\bm{x}) \sim \GP(m(\bm{x}), k(\bm{x}, \bm{x}')).
+    f(\bm{x}) \sim \GP \ab(m(\bm{x}), k(\bm{x}, \bm{x}')).
 \end{equation}
 
-For any finite set of $N$ points $\{\bm{x}_1, \dots , \bm{x}_N \}$, the random vector $(f(\bm{x}_1),\dotsb,f(\bm{x}_N))$ is jointly Gaussian. In practice, the mean function often defaults to zero without loss of generality, since data can be centered. The true modeling power stems from the covariance function, or kernel, $k(\bm{x},\bm{x}')=\mathbb{E}\ab[(f(\bm{x})-m(\bm{x}))(f(\bm{x}')-m(\bm{x}'))]$, which captures assumptions about function smoothnes, variability and correlations across the input domain.
+For any finite set of $N$ points $\{\bm{x}_i\}_{i=1}^N$, $\bm{x}_i \in \mathbb{R}^{D}$, the random vector
 
-To ensure valid Gaussian distributions, the kernel must be positive semidefinite, and many commonly used kernels embody additional structural assumptions. Stationary kernels, which depend only on $\bm{x}-\bm{x}'$, reflect spatial patterns that remain consistent across the input domain. One popular choice is the squared exponential (RBF) kernel: 
+\[
+\bm{f} = \begin{pmatrix} f(\bm{x}_1) \\ \vdots \\ f(\bm{x}_N) \end{pmatrix}
+\]
+
+follows a multivariate Gaussian distribution:
+
+\begin{equation}
+    \bm{f} \sim \mathcal{N}\ab(\bm{m},\, \bm{K}),
+\end{equation}
+
+where $\bm{m} = \ab( m(\bm{x}_1),\dots,m(\bm{x}_N) )^T$ and $\bm{K}$ is the $N\times N$ covariance matrix with entries $K_{ij} = k(\bm{x}_i, \bm{x}_j)$.
+
+In practice, the mean function is often set to zero without loss of generality because the data can be centered or a constant mean term can be learned separately. The real modeling power stems from the covariance function, or \emph{kernel},
+
+\begin{equation}
+    k(\bm{x},\bm{x}')=\mathbb{E}\ab[(f(\bm{x})-m(\bm{x}))(f(\bm{x}')-m(\bm{x}'))],    
+\end{equation}
+
+which encodes assumptions about function smoothness, variability and correlations across the input domain.
+
+A valid kernel must be positive semidefinite, ensuring that for any finite set of inputs the resulting covariance matrix is non-negative definite. This requirement is closely connected to Mercer's theorem, which states that any continuous, symmetric, positive semidefinite kernel can be expressed in terms of an infinite sum of eigenfunctions \cite[][p.96]{rasmussen_gaussian_2006}. In addition, Bochner's theorem characterizes stationary kernels as the Fourier transform of a non-negative measure, linking the spatial domain properties to the spectral domain \cite[][p.82]{rasmussen_gaussian_2006}.
+
+Many standard kernels incorporate structural assumptions that enforce these properties. A common choice is the squared exponential (or Radial Basis Function, RBF) kernel:
 
 \begin{align}
-    k(\bm{x},\bm{x}') = \eta^2 \exp \ab(-\frac{\ab \| \bm{x}-\bm{x}' \|^2}{2\sigma^2}),
+    k(\bm{x},\bm{x}') = \eta^2 \exp \ab(-\frac{\ab \| \bm{x}-\bm{x}' \|^2}{2\ell^2}),
 \end{align}
 
-where $\eta^2$ sets the overall variance and $\sigma$ is the characteristic length-scale governing how quickly correlations decay with distance. Adjusting kernel hyperparameters $\bm{\theta} = \ab ( \eta^2, \sigma )$ and selecting appropriate kernels can further refine the balance between smoothness and complexity, allowing the GP to capture fine or coarse features in the data. For instance, the Matérn kernel class offers control over function roughness through a smoothness parameter $\nu$. For certain values of $\nu$, such as $\nu=3/2$, the Matérn kernel takes a simple closed form:
+where $\eta^2$ sets the overall variance and $\ell$ is the characteristic length-scale controlling how quickly correlations decay with distance. The smoothness of the RBF kernel implies that realizations from a GP with this kernel are infinitely differentiable.
+
+\paragraph{Matérn Class of Kernels}
+The Matérn kernel family introduces a smoothness parameter $\nu$ that explicitly governs the differentiability of sample functions. For inputs $\bm{x}$ and $\bm{x}'$ with distance $d = \|\bm{x} - \bm{x}'\|$, the Matérn kernel is given by:
+
+\begin{equation}
+    k(\bm{x},\bm{x}') = \eta^2 \frac{2^{1-\nu}}{\Gamma(\nu)}\ab(\frac{\sqrt{2\nu}\,d}{\ell})^\nu K_\nu\!\ab(\frac{\sqrt{2\nu}\,d}{\ell}),
+\end{equation}
+
+where $K_\nu$ is a modified Bessel function of the second kind and $\Gamma(\cdot)$ is the gamma function. For example, when $\nu=3/2$, the kernel simplifies to
 
 \begin{align}
-    k(\bm{x},\bm{x}') = \eta^2 \ab(1 + \frac{\sqrt{3} d}{\sigma}) \exp \ab( -\frac{\sqrt{3} d}{\sigma}).
+    k(\bm{x},\bm{x}') = \eta^2 \ab(1 + \frac{\sqrt{3} d}{\ell}) \exp \ab( -\frac{\sqrt{3} d}{\ell}).
 \end{align}
 
-By adjusting $\nu$, one can model functions ranging from quite rough to infinitely differentiable. In practice, these kernels can be combined, for example by adding or multiplying them, to capture multiple spatial scales or patterns. Detailed discussions of kernel design and selection can be found in \citet[][Chapter 4]{rasmussen_gaussian_2006} and \citet{duvenaud_automatic_2014}.
+Half-integer values of $\nu$ (e.g., $\nu = 1/2$, $3/2$, $5/2$) yield tractable forms and allow one to model functions ranging from relatively rough ($\nu=1/2$ corresponds to the exponential kernel) to very smooth. By adjusting $\nu$, one can explicitly control the differentiability of the GP realizations. Kernels may also be combined (e.g., summed or multiplied) to capture multiple scales or patterns in the data. Detailed discussions of kernel design and selection can be found in \citet[][Chapter 4]{rasmussen_gaussian_2006} and \citet{duvenaud_automatic_2014}.
+
+It is important to note that while the GP model is nonparametric in the sense that it does not restrict the functional form to a finite-dimensional family, it does depend on hyperparameters (e.g., $\eta$, $\ell$, and $\nu$ in the Matérn kernel). These hyperparameters are typically learned from the data via maximization of the marginal likelihood (see Section~\ref{sec:gp:regression}) or by placing hyperpriors and performing full Bayesian inference. This balance between data fit and model complexity is one of the main strengths of the GP framework \cite[cf.][pp 110-111]{rasmussen_gaussian_2006}.
+
+\section{Bayesian Inference in Gaussian Processes}\label{sec:gp:bayes}
+
+A Gaussian Process is fundamentally a \textit{Bayesian} model over functions. In typical parametric Bayesian inference, we write
+
+\begin{equation}\label{eq:theory:gp:bayes_rule}
+    \underbrace{p(\bm{\theta} \mid \bm{y})}_{\text{posterior}}
+    \;=\;
+    \underbrace{p(\bm{y} \mid \bm{\theta})}_{\text{likelihood}}
+    \,\times\,
+    \underbrace{p(\bm{\theta})}_{\text{prior}}
+    \,\bigg/\, p(\bm{y}),
+\end{equation}
+
+where \(\bm{\theta}\) is a finite-dimensional parameter vector, \(p(\bm{y} \mid \bm{\theta})\) is the likelihood, and \(p(\bm{\theta})\) is the prior. In the GP setting, our “parameter” is the entire function \(f(\cdot)\). Hence the prior is 
+\[
+  p\bigl(f(\cdot)\bigr) \;=\; \GP\bigl(m(\bm{x}), k(\bm{x},\bm{x}')\bigr),
+\]
+a distribution over functions, and the likelihood is
+\[
+  p(\bm{y} \,\mid\, f) \;=\; \prod_{i=1}^N p\bigl(y_i \,\mid\, f(\bm{x}_i)\bigr).
+\]
+For instance, if our observations are noisy versions of \(f\), say \(y_i = f(\bm{x}_i) + \epsilon_i\) with \(\epsilon_i \sim \mathcal{N}(0,\sigma_{\text{noise}}^2)\), then
+\[
+  p(y_i \mid f(\bm{x}_i)) \;=\; \mathcal{N}\bigl(y_i \,\mid\, f(\bm{x}_i), \sigma_{\text{noise}}^2\bigr),
+\]
+and the full likelihood is a product of Gaussians.
+
+Combining prior and likelihood via Bayes' rule (Equation~\eqref{eq:theory:gp:bayes_rule}) gives the \emph{posterior} distribution over $f$. Unlike a finite-dimensional case, the posterior is now a Gaussian distribution \emph{over functions} (restricted to the finite set of observed points, it becomes a multivariate normal). This is the core mechanism by which GPs learn from data: the likelihood function encapsulates how plausible the observed data are, given a candidate function $f$, and the prior encodes assumptions about smoothness or correlation. The result is a posterior over function space that reflects both prior knowledge and the empirical evidence.
 
 
 \section{Gaussian Process Regression}\label{sec:gp:regression}
 
-Gaussian process regression (GPR) provides a principled Bayesian framework for function approximation and prediction. Suppose we have $N$ noisy observations $\ab \{ \bm{x}_i, y_i \}_{i=1}^N$ with
+Gaussian process regression (GPR) provides a principled Bayesian framework for function approximation and prediction. Suppose we have $N$ noisy observations $\ab \{ \bm{x}_i, y_i \}_{i=1}^N$ modeled as
 
-\begin{align}
-    y_i = f(\bm{x}_i) + \epsilon_i, \quad \epsilon \sim \mathcal{N}(0, \sigma_N^2).
+\begin{align}\label{eq:theory:gp:generating_process}
+    y_i = f(\bm{x}_i) + \epsilon_i, \quad \epsilon_i \sim \mathcal{N}(0, \sigma_{\text{noise}}^2).
 \end{align}
 
-Given $f(\bm{x}) \sim \GP(\bm{0},k(\bm{x},\bm{x}'))$, the joint distribution of the training outputs $\bm{y}=(y_1,\dots,y_N)$ and a test function value $f_*$ at $\bm{x}_*$ is jointly Gaussian. Conditioning on the observed data yields closed-form expressions for the predictive mean and variance:
+Given the GP prior $f(\bm{x}) \sim \GP(0,k(\bm{x},\bm{x}'))$, the joint distribution of the training outputs $\bm{y}=(y_1,\dots,y_N)$ and a test function value $f_*$ at $\bm{x}_*$ is Gaussian:
+
+\begin{equation}
+    \begin{pmatrix}
+        \bm{y} \\
+        f_*
+    \end{pmatrix}
+    \sim \mathcal{N}\!\left(
+    \begin{pmatrix}
+        \bm{0} \\
+        0
+    \end{pmatrix},
+    \begin{pmatrix}
+        \bm{K} + \sigma_{\text{noise}}^2 I & \bm{k}_* \\
+        \bm{k}_*^T & k(\bm{x}_*,\bm{x}_*)
+    \end{pmatrix}
+    \right),
+\end{equation}
+
+where $\bm{K}$ is the kernel matrix with $K_{ij} = k(\bm{x}_i, \bm{x}_j)$, and $\bm{k}_*$ is the vector of covariances between the test point and the training points.
+
+Conditioning on the observed data yields closed-form expressions for the predictive mean and variance\footnote{The derivation of these expressions is a standard result in GP regression; see e.g. \citet[][Section~2.3]{bishop_pattern_2006} for a detailed treatment.}:
 
 \begin{subequations}\label{eq:theory:gp:prediction}
     \begin{align}
-        \mathbb{E}[f_* | \bm{X},\bm{y},\bm{x}_*] &= \bm{k}_*^T(K+\sigma_N^2 I)^{-1}\bm{y}, \\
-        \mathrm{Var}[f_* | \bm{X},\bm{y},\bm{x}_*] &= k(\bm{x}_*,\bm{x}_*) - \bm{k}*^T(K+\sigma_N^2 I)^{-1}\bm{k}*, 
+        \mathbb{E}[f_* | \bm{X},\bm{y},\bm{x}_*] &= \bm{k}_*^T(\bm{K}+\sigma_{\text{noise}}^2 I)^{-1}\bm{y}, \\
+        \mathrm{Var}[f_* | \bm{X},\bm{y},\bm{x}_*] &= k(\bm{x}_*,\bm{x}_*) - \bm{k}_*^T(\bm{K}+\sigma_{\text{noise}}^2 I)^{-1}\bm{k}_*.
     \end{align}
 \end{subequations} 
 
-where $\bm{X}$ is the matrix from the kernel evaluated at all pair of training points, $\bm{m}$ is the vector of prior means at training points, and $\bm{k}_*$ is the vector of covariances between the test point $\bm{x}_*$ and the $N$ training points. 
+The predictive distribution is Gaussian, providing not only a point estimate but also uncertainty quantification. The ability to directly obtain these predictive variances is a hallmark of GPR, making it especially valuable in application where understanding uncertainty is as important as the prediction itself.
 
-Although GPR is computationally demanding and can quickly become infeasible for a growing number of samples---requiring $\mathcal{O}(N^3)$ operations and $\mathcal{O}(N^2)$ memory due to the covariance matrix inversion in Equation~\eqref{eq:theory:gp:prediction}---it remains a highly general framework. By appropriate choices of kernels or transformations, it recovers Bayesian linear regression, kriging, or even acts analogously to the Kalman filter in dynamic settings, demonstrating its broad applicability and conceptual elegance.
+An attractive feature of GP regression is that the latent function $f$ can be integrated out to yield the marginal likelihood:
 
-Hyperparameter inference often proceeds by maximizing the log marginal likelihood (or evidence), which integrates over all latent functions:
-
-\begin{align}\label{eq:theory:gp:marginal_likelihood}
-    p(\bm{y}|\bm{X}) = \int p(\bm{X}|\bm{X}, \bm{\theta})p(\bm{\theta}) \dd \bm{\theta},
-\end{align}
-
-where $p(\bm{X}|\bm{X}, \bm{\theta})$ is the likelihood of the data given the hyperparameters, and $p(\bm{\theta})$ is the prior over the hyperparameters. For a Gaussian likelihood, this integral is analytic, 
-
-\begin{equation}\label{eq:theory:gp:marginal_likelihood_gaussian}
-    \log p(\bm{y}|\bm{X}) = -\tfrac{1}{2}\bm{y}^T(K+\sigma_N^2 I)^{-1}\bm{y} - \tfrac{1}{2}\log|K+\sigma_N^2I| - \tfrac{N}{2}\log(2\pi),
+\begin{equation}\label{eq:theory:gp:marginal_likelihood}
+    p(\bm{y}|\bm{X}, \bm{\theta}) = \int p(\bm{y}| f) \, p(f | \bm{X}, \bm{\theta}) \, \dd f.
 \end{equation}
 
-providing a principled way to balance model complexity and fit \cite[cf.][pp 110-111]{rasmussen_gaussian_2006}. In practice, maximization of the log marginal likelihood is commonly done using optimization techniques such as gradient-based methods, expectation-maximization algorithms or cross-validation \cite[cf.][Chapter 5]{rasmussen_gaussian_2006}. However, when non-Gaussian likelihoods are considered, the integral in Equation~\eqref{eq:theory:gp:marginal_likelihood} can quickly become intractable. In such cases, approximate inference techniques are required, which we will discuss in the following section.
+For a Gaussian likelihood, this integral can be computed in closed form, yielding:
 
+\begin{equation}\label{eq:theory:gp:marginal_likelihood_gaussian}
+    \log p(\bm{y}|\bm{X}) = -\frac{1}{2}\bm{y}^T\!\ab (\bm{K}+\sigma_{\text{noise}}^2I)^{-1}\bm{y} - \frac{1}{2}\log \ab |\bm{K}+\sigma_{\text{noise}}^2I | - \frac{N}{2}\log(2\pi).
+\end{equation}
+
+Maximizing the log marginal likelihood with respect to the hyperparameters $\bm{\theta} = (\eta, \ell)$ provides a natural mechanism for model selection. In fully Bayesian treatments, one might instead place a hyperprior $p(\bm{\theta})$ and compute
+
+\begin{equation}
+    p(\bm{y}|\bm{X}) = \int p(\bm{y}|\bm{X}, \bm{\theta}) \, p(\bm{\theta}) \, \dd \bm{\theta},
+\end{equation}
+
+although this integral is typically intractable. As a consequence, gradient-based optimization methods, expectation-maximization algorithms, or cross-validation are commonly used to tune hyperparameters \cite[cf.][Chapter 5]{rasmussen_gaussian_2006}.
+
+
+\paragraph{Scalability Challenges and Approximations} The inversion of the $N \times N$ matrix $\bm{K} + \sigma_{\text{noise}}$ in Equation~\eqref{eq:theory:gp:prediction} incurs $\mathcal{O}(N^3)$ computational cost and $\mathcal{O}(N^2)$ memory, which limits the direct application of GPs to large datasets. To address this, sparse approximation techniques introduce a set of inducing points, enabling a low-rank approximation of the full covariance matrix that is computationally more efficient to invert \cite[e.g.][]{quinonero-candela_unifying_2005,wilkinson_sparse_2021}.
 
 \section{Beyond Gaussian Likelihoods: Generalized Gaussian Process Models}\label{sec:gp:generalized}
 
-The Gaussian framework described so far assumes that observations are generated from a Gaussian distribution centered on the underlying function. While this assumption leads to elegant analytical solutions, it is often restrictive. Many real-world phenomena produce data that cannot be adequately captured by Gaussian noise models. For instance, environmental count data may follow a Poisson or Negative Binomial distribution, species presence-absence data may be better modeled with a Bernoulli likelihood, and extreme events or threshold exceedances may require other specialized distributions. In such cases, it is necessary to generalize Gaussian processes to handle arbitrary likelihood functions, resulting in what are commonly referred to as generalized Gaussian process models (GGPMs) \cite{chan_generalized_2011}.
+The Gaussian framework described so far assumes that observations are generated from a Gaussian distribution (Equation~\eqref{eq:theory:gp:generating_process}) centered on the underlying function. While this assumption leads to elegant analytical solutions (Equation~\eqref{eq:theory:gp:prediction}), it is often restrictive. Many real-world phenomena produce data that cannot be adequately captured by Gaussian noise models. For instance, environmental count data (e.g., number of species sightings, quantity of beach litter) often follow a Poisson or Negative Binomial distribution, binary observations (e.g., presence/absence data) follow a Bernoulli likelihood, and extreme events or threshold exceedances may require other specialized distributions. In such cases, it is necessary to generalize GP methods to accommodate these non-Gaussian likelihood functions, resulting in what are commonly referred to as \emph{generalized Gaussian process models} (GGPMs) \cite{chan_generalized_2011}. In essence, we still assume a Gaussian process prior on a latent function $f$, but we allow the observations $y_i$ to be generated via a non-Gaussian distribution whose parameters are controlled by $f$.
 
-The core idea behind these extensions is to maintain a Gaussian process prior on a latent function $f(\bm{x})$ while introducing a nonlinear link function that relates this latent function to the parameters of a non-Gaussian likelihood. Consider a likelihood model of the form:
+The key building block of a GGPM is a deterministic \emph{link function} $g$. One posits that each observation $y_i$ is drawn from some family of distributions, with its parameters given by $g(f(\bm{x}_i))$. Symbolically,
 
-\begin{align}
-    p(y_i|\bm{x}_i, f) = p(y_i|g(f(\bm{x}_i))),
-\end{align}
+\begin{equation*}
+    y_i \;|\; f(\bm{x}_i) \sim p( \cdot  \; | \; g(f(\bm{x}_i))).
+\end{equation*}
 
-where $g(\cdot)$ is a known and differentiable link function. For example, binary observations can be modeled using a Bernoulli likelihood combined with a logistic link $g(f) = 1/(1+\exp(-f))$, and count data might be handled by a Poisson likelihood with a log link $g(f) = \exp(f)$ \cite{diggle_statistical_2013}. The special case of a Poisson likelihood with a log link is specifically known as a log-Gaussian Cox process (LGCP) \cite{moller_log_1998}.
 
-In generalizing to non-Gaussian likelihoods, the key difficulty is that the posterior distribution over the latent function values no longer remains Gaussian. The integral required to compute the posterior predictive distribution or the marginal likelihood becomes analytically intractable. One must resort to approximate inference techniques that provide tractable yet accurate approximations. Common approaches include the Laplace approximation, variational inference (VI), and expectation propagation (EP) \cite[cf.][Section~6.4.6,~10.1,~10.7]{bishop_pattern_2006} (see \citet{chan_generalized_2011} for derivations of corresponding approximations specifically for GGPMs). These methods approximate the non-Gaussian posterior with a Gaussian or a more flexible family of distributions, enabling efficient computation of posterior means, variances, and other quantities of interest. The choice of approximation often depends on a trade-off between accuracy and computational cost, as well as the specific characteristics of the likelihood function. Markov Chain Monte Carlo (MCMC) methods \cite[cf.][Section~11.2]{bishop_pattern_2006} offer another, numerical approach to handling non-Gaussian likelihoods by directly sampling from the posterior distribution.
-
-\section{Spatial and Spatio-Temporal Gaussian Processes}\label{sec:gp:spatial}
-
-While the fundamental formulation of Gaussian processes focuses on relationships between input-output pairs $(\bm{x},f(\bm{x}))$ without explicit reference to space or time, many environmental applications naturally involve data indexed in both space and time. Such data often exhibit complex patterns that evolve over multiple spatial scales and across various temporal horizons. Spatial GPs and their spatio-temporal extensions address these challenges by tailoring covariance functions to encode not only spatial correlations but also temporal dependencies.
-
-In purely spatial settings, the input $\bm{x}$ typically represents a location in a two- or three-dimensional domain. The covariance function $k(\bm{x},\bm{x}')$ then quantifies how function values co-vary with spatial separation $\ab \| \bm{x}, \bm{x}' \|$, often assuming stationarity and isotropy for simplicity. Common spatial kernels, such as the Matérn family, have become standard choices because they can model a broad range of smoothness properties. Spatial GPs are widely used to interpolate, predict, and quantify uncertainty in environmental variables like temperature, precipitation, or pollutant concentrations \cite[e.g][]{datta_nonseparable_2016,wang_use_2020}. An example of a spatial LGCP model is shown in Figure~\ref{fig:theory:lgcp}.
-
-\begin{figure}[th]
-    \centering
+\begin{center}
     \includegraphics[width=\textwidth]{lgcp_model}
-    \caption[Simulated intensity function and posterior inference of model hyperparameters.]{\textbf{Simulated intensity function and posterior inference of model hyperparameters.}  
-    \textbf{(A)}~Simulated intensity function of a spatial Cox process where event counts $ y \sim \text{Poisson}(\mu) $ and the log-intensity $ \log(\mu) $ follows a GP with mean $ m = 1 $ and covariance given by a Matérn-3/2 kernel $ K $ with variance $ \eta^2 = 1.5 $ and length scale $ \sigma = 3.0 $. The colored heatmap represents the Poisson rate (events per square kilometer), with darker regions corresponding to higher event rates, and red dots indicating individual simulated events.  \textbf{(B)} Prior and posterior distributions of the GP hyperparameters, variance $ \eta^2 $ (top) and length scale $ \sigma $ (bottom). Prior distributions are $ \eta^2 \sim \text{InverseGamma}(1, 1) $ and $ \sigma \sim \text{Uniform}(0.5, 5) $ (greenish). The posterior distributions (blueish) incorporate information from the data, with vertical dashed lines indicating posterior 95\% highest density intervals (HDIs). Posterior medians and 95\% HDIs for the variance are $ \eta^2 = 1.46 \, [0.52, 2.92] $, and for the length scale are $ \sigma = 3.09 \, [1.98, 4.32] $, showing close agreement with the true values ($ \eta^2 = 1.5 $, $ \sigma = 3.0 $). The model was fit by evaluating mean rates on a regular 0.75 km grid using the \texttt{PyMC} library \cite{abril-pla_pymc_2023}. Posterior inference was performed using 2000 MCMC samples drawn via a No-U-Turn Sampler (NUTS) \cite{hoffman_no-u-turn_2014}, with the first 1000 samples discarded as warm-up.}
+    \medskip
+    \emph{(Caption on next page.)}
+    % a little hack to add the caption to the next page; the figure number in the LOF needs to be manually adjusted
+    \addcontentsline{lof}{figure}{4.1\quad Spatial log-Gaussian Cox process (LGCP) modeling and inference.}
+\end{center}
+
+\begin{figure}
+    \caption[Spatial log-Gaussian Cox process (LGCP) modeling and inference.]{\textbf{Spatial log-Gaussian Cox process (LGCP) modeling and inference.} \textbf{(A)}~Simulated intensity function of an LGCP, where event counts $ y \sim \text{Poisson}(\lambda) $ and the log-intensity $ \log(\lambda) $ follows a GP with mean $ m = 3 $ and covariance given by a Matérn-3/2 kernel with variance $ \eta^2 = 1 $ and length scale $ \ell = 3.0 $. The heatmap represents the Poisson rate (counts per $0.5^2$ \unit{km^2}), with red dots indicating individual simulated events. \textbf{(B)} Observed counts, shown as colored squares, forming a sparse a sparse and irregular observation network that covers only \qty{20}{\percent} of the area, with denser sampling in the upper region. \textbf{(C)} Predicted intensity function, caputring the spatial pattern more accurately in regions with denser observations. \textbf{(D)} Normalized uncertainty in the predicted intensity, given by the coefficient of variation $\text{CV} = \mathrm{Var}(f_*)^{1/2} / \mathbb{E}(f_*)$, where $f_*$ denotes the predicted intensity. The dashed line marks $\text{CV} = 1$, where the standard deviation equals the mean intensity. \textbf{(E, F)} Posterior distributions of the kernel hyperparameters: variance $ \eta^2$ and length scale $ \ell $, with prior distributions $ \eta^2 \sim \text{InverseGamma}(1, 1) $ and $ \ell \sim \text{Uniform}(0.5, 10) $ (green). The \qty{95}{\percent} highest density intervals (HDI) are shown as blue lines, with thick vertical lines indicating posterior means. Vertical dashed lines denote the true values of the generating process ($ \eta^2 = 1.0 $, $ \ell = 3.0 $). Posterior means and \qty{95}{\percent} are $ \eta^2 = 2.17 \, [0.58, 5.08]$ and $ \ell = 3.81 \, [2.2, 5.86] $, aligning well with the true values. The model was fitted using mean rates on a 0.5 km grid with the \texttt{PyMC} library \cite{abril-pla_pymc_2023}, and posterior inference was performed using 4000 MCMC samples drawn via the No-U-Turn Sampler (NUTS) \cite{hoffman_no-u-turn_2014}, discarding the first 1000 as warm-up.}
     \label{fig:theory:lgcp}
 \end{figure}
 
-When modeling processes on large spatial domains, such as the Earth's surface, the choice of distance metric in the covariance function becomes critical. While Euclidean distances are convenient, they are not suitable for spherical domains. The geodesic, or great circle, distance is more natural on a sphere, yet many standard kernels, including the Matérn class, are not inherently defined for great circle distances and may require nontrivial adaptations \cite{jeong_spherical_2017}. An often applied simplification is to approximate geodesic distances by chordal distances, essentially embedding the sphere into a Euclidean space. In our case study of macroplastic pollution of European beaches (Chapter~\ref{chapter:beach_litter}), the distances involved are so small relative to Earth's circumference, that using the Chordal distance is an appropriate approximiation. However, we note that although chordal distances can simplify kernel design and inference, they may introduce distortions over large spatial extents where chordal and geodesic distances diverge. Recent research \cite[e.g.][]{jeong_spherical_2017,blake_parametric_2022,borovitskiy_matern_2023} has proposed covariance functions tailored specifically to spherical domains to ensure that spatial dependence is more accurately represented on a global scale.
 
-Many environmental processes, however, do not remain static over time. In the case study presented in Chapter~\ref{chapter:beach_litter}, we will handle the fact of seasonal variations by modeling each season independently. However, for long-term temporal processes, this is not practical and a more elegant solution is a spatio-temporal GP which augments the inputs with time coordinates, $(\bm{s}, t)$, where $\bm{s}$ denotes a spatial location and $t$ a point in time. One common approach is to construct a separable kernel:
+For example, if $y_i$ are counts, one might use a Poisson likelihood whose "rate" or intensity parameter is $\lambda_i = \exp\ab(f(\bm{x}_i))$ \cite[cf.][Section~6.5]{diggle_statistical_2013}. In that setup,
 
 \begin{align}
-    k((\bm{s},t),(\bm{s}',t')) = k_{\text{space}}(\bm{s},\bm{s}')k_{\text{time}}(t,t'),
+    p(y_i \; | \; f(\bm{x}_i)) &= \text{Poisson}\ab( y_i \; | \; \exp(f(\bm{x}_i)) ).
 \end{align}
 
-treating space and time independently. While separability simplifies modeling, it may be too restrictive for phenomena where spatial correlations change as the process evolves. Non-separable kernels allow spatial and temporal scales to interact, offering a more realistic representation of dynamic environmental systems \cite{datta_nonseparable_2016}.
+The function $\exp (\cdot)$ then acts as the link, ensuring that the Poisson rate parameter $\lambda_i$ remains positive. It is precisely this model, where the logarithm of the rate (or intensity function) is drawn from a Gaussian process, that is known as a \emph{log-Gaussian Cox process} (LGCP) \cite{moller_log_1998}. 
 
-Adapting GPs to large spatial or spatio-temporal datasets introduces further challenges. The computational cost of Gaussian processes, driven by the inversion of large covariance matrices, can become prohibitive as the number of observations grows. Techniques such as sparse approximations, inducing points, and low-rank representations provide practical solutions in such cases \cite{wilkinson_sparse_2021}. 
+Conceptually, we still treat $f$ as a random function taking values in an infinite-dimensional function space, but we no longer assume that $y_i$ are normally distributed about $f(\bm{x}_i)$. Instead, we feed $f(\bm{x}_i)$ into a suitable link function that controls the non-Gaussian distribution for $y_i$. 
+
+Once we allow a non-Gaussian likelihood, the posterior distribution over the latent function values
+
+\begin{equation}
+    p(f \; | \; \bm{y}, \bm{X}) = \frac{p ( \bm{y} \; | \; f ) \; p(f \; | \; \bm{X})}{p( \bm{y} \; | \;\bm{X})}
+\end{equation}
+
+loses its convenient Gaussian form. Indeed, for a generic link function $g$, there is no closed-form expression for the posterior or for the predictive distributions. As a result, one typically resorts to approximation techniques such as Laplace approximation \cite[cf.][Section~6.4.6]{bishop_pattern_2006}, variational inference (VI) \cite[cf.][Section~10.1]{bishop_pattern_2006}, expectation propagation (EP) \cite[cf.][Sections~~10.7]{bishop_pattern_2006} or Markov Chain Monte Carlo (MCMC) methods \cite[cf.][Chapter~6]{bishop_pattern_2006} to perform inference. For derivations and detailed discussions of these approximation schemes in the context of GGPMs, see, e.g., \citet{chan_generalized_2011}.
+
+% Laplace Approximation: A second-order Taylor expansion of the log-posterior around its mode yields a multivariate normal approximation to p(f|y,X).
+% Variational Inference (VI): One posits a tractable family of approximations (e.g. Gaussians with certain covariance structure) and optimizes a lower bound to the log marginal likelihood.
+% Expectation Propagation (EP): The posterior is iteratively approximated by refining local Gaussian "site approximations" for each observation yi.
+% Markov Chain Monte Carlo (MCMC): One constructs a stochastic process (e.g.Metropolis--Hastings, Hamiltonian Monte Carlo) that samples from the exact posterior distribution, albeit at higher computational cost.
+
+
+
+\section{Spatial and Spatio-Temporal Gaussian Processes}\label{sec:gp:spatial}
+
+While the fundamental formulation of Gaussian processes focuses on relationships between input-output pairs $(\bm{x},f(\bm{x}))$ without explicit reference to space or time, many environmental applications naturally involve data indexed by both spatial and temporal coordinates. Such data often exhibit complex patterns that evolve over multiple spatial scales and across various temporal horizons. Spatial GPs and their spatio-temporal extensions address these challenges by tailoring covariance functions to encode not only spatial correlations but also temporal dependencies.
+
+In purely spatial settings, the input $\bm{x}$ typically represents a location in a two- or three-dimensional domain. The covariance function $k(\bm{x},\bm{x}')$ then quantifies how function values co-vary with spatial separation $\ab \| \bm{x} - \bm{x}' \|$, often assuming stationarity and isotropy for simplicity. For example, the Matérn kernel is widely used because of its flexibility in modeling a range of smoothness properties. Spatial GPs are applied to interpolate, predict, and quantify uncertainty in environmental variables like temperature, precipitation, or pollutant concentrations \cite[e.g][]{datta_nonseparable_2016,wang_use_2020}. Figure~\ref{fig:theory:lgcp} illustrates an example of a spatial LGCP model.
+
+When modeling processes on large spatial domains, such as the Earth's surface, the choice of distance metric in the covariance function becomes critical. While Euclidean distances are convenient, they are not suitable for spherical domains. The geodesic (or great circle) distance is more natural on a sphere. Many standard kernels (including the Matérn class) are originally defined in Euclidean space and may require nontrivial adaptations for use with great circle distances \cite{jeong_spherical_2017,blake_parametric_2022,borovitskiy_matern_2023}. A common approximation is to use chordal distances, which can be justified when the spatial extent is small relative to the curvature of the Earth. In our case study of macroplastic pollution of European beaches (Chapter~\ref{chapter:beach_litter}), the distances involved are so small relative to Earth's circumference, that using the Chordal distance is an appropriate approximation. 
+
+Many environmental processes, however, do not remain static over time. In the case study presented in Chapter~\ref{chapter:beach_litter}, we will handle the fact of seasonal variations by modeling each season independently. However, for long-term temporal processes, this is not practical and a more elegant solution is a spatio-temporal GP which augments the inputs with time coordinates, $(\bm{s}, t)$, where $\bm{s}$ denotes a spatial location and $t$ a point in time. A straightforward approach is to assume a separable covariance structure:
+
+\begin{align}
+    k((\bm{s},t),(\bm{s}',t')) = k_{\text{space}}(\bm{s},\bm{s}')k_{\text{time}}(t,t').
+\end{align}
+
+While separability simplifies modeling and inference, it may be too restrictive when spatial correlations vary over time. Non-separable kernels allow for interactions between space and time, offering a more realistic representation of dynamic environmental systems \cite{datta_nonseparable_2016}. For instance, one may define:
+
+
+\begin{equation}
+    k\ab((\bm{s},t),(\bm{s}',t')) = \eta^2 \exp\!\ab(-\frac{\|\bm{s}-\bm{s}'\|^2}{2\ell_s^2} - \frac{|t-t'|}{\ell_t}),
+\end{equation}
+
+or more sophisticated constructions can be employed to capture non-stationarity in either domain.
+
 
 \section{Conclusion}\label{sec:gp:conclusion}
 
 Gaussian processes offer a powerful and flexible nonparametric framework for modeling complex data distributions in both small and large-scale environmental contexts. By placing a prior over functions rather than a fixed set of parameters, GPs allow complexity to emerge naturally from the data and provide a principled Bayesian approach to uncertainty quantification. Their ability to handle various kernels, adapt hyperparameters through marginal likelihood optimization, and incorporate non-Gaussian likelihoods through generalized Gaussian process models makes them exceptionally versatile.
 
-This versatility is especially relevant for the sparse and irregular data scenarios considered in this thesis. In Chapter~\ref{chapter:beach_litter}, we apply these concepts to analyze seasonal variations in macroplastic pollution along European beaches, where data availability varies widely in both space and time. The GP-based LGCP models will enable us to move from raw, fragmentary observations to probabilistic statements about pollution intensity across different regions and seasons. This not only supports more informed ecological and management decisions but also exemplifies how the theory and methods introduced in this chapter underpin advanced models for sparse environmental data. By linking the flexible foundation of Gaussian processes to a concrete real-world application, we demonstrate the value of GPs in uncovering patterns, identifying seasonal hotspots, and ultimately guiding efforts to mitigate environmental pollution.
+This versatility is especially relevant for the sparse and irregular data scenarios considered in this thesis. In Chapter~\ref{chapter:beach_litter}, these concepts are applied to analyze seasonal variations in macroplastic pollution along European beaches. By employing GP-based LGCP models, we move from raw, fragmentary observations to probabilistic statements about pollution intensity across regions and seasons. This approach not only supports more informed ecological and management decisions but also exemplifies how a robust theoretical framework underpins advanced models for sparse environmental data. 
+
+Overall, Gaussian processes provide a rich toolkit that bridges theoretical elegance with practical utility, making them highly relevant for modern environmental modeling challenges.
 
 
 \clearpage
 
+
+
+
+% \begin{equation}
+%     k(\bm{x},\bm{x}') = \eta^2 \Bigl(1 + \frac{\sqrt{3}\,d}{\ell}\Bigr) \exp\!\Bigl(-\frac{\sqrt{3}\,d}{\ell}\Bigr).
+% \end{equation}
+
+% Half-integer values of $\nu$ (e.g., $\nu=1/2$, $3/2$, $5/2$) yield tractable forms and allow one to model functions ranging from relatively rough ($\nu=1/2$ corresponds to the exponential kernel) to very smooth. More details on kernel properties and design choices can be found in \citet[][Chapter~4]{rasmussen_gaussian_2006} and \citet{duvenaud_automatic_2014}.
+
+% \subsection{Hyperparameters and Prior Specification}
+
+% It is important to note that while the GP model is nonparametric in the sense that it does not restrict the functional form to a finite-dimensional family, it does depend on hyperparameters (e.g., $\eta$, $\ell$, and $\nu$ in the Matérn kernel). These hyperparameters are typically learned from the data via maximization of the marginal likelihood (see Section~\ref{sec:gp:regression}) or by placing hyperpriors and performing full Bayesian inference. This balance between data fit and model complexity is one of the main strengths of the GP framework.
+
+% \section{Gaussian Process Regression}\label{sec:gp:regression}
+
+% Gaussian process regression (GPR) provides a principled Bayesian framework for function approximation and prediction. Suppose we have $N$ noisy observations $\{\bm{x}_i, y_i\}_{i=1}^N$ modeled as
+
+% \begin{equation}
+%     y_i = f(\bm{x}_i) + \epsilon,\quad \epsilon \sim \mathcal{N}(0, \sigma_{\text{noise}}^2).
+% \end{equation}
+
+% Given the GP prior $f(\bm{x}) \sim \GP(0,k(\bm{x},\bm{x}'))$, the joint distribution of the training outputs $\bm{y} = (y_1,\dots,y_N)^T$ and a test function value $f_*$ at $\bm{x}_*$ is Gaussian:
+
+% \begin{equation}
+%     \begin{pmatrix}
+%         \bm{y} \\
+%         f_*
+%     \end{pmatrix}
+%     \sim \mathcal{N}\!\left(
+%     \begin{pmatrix}
+%         \bm{0} \\
+%         0
+%     \end{pmatrix},
+%     \begin{pmatrix}
+%         \bm{K} + \sigma_{\text{noise}}^2 I & \bm{k}_* \\
+%         \bm{k}_*^T & k(\bm{x}_*,\bm{x}_*)
+%     \end{pmatrix}
+%     \right),
+% \end{equation}
+% where $\bm{K}$ is the kernel matrix with $K_{ij} = k(\bm{x}_i, \bm{x}_j)$, and $\bm{k}_*$ is the vector of covariances between the test point and the training points.
+
+% Conditioning on the observed data yields closed-form expressions for the predictive mean and variance:
+
+% \begin{subequations}\label{eq:theory:gp:prediction}
+%     \begin{align}
+%         \mathbb{E}[f_* | \bm{X},\bm{y},\bm{x}_*] &= \bm{k}_*^T\!\left(\bm{K}+\sigma_{\text{noise}}^2 I\right)^{-1}\bm{y}, \\
+%         \mathrm{Var}[f_* | \bm{X},\bm{y},\bm{x}_*] &= k(\bm{x}_*,\bm{x}_*) - \bm{k}_*^T\!\left(\bm{K}+\sigma_{\text{noise}}^2 I\right)^{-1}\bm{k}_*.
+%     \end{align}
+% \end{subequations}
+
+% The predictive distribution is Gaussian, providing not only a point estimate but also uncertainty quantification. The ability to directly obtain these predictive variances is a hallmark of GPR, making it especially valuable in applications where understanding uncertainty is as important as the prediction itself.
+
+% \subsection{Marginal Likelihood and Hyperparameter Estimation}
+
+% An attractive feature of GP regression is that the latent function $f$ can be integrated out to yield the marginal likelihood:
+
+% \begin{equation}\label{eq:theory:gp:marginal_likelihood}
+%     p(\bm{y}|\bm{X}, \bm{\theta}) = \int p(\bm{y}| f) \, p(f | \bm{X}, \bm{\theta}) \, \mathrm{d}f.
+% \end{equation}
+
+% For a Gaussian likelihood, this integral can be computed in closed form, yielding:
+
+% \begin{equation}\label{eq:theory:gp:marginal_likelihood_gaussian}
+%     \log p(\bm{y}|\bm{X}) = -\frac{1}{2}\bm{y}^T\!\left(\bm{K}+\sigma_{\text{noise}}^2I\right)^{-1}\bm{y} - \frac{1}{2}\log\Bigl|\bm{K}+\sigma_{\text{noise}}^2I\Bigr| - \frac{N}{2}\log(2\pi).
+% \end{equation}
+
+% Maximizing the log marginal likelihood with respect to the hyperparameters $\bm{\theta}$ provides a natural mechanism for model selection. In fully Bayesian treatments, one might instead place a hyperprior $p(\bm{\theta})$ and compute
+
+% \begin{equation}
+%     p(\bm{y}|\bm{X}) = \int p(\bm{y}|\bm{X}, \bm{\theta}) \, p(\bm{\theta}) \, \mathrm{d}\bm{\theta},
+% \end{equation}
+
+% although this integral is typically intractable. As a consequence, gradient-based optimization methods, expectation-maximization algorithms, or cross-validation are commonly used to tune hyperparameters. Additional scalable approaches (e.g., sparse approximations discussed below) can also incorporate hyperparameter uncertainty efficiently.
+
+% \subsection{Scalability Challenges and Approximations}
+
+% The inversion of the $N \times N$ covariance matrix in Equation~\eqref{eq:theory:gp:prediction} incurs $\mathcal{O}(N^3)$ computational cost and $\mathcal{O}(N^2)$ memory, which limits the direct application of GPs to large datasets. To overcome this issue, several approximation techniques have been developed, including:
+% \begin{itemize}
+%     \item \emph{Sparse approximations} using a set of inducing points \cite{quinonero2005unifying}. These methods replace the full covariance with a low-rank approximation that is computationally cheaper to invert.
+%     \item \emph{Nyström methods} that approximate the kernel matrix using a subset of the data.
+%     \item \emph{Variational inference} approaches, which cast the problem in a form amenable to stochastic optimization \cite{hensman2013gaussian}.
+% \end{itemize}
+
+% For detailed discussions and derivations, see \citet{quinonero2005unifying} and \citet{wilkinson_sparse_2021}.
+
+% \section{Beyond Gaussian Likelihoods: Generalized Gaussian Process Models}\label{sec:gp:generalized}
+
+% The Gaussian framework described so far assumes that observations are generated from a Gaussian distribution centered on the underlying function. While this assumption leads to elegant analytical solutions, it is often restrictive. Many real-world phenomena produce data that cannot be adequately captured by Gaussian noise models. For instance, environmental count data may follow a Poisson or Negative Binomial distribution, species presence-absence data may be better modeled with a Bernoulli likelihood, and extreme events or threshold exceedances may require other specialized distributions. In such cases, it is necessary to generalize Gaussian processes to handle arbitrary likelihood functions, resulting in what are commonly referred to as generalized Gaussian process models (GGPMs) \cite{chan_generalized_2011}.
+
+% The core idea behind these extensions is to maintain a GP prior on a latent function $f(\bm{x})$ while introducing a nonlinear \emph{link function} that relates this latent function to the parameters of a non-Gaussian likelihood. Consider a likelihood model of the form:
+
+% \begin{equation}
+%     p(y_i|\bm{x}_i, f) = p\Bigl(y_i\;\Bigl|\;g\bigl(f(\bm{x}_i)\bigr)\Bigr),
+% \end{equation}
+
+% where $g(\cdot)$ is a known, differentiable link function. For example, binary observations can be modeled using a Bernoulli likelihood combined with a logistic link $g(f) = \frac{1}{1+\exp(-f)}$, and count data might be handled by a Poisson likelihood with a log link $g(f) = \exp(f)$ \cite{diggle_statistical_2013}. The special case of a Poisson likelihood with a log link is known as a \emph{log-Gaussian Cox process} (LGCP) \cite{moller_log_1998}.
+
+% In the context of non-Gaussian likelihoods, the posterior distribution over the latent function values
+
+% \begin{equation}
+%     p(f|\bm{X},\bm{y}) \propto p(\bm{y}|f)\,p(f|\bm{X})
+% \end{equation}
+
+% is no longer Gaussian, and the integrals required for computing the marginal likelihood or predictive distributions become intractable. To address this, approximate inference techniques are employed, including:
+% \begin{itemize}
+%     \item The \emph{Laplace approximation}, which approximates the posterior by a Gaussian centered at the mode.
+%     \item \emph{Variational inference} (VI), which posits a tractable family of distributions and optimizes a lower bound on the marginal likelihood.
+%     \item \emph{Expectation propagation} (EP), which iteratively refines a Gaussian approximation to the posterior \cite[cf.][Sections~6.4.6,~10.1,~10.7]{bishop_pattern_2006}.
+%     \item \emph{Markov Chain Monte Carlo} (MCMC) methods for direct sampling from the posterior \cite[cf.][Section~11.2]{bishop_pattern_2006}.
+% \end{itemize}
+
+% For derivations and detailed discussions of these approximation schemes in the context of GGPMs, see \citet{chan_generalized_2011}.
+
+% \section{Spatial and Spatio-Temporal Gaussian Processes}\label{sec:gp:spatial}
+
+% While the fundamental formulation of Gaussian processes focuses on relationships between input-output pairs $(\bm{x},f(\bm{x}))$ without explicit reference to space or time, many environmental applications naturally involve data indexed by both spatial and temporal coordinates. Such data often exhibit complex patterns that evolve over multiple spatial scales and across various temporal horizons. Spatial GPs and their spatio-temporal extensions address these challenges by tailoring covariance functions to encode not only spatial correlations but also temporal dependencies.
+
+% \subsection{Spatial Gaussian Processes}
+
+% In purely spatial settings, the input $\bm{x}$ typically represents a location in a two- or three-dimensional domain. The covariance function $k(\bm{x},\bm{x}')$ quantifies how function values co-vary with spatial separation $\|\bm{x} - \bm{x}'\|$, often assuming stationarity and isotropy for simplicity. For example, the Matérn kernel is widely used because of its flexibility in modeling a range of smoothness properties. Spatial GPs are applied to interpolate, predict, and quantify uncertainty in environmental variables such as temperature, precipitation, or pollutant concentrations \cite[e.g.,][]{datta_nonseparable_2016,wang_use_2020}. Figure~\ref{fig:theory:lgcp} illustrates an example of a spatial LGCP model.
+
+% \begin{figure}[th]
+%     \centering
+%     \includegraphics[width=\textwidth]{lgcp_model}
+%     \caption[Simulated intensity function and posterior inference of model hyperparameters.]{\textbf{Simulated intensity function and posterior inference of model hyperparameters.}  
+%     \textbf{(A)}~Simulated intensity function of a spatial log-Gaussian Cox process (LGCP) where event counts $ y \sim \text{Poisson}(\mu) $ and the log-intensity $ \log(\mu) $ follows a GP with mean $ m = 1 $ and covariance given by a Matérn-3/2 kernel with variance $ \eta^2 = 1.5 $ and length scale $ \ell = 3.0 $. The colored heatmap represents the Poisson rate (events per square kilometer), with darker regions corresponding to higher event rates, and red dots indicating individual simulated events.  \textbf{(B)} Prior and posterior distributions of the GP hyperparameters, variance $ \eta^2 $ (top) and length scale $ \ell $ (bottom). Prior distributions are $ \eta^2 \sim \text{InverseGamma}(1, 1) $ and $ \ell \sim \text{Uniform}(0.5, 5) $ (greenish). The posterior distributions (blueish) incorporate information from the data, with vertical dashed lines indicating posterior 95\% highest density intervals (HDIs). Posterior medians and 95\% HDIs for the variance are $ \eta^2 = 1.46 \, [0.52, 2.92] $, and for the length scale are $ \ell = 3.09 \, [1.98, 4.32] $, showing close agreement with the true values ($ \eta^2 = 1.5 $, $ \ell = 3.0 $). The model was fit by evaluating mean rates on a regular 0.75 km grid using the \texttt{PyMC} library \cite{abril-pla_pymc_2023}. Posterior inference was performed using 2000 MCMC samples drawn via a No-U-Turn Sampler (NUTS) \cite{hoffman_no-u-turn_2014}, with the first 1000 samples discarded as warm-up.}
+%     \label{fig:theory:lgcp}
+% \end{figure}
+
+% When modeling processes on large spatial domains, such as the Earth's surface, the choice of distance metric becomes critical. Although Euclidean distances are convenient, they are not suitable for spherical domains. The geodesic (or great circle) distance is more natural on a sphere. Many standard kernels (including the Matérn family) are originally defined in Euclidean space and may require adaptations for use with great circle distances \cite{jeong_spherical_2017}. A common approximation is to use chordal distances, which can be justified when the spatial extent is small relative to the curvature of the Earth. However, care must be taken over large domains to avoid distortions.
+
+% \subsection{Spatio-Temporal Gaussian Processes}
+
+% Many environmental processes are dynamic, evolving in both space and time. A spatio-temporal GP augments the inputs with a temporal coordinate, i.e., $(\bm{s}, t)$ where $\bm{s}$ denotes spatial location and $t$ a point in time. A straightforward approach is to assume a separable covariance structure:
+
+% \begin{equation}
+%     k\bigl((\bm{s},t),(\bm{s}',t')\bigr) = k_{\text{space}}(\bm{s},\bm{s}')\, k_{\text{time}}(t,t').
+% \end{equation}
+
+% While separability simplifies modeling and inference, it may be too restrictive when spatial correlations vary over time. Non-separable kernels allow for interactions between space and time, offering a more realistic representation of dynamic environmental systems \cite{datta_nonseparable_2016}. For instance, one may define:
+
+% \begin{equation}
+%     k\bigl((\bm{s},t),(\bm{s}',t')\bigr) = \eta^2 \exp\!\left(-\frac{\|\bm{s}-\bm{s}'\|^2}{2\ell_s^2} - \frac{|t-t'|}{\ell_t}\right),
+% \end{equation}
+
+% or more sophisticated constructions can be employed to capture non-stationarity in either domain.
+
+% \subsection{Scalable Inference for Spatial Data}
+
+% As the number of spatial or spatio-temporal observations increases, the $\mathcal{O}(N^3)$ cost of inverting the covariance matrix becomes a bottleneck. In such scenarios, sparse approximations and inducing point methods are especially valuable. For example, the \emph{Fully Independent Training Conditional} (FITC) approximation reduces the computational burden by assuming that, conditioned on a set of $M \ll N$ inducing points, the training points are independent. More advanced variational methods \cite{hensman2013gaussian} further improve scalability while providing lower bounds on the marginal likelihood that facilitate hyperparameter learning.
+
+% \section{Conclusion}\label{sec:gp:conclusion}
+
+% Gaussian processes offer a powerful and flexible nonparametric framework for modeling complex data distributions in both small and large-scale environmental contexts. By placing a prior over functions rather than a fixed set of parameters, GPs allow complexity to emerge naturally from the data while providing a principled Bayesian approach to uncertainty quantification. Their ability to handle various kernel structures, adapt hyperparameters through marginal likelihood optimization, and incorporate non-Gaussian likelihoods via generalized Gaussian process models makes them exceptionally versatile.
+
+% The extensions to spatio-temporal domains and the use of scalable approximations enable the application of GP models to sparse and irregular environmental datasets. In Chapter~\ref{chapter:beach_litter}, these concepts are applied to analyze seasonal variations in macroplastic pollution along European beaches. By employing GP-based LGCP models, we move from raw, fragmentary observations to probabilistic statements about pollution intensity across regions and seasons. This approach not only supports more informed ecological and management decisions but also exemplifies how a robust theoretical framework underpins advanced models for sparse environmental data.
+
+% Overall, Gaussian processes provide a rich toolkit that bridges theoretical elegance with practical utility, making them highly relevant for modern environmental modeling challenges.
+
+% \clearpage
