@@ -237,7 +237,7 @@ where $b_{jm}$ are the squared norm of the rotated loadings $|\tilde{v}_{R, jm}|
     \bm{T} = \tilde{\bm{V}}_R \bm{R} + \bm{E},
 \end{align}
 
-where $\bm{R}$ is the transformation matrix and $\bm{E}$ is a matrix of residuals. The normal equation for solving the complex Procrustes problem is given by:
+where $\bm{R}$ is the oblique rotation matrix and $\bm{E}$ is a matrix of residuals. The normal equation for solving the complex Procrustes problem is given by:
 
 \begin{align}
     \bm{R} = (\tilde{\bm{V}}_R^H \tilde{\bm{V}}_R)^{-1} \bm{T}^H \tilde{\bm{V}}_R.
@@ -261,8 +261,7 @@ with $\bm{K}$ being a diagonal matrix containing the maximum absolute values of 
 \paragraph{Application and Criticism} Both orthogonal and oblique rotation techniques, particularly varimax and promax, have been extensively used since the 1980s to identify stationary modes of variability in climate data~\cite[e.g.][]{horel_rotated_1981,barnston_classification_1987,lim_east_2015,gao_impacts_2017,mezzina_dynamics_2020,huth_how_2021,lee_quantifying_2019}. Notable climate oscillations, such as the North Atlantic Oscillation (NAO),
 have been defined based on varimax-rotated patterns of loadings~\cite{barnston_classification_1987}. These techniques also help identify "ghost patterns", artificial patterns identified by PCA that are not physically meaningful~\cite{lian_evaluation_2012,huth_how_2021}.
 
-Rotated modes offer several advantages, such as greater robustness against 
-temporal and spatial subsampling~\cite{cheng_robustness_1995} compared to unrotated modes. They also effectively mitigate the statistical artifacts associated with Buell patterns, resulting in more realistic representations of the underlying autocorrelation structure and thus increased interpretability~\cite{richman_climatic_1985,richman_rotation_1986,lian_evaluation_2012}. Moreover, rotation techniques have been successfully integrated into other PCA extensions dealing with the non-linear and non-stationary nature of climate oscillations~\cite{horel_complex_1984,bueso_nonlinear_2020,guilloteau_rotated_2020}.
+Rotated modes offer several advantages, such as greater robustness against temporal and spatial subsampling~\cite{cheng_robustness_1995} compared to unrotated modes. They also effectively mitigate the statistical artifacts associated with Buell patterns, resulting in more realistic representations of the underlying autocorrelation structure and thus increased interpretability~\cite{richman_climatic_1985,richman_rotation_1986,lian_evaluation_2012}. Moreover, rotation techniques have been successfully integrated into other PCA extensions dealing with the non-linear and non-stationary nature of climate oscillations~\cite{horel_complex_1984,bueso_nonlinear_2020,guilloteau_rotated_2020}.
 
 However, rotation techniques are not without criticism, mainly due to the ad-hoc nature of the various simplicity criteria~\cite[cf.][pp. 270-274]{jolliffe_principal_2002}. This has led to the exploration of alternative approaches to enforce sparsity. Notably, \citet{jolliffe_simplified_2002} introduced the Simplified Component Technique - LASSO (SCoTLASS), a sparse PCA variant based on the least absolute shrinkage and selection operator (LASSO), originally from regularized regression \cite{tibshirani_regression_1996}. This method imposes a constraint on the $\ell_1$ norm of the vector of loadings, resulting in some loading coefficients being exactly zero.
 
@@ -280,7 +279,7 @@ It is likely for these reasons that rotated PCA remains one of the most commonly
 
 \mynote{note: so far only minimal caption, details are missing}
 \subsection{Hilbert PCA}\label{sec:theory:hilbert_pca}
-While PCA efficiently identifies the principal axes along which the covariance among all variables is distributed, and rotated PCA provides a more sparse solution related to underlying physical processes, both methods are inherently static. They do not for temporal dynamics or changes over time, as they only consider the current state of the physical field. This limitation is significant in climate science, where time evolution is crucial. For instance, standard PCA does not differentiate between the order of data points over time, resulting in the same eigenvectors and eigenvalues regardless of temporal permutations. 
+While PCA efficiently identifies the principal axes along which the covariance among all variables is distributed, and rotated PCA provides a more sparse solution related to underlying physical processes, both methods are inherently static. They do not account for temporal dynamics or changes over time, as they only consider the current state of the physical field. This limitation is significant in climate science, where time evolution is crucial. For instance, standard PCA does not differentiate between the order of data points over time, resulting in the same eigenvectors and eigenvalues regardless of temporal permutations. 
 
 This static nature poses a challenge for capturing oscillatory patterns, such as QBO, MJO, ENSO and BSISO, which involve spatial patterns propagating over time. These phenomena cannot be adequately captured by standard PCA.
 
@@ -301,7 +300,7 @@ where $\pv$ denotes the Cauchy principal value ensuring convergence despite the 
 
 where the imaginary unit $i$ indicates a phase shift of $\pi/2$ for the frequency components $\omega$ of $x$, placing $x'$ in quadrature to $x$. This provides an intuitive interpretation of the Hilbert transform, as it acts as a linear filter that alters the phase of the signal's components by 90 degrees without changing their amplitude.
 
-By using the Hilbert transform, a real-valued time series $x(t)$ can be complexified into $z(t) = x(t) + i \HT{x}(t)$, known as the \textit{analytic signal}, which allows for the computation of the instantenous amplitude and phase of $x(t)$:
+By using the Hilbert transform, a real-valued time series $x(t)$ can be complexified into $z(t) = x(t) + i \HT{x}(t)$, known as the \textit{analytic signal}, which allows for the computation of the instantaneous amplitude and phase of $x(t)$:
 
 \begin{align}
     A(t) = |z(t)| = \sqrt{x(t)^2 + \HT{x}(t)^2}, \quad \phi(t) = \arg(z(t)) = \arctan \left( \frac{\HT{x}(t)}{x(t)} \right).
@@ -386,7 +385,7 @@ A more appropriate measure to assess the relative importance of each mode in cap
     \Vab{\bm{C}_{xy}}_F^2 &\equiv  \pab{\sum_i^N \sum_j^P \vab{c_{ij}}^2} = \sum_{i}^{M} \sigma_i^2,
 \end{align}
 
-where $M$ is the rank of the cross-covariance matrix. The result shows that the total squared covariance of the cross-covariance matrix $\bm{C}_{xy}$ is an invariant and the same as the sum of the squared singular values. A formal proof for this statement is provided in Appendix~\ref{app:proof:frobenius_norm}. Therefore, the relative importance of mode $k$ can be quantified by the squared covariance fraction $f_{xy, k}$:
+where $M$ is the rank of the cross-covariance matrix. The result shows that the total squared covariance of the cross-covariance matrix $\bm{C}_{xy}$ is an invariant and the same as the sum of the squared singular values. A formal proof for this statement is provided in Appendix~\ref{app:proof:frobenius_norm}. Therefore, the relative importance of mode $k$ can be quantified by the squared covariance fraction (SCF) $f_{xy, k}$:
 
 \begin{align}\label{eq:theory:mca_scf_singular_values}
     f_{xy, k} = \frac{\sigma_k^2}{\sum_{i=1}^{M} \sigma_i^2}.
@@ -412,7 +411,7 @@ Note that this projection-based measure of explained variance is mathematically 
     f_{ss, k} &= 1 - \frac{\Vab{\bm{Z}_s - \bm{\hat{Z}}_{s,k}^2}}{\Vab{\bm{Z}_s}_F^2}
 \end{align}
 
-While the squared covariance fraction $f_{xy, k}$ indicates the amount of shared variability between the two datasets, it does not provide information about the strength of the association or coupling between them. To measure this, we use the correlation coefficient $\rho_k$ for the expansion coefficients of mode $k$ between the two datasets:
+While the SCF $f_{xy, k}$ indicates the amount of shared variability between the two datasets, it does not provide information about the strength of the association or coupling between them. To measure this, we use the correlation coefficient $\rho_k$ for the expansion coefficients of mode $k$ between the two datasets:
 
 \begin{align}
     \rho_k = \frac{\cov (\bm{p}_{x, k}, \bm{p}_{y, k}) }{\pab{\var(\bm{p}_{x, k}) \var(\bm{p}_{y, k})}^{1/2}} =  \frac{\sigma_k}{\Vab{\bm{p}_{x, k}}^2 \Vab{\bm{p}_{y, k}}^2}.
@@ -541,17 +540,25 @@ For deriving the total squared covariance of the first $R$ rotated modes, we wil
     f \pab{\frac{\sum_{i} a_i x_i}{\sum_{i} a_i}} \leq \frac{\sum_i a_i f(x_i)}{\sum_i a_i},
 \end{align}
 
-where $f$ is a real convex function and $a_i$ are positive weights. The total squared covariance of the first $R$ rotated modes is then:
+where $f$ is a real convex function and $a_i$ are positive weights. Note that equality holds if and only if $x_i = x_j$ for all $i$ and $j$ or if $f$ is a linear function. Specifically in our case, we define the convex, nonlinear function $f(x) \equiv x^2$ and the weights $a_i \equiv \bm{R}_{ik}^2$ and $x_i \equiv \sigma_i$, so that the Jensen inequality can be applied to the sum in Equation~\eqref{eq:theory:mca_rotated_covariance_elements}:
+
+\begin{equation}\label{eq:theory:jensen_inequality_applied}
+    \pab{\pab{\bm{W}^2}_{kk}}^2 = f \pab{\sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i} = f \pab{\frac{\sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i}{\sum_{i=1}^R \bm{R}_{ik}^2}}  < \frac{\sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i^2}{\sum_{i=1}^R \bm{R}_{ik}^2}  = \sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i^2.
+\end{equation}
+
+where we used the fact that $\bm{R}$ is orthogonal, i.e. $\sum_{i=1}^R \bm{R}_{ik}^2 = 1$. Also, the inequality is strict because function $f$ is nonlinear, and, we can safely assume that $\sigma_i \neq \sigma_j$ for $i \neq j$, as well as that the rotation matrix $\bm{R}$ is not the identity matrix.
+
+The total squared covariance of the first $R$ rotated modes is then:
 
 \begin{align}
     \tr{\bm{W}^4} &= \sum_{k=1}^{R} \pab{\bm{W}^2}_{kk}^2 \nonumber\\
     \overset{\eqref{eq:theory:mca_rotated_covariance_elements}}&{=} \sum_{k=1}^{R} \pab{\sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i}^2 \nonumber\\
-    \overset{\eqref{eq:theory:jensen_inequality}}&{\leq} \sum_{k=1}^{R} \pab{\sum_{i=1}^{R} \bm{R}_{ik}^2 }  \pab{\sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i^2} \nonumber\\
+    \overset{\eqref{eq:theory:jensen_inequality_applied}}&{\leq} \sum_{k=1}^{R} \pab{\sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i^2} \nonumber\\
     &= \sum_{i=1}^{R} \sigma_i^2 \sum_{k=1}^{R} \bm{R}_{ik}^2 \nonumber\\
     &= \sum_{i=1}^R \sigma_i^2.
 \end{align}
 
-The inequality in the third line can be simplified since $\bm{R}$ is orthogonal, so $\sum_{i=1}^{R} \bm{R}_{ik}^2 = 1$. The final result shows that the total squared covariance of the first $R$ rotated modes is less than or equal to the total squared covariance of the original modes. This shows that the total squared covariance after rotation is generally less than before rotation, unless the rotation matrix $\bm{R}$ is the identity matrix. Thus, total squared covariance is not preserved under rotation.
+The final result shows that the total squared covariance of the first $R$ rotated modes is less than the total squared covariance of the original modes. This shows that the total squared covariance after rotation is generally less than before rotation, unless the rotation matrix $\bm{R}$ is the identity matrix. Thus, total squared covariance is not preserved under rotation.
 
 \subsubsection*{Total Covariance Is Preserved Under Rotation}
 
@@ -563,7 +570,7 @@ In contrast, the total covariance (without squaring) remains unchanged under rot
     &= \sum_{i=1}^R \sigma_i.
 \end{align}
 
-The implication is that Equation~\eqref{eq:theory:mca_rotated_covariance_fraction} can be used to assess the relative importance of each rotated mode. However, it is important to interpret this with caution. While total covariance remains invarint before and after rotation, it does not hold as an invariant for MCA itself. Therefore, Equation~\eqref{eq:theory:mca_rotated_covariance_fraction} should be viewed as a general measure of the relative importance of the rotated modes rather than the amount of explained covariance between $\bm{Z}_x$ and $\bm{Z}_y$.
+The implication is that Equation~\eqref{eq:theory:mca_rotated_covariance_fraction} can be used to assess the relative importance of each rotated mode. However, it is important to interpret this with caution. While total covariance remains invariant before and after rotation, it does not hold as an invariant for MCA itself. Therefore, Equation~\eqref{eq:theory:mca_rotated_covariance_fraction} should be viewed as a general measure of the relative importance of the rotated modes rather than the amount of explained covariance between $\bm{Z}_x$ and $\bm{Z}_y$.
 
 Unfortunately, because total squared covariance is not preserved under rotation, we encounter a limitation. In MCA, total squared covariance is an invariant, but this invariance does not hold after rotation. Conversely, total covariance is preserved under rotation but is not an invariant within MCA. For the practical applications presented in Chapter~\ref{chapter:tele}, we choose to use the SCF as a measure of relative importance, acknowledging that it does not sum to one after rotation.
 
@@ -612,7 +619,7 @@ The mode stability index $\kappa$ represents the average fraction of modes that 
 \subsubsection*{Selecting Between Orthogonal and Oblique Rotation} 
 Choosing between orthogonal and oblique rotation involves balancing interpretability with complexity. Orthogonal rotations keep the expansion coefficients uncorrelated, while producing more localized spatial patterns, which may simplify their interpretation. However, the lack of correlation between coefficients may not accurately reflect the interconnected nature of geophysical processes. In contrast, oblique rotations allow the expansion coefficients to be correlated, potentially capturing more realistic relationships, while still producing simpler spatial structures. This added realism comes at the cost of increased complexity in interpretation.
 
-In this thesis, we compared the outcomes of both orthogonal and oblique rotations to evaluate the degree of correlation between the expansion coefficients. When the correlation between leading modes was weak (for example, $ < \pm 0.2$), we opted for orthogonal rotation to maintain simplicity and clarity in the results.
+In this thesis, we compared the outcomes of both orthogonal and oblique rotations to evaluate the degree of correlation between the expansion coefficients. When the correlation between leading modes was weak (for example, an absolute correlation coefficient below $0.2$), we opted for orthogonal rotation to maintain simplicity and clarity in the results.
 
 
 \subsubsection*{Hilbert MCA}
