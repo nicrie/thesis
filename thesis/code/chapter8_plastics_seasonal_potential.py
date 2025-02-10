@@ -559,16 +559,16 @@ def add_legend_circles(
 # -> Plastic emissions
 sizes = np.array([1e3, 1e4, 1e5])
 labels = ["1", "10", "100"]
-title = "Macroplastics [$t/yr$]"
+title = "Macroplastics [$t/yr$]\n(Coastline)"
 add_legend_circles(
     ax[1], 0.65, 0.21, 0.3, 0.2, sizes, labels, trans_plastic, title=title, ec=".3"
 )
 # -> River discharge
 sizes = np.array([1e3, 5e3, 1e4])
 labels = ["1", "5", "10"]
-title = "Discharge [$10^{3}m^3/s$]"
+title = "\n\nDischarge [$10^{3}m^3/s$]\n(Inland)"
 add_legend_circles(
-    ax[1], 0.65, 0.01, 0.3, 0.2, sizes, labels, trans_discharge, title=title
+    ax[1], 0.65, 0.01, 0.3, 0.14, sizes, labels, trans_discharge, title=title
 )
 # -> Aquaculture (farm density)
 sizes = np.array([1, 3, 9])
