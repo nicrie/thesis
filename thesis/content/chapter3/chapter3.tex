@@ -272,12 +272,12 @@ It is likely for these reasons that rotated PCA remains one of the most commonly
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{example_synthetic_pca_rotated.pdf}
-    \caption{Comparison of the first three modes obtained from PCA vs. Varimax-rotated PCA for a synthetic data set. (Left) Original data set with three different, uncorrelated autoregressive processes. (Middle) PCA solution. (Right) Varimax-rotated PCA solution.}
+    \includegraphics[width=.8\textwidth]{example_synthetic_pca_rotated}
+    \caption[Spatio-temporal decomposition of a synthetic dataset with three distinct signals.]{\textbf{Spatio-temporal decomposition of a synthetic dataset with three distinct signals.} A synthetic dataset is constructed by summing three signals, each generated from an ARMA(1,0) process with fixed moving-average (MA) coefficients ($0.8$, $0.5$) and autoregressive (AR) coefficients of $0.99$, $0.98$, and $0.97$, respectively. Each time series (\num{1000} time steps) is normalized to zero mean and unit variance and modulated by two-dimensional Gaussian envelopes on a 51 $\times$ 51 grid, centered at $(40,40)$, $(25,25)$, and $(10,10)$, with amplitude factors of $1.5$, $1.0$, and $0.9$, respectively. The resulting spatial fields are summed and corrupted with additive white Gaussian noise ($\sigma$ = 0.5). The top row shows the true spatial patterns, while subsequent rows present spatial modes and corresponding normalized temporal scores obtained via standard PCA, varimax-rotated PCA, and sparse PCA (using variable projection) \cite{erichson_sparse_2020}. Annotations indicate the percentage of explained variance and Pearson correlation coefficients between the true and extracted signals, demonstrating the effectiveness of each method in recovering the underlying spatio-temporal structure. Analyses have been performed using the \xeofs{} package v3.0.4 \cite{rieger_xeofs_2024}.}
     \label{fig:theory:pca_buell_patterns}
 \end{figure}
 
-\mynote{note: so far only minimal caption, details are missing}
+
 \subsection{Hilbert PCA}\label{sec:theory:hilbert_pca}
 While PCA efficiently identifies the principal axes along which the covariance among all variables is distributed, and rotated PCA provides a more sparse solution related to underlying physical processes, both methods are inherently static. They do not account for temporal dynamics or changes over time, as they only consider the current state of the physical field. This limitation is significant in climate science, where time evolution is crucial. For instance, standard PCA does not differentiate between the order of data points over time, resulting in the same eigenvectors and eigenvalues regardless of temporal permutations. 
 

@@ -1,7 +1,11 @@
 # %%
-import matplotlib as mpl
+from string import ascii_uppercase as ABC
+
+import cmocean.cm as cmo
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
+import utils.visualization as viz
 import xarray as xr
 import xeofs as xe
 import xskillscore as xs
@@ -9,16 +13,7 @@ from matplotlib.gridspec import GridSpec
 from statsmodels.tsa.arima_process import arma_generate_sample
 from utils.tools import get_figure_path
 
-plt.style.use("style/tex.mplstyle")
-plt.style.use("style/thesis.mplstyle")
-
-mpl.rcParams["font.size"] = 5
-mpl.rcParams["axes.linewidth"] = 0.5
-mpl.rcParams["xtick.major.width"] = 0.5
-mpl.rcParams["ytick.major.width"] = 0.5
-# Set the length of the ticks
-plt.rcParams["xtick.major.size"] = 0
-plt.rcParams["ytick.major.size"] = 0
+viz.set_style()
 
 
 # %%
@@ -134,17 +129,17 @@ X = xr.DataArray(
 # %%
 # Perform PCA variants
 # =============================================================================
-pca = xe.models.EOF(n_modes=10).fit(X, "time")
+pca = xe.single.EOF(n_modes=10).fit(X, "time")
 scores = pca.scores()
 comps = pca.components()
 expvar = pca.explained_variance_ratio()
 
-rpca = xe.models.EOFRotator(n_modes=10).fit(pca)
+rpca = xe.single.EOFRotator(n_modes=10).fit(pca)
 rotated_scores = rpca.scores()
 rotated_comps = rpca.components()
 rotated_expvar = rpca.explained_variance_ratio()
 
-spca = xe.models.SparsePCA(n_modes=3, alpha=5e-4)
+spca = xe.single.SparsePCA(n_modes=3, alpha=5e-4)
 spca.fit(X, "time")
 spca_scores = spca.scores(normalized=False).isel(mode=slice(0, 3))
 spca_comps = spca.components().isel(mode=slice(0, 3))
@@ -189,60 +184,100 @@ for i in range(3):
     if pearson_correlation_spca.isel(signal=i, mode=i) < 0:
         spca_scores_norm.loc[{"mode": i + 1}] *= -1
         spca_comps.loc[{"mode": i + 1}] *= -1
-        pearson_correlation_spca.loc[{"signal": f"s{i+1}", "mode": i + 1}] *= -1
+        pearson_correlation_spca.loc[{"signal": f"s{i + 1}", "mode": i + 1}] *= -1
 
 
 # %%
 # Create Figure
 # =============================================================================
+cmap = viz.get_sequential_color_palette()
+cmap_div = cmo.curl_r
+clrs = viz.get_sequential_color_palette(as_cmap=False)
+clr_true = clrs[-2]
+clr_score = clrs[3]
 
-fig = plt.figure(figsize=(6.3, 6.3 * 3 / 8), dpi=500)
-gs = GridSpec(3, 10, figure=fig, width_ratios=[1, 0.1, 1, 1, 0.1, 1, 1, 0.1, 1, 1])
-ax_comps_true = [fig.add_subplot(gs[i, 0]) for i in range(3)]
-ax_comps_pca = [fig.add_subplot(gs[i, 2]) for i in range(3)]
-ax_scores = [fig.add_subplot(gs[i, 3]) for i in range(3)]
-ax_comps_pca_rotated = [fig.add_subplot(gs[i, 5]) for i in range(3)]
-ax_scores_rotated = [fig.add_subplot(gs[i, 6]) for i in range(3)]
-ax_comps_spca = [fig.add_subplot(gs[i, 8]) for i in range(3)]
-ax_scores_spca = [fig.add_subplot(gs[i, 9]) for i in range(3)]
+fig = plt.figure(figsize=(6, 9), dpi=300)
+gs = GridSpec(
+    10,
+    5,
+    figure=fig,
+    height_ratios=[1, 0.1, 1, 0.6, 0.1, 1, 0.6, 0.1, 1, 0.6],
+    width_ratios=[1, 1, 1, 1, 0.05],
+    hspace=0.05,
+    wspace=0.05,
+)
+ax_comps_true = [fig.add_subplot(gs[0, i]) for i in range(1, 4)]
+ax_comps_pca = [fig.add_subplot(gs[2, i]) for i in range(1, 4)]
+ax_scores_pca = [fig.add_subplot(gs[3, i]) for i in range(1, 4)]
+ax_comps_rpca = [fig.add_subplot(gs[5, i]) for i in range(1, 4)]
+ax_scores_rpca = [fig.add_subplot(gs[6, i]) for i in range(1, 4)]
+ax_comps_spca = [fig.add_subplot(gs[8, i]) for i in range(1, 4)]
+ax_scores_spca = [fig.add_subplot(gs[9, i]) for i in range(1, 4)]
 
+cax_true = fig.add_subplot(gs[0, 4])
+cax_pca = fig.add_subplot(gs[2, 4])
+cax_rpca = fig.add_subplot(gs[5, 4])
+cax_spca = fig.add_subplot(gs[8, 4])
+
+
+axes_comps = ax_comps_true + ax_comps_pca + ax_comps_rpca + ax_comps_spca
+axes_scores = ax_scores_pca + ax_scores_rpca + ax_scores_spca
+axes = axes_comps + axes_scores
 
 ticks = np.arange(0, 51, 10)
 levels = np.array([-0.07, -0.05, -0.03, -0.01, 0.01, 0.03, 0.05, 0.07])
-yoffset = 0.92
+
+txt_info_kws = dict(x=0.17, y=0.98, va="top", ha="left")
+
 # Plot the true components
 for i, ax in enumerate(ax_comps_true):
-    scalings.sel(signal=f"s{i+1}").plot.contourf(
-        ax=ax, add_colorbar=False, vmin=0, vmax=1, cmap="cividis"
+    im0 = scalings.sel(signal=f"s{i + 1}").plot.contourf(
+        ax=ax, add_colorbar=False, vmin=0, vmax=1, cmap=cmap
     )
-    ax.set_title(
-        "{:.1f} \%".format(100 * expvar_true.sel(signal=f"s{i+1}").values), y=yoffset
+    plt.colorbar(im0, cax=cax_true)
+    ax.text(
+        s="{:.1f} %".format(100 * expvar_true.sel(signal=f"s{i + 1}").values),
+        transform=ax.transAxes,
+        **txt_info_kws,
     )
 
 # Plot the PCA components
 for i, ax in enumerate(ax_comps_pca):
-    comps.sel(mode=i + 1).plot.contourf(
-        ax=ax, add_colorbar=False, levels=levels, cmap="RdBu"
+    im1 = comps.sel(mode=i + 1).plot.contourf(
+        ax=ax, add_colorbar=False, levels=levels, cmap=cmap_div
     )
-    ax.set_title("{:.1f} \%".format(100 * expvar.sel(mode=i + 1).values), y=yoffset)
+    plt.colorbar(im1, cax=cax_pca)
+    ax.text(
+        s="{:.1f} %".format(100 * expvar.sel(mode=i + 1).values),
+        transform=ax.transAxes,
+        **txt_info_kws,
+    )
 
 # Plot the PCA rotated components
-for i, ax in enumerate(ax_comps_pca_rotated):
-    rotated_comps.sel(mode=i + 1).plot.contourf(
-        ax=ax, add_colorbar=False, levels=levels, cmap="RdBu"
+for i, ax in enumerate(ax_comps_rpca):
+    im2 = rotated_comps.sel(mode=i + 1).plot.contourf(
+        ax=ax, add_colorbar=False, levels=levels, cmap=cmap_div
     )
-    ax.set_title(
-        "{:.1f} \%".format(100 * rotated_expvar.sel(mode=i + 1).values), y=yoffset
+    plt.colorbar(im2, cax=cax_rpca)
+    ax.text(
+        s="{:.1f} %".format(100 * rotated_expvar.sel(mode=i + 1).values),
+        transform=ax.transAxes,
+        **txt_info_kws,
     )
 
 # Plot the Sparse PCA components
 for i, ax in enumerate(ax_comps_spca):
-    spca_comps.isel(mode=i).plot.contourf(
-        ax=ax, add_colorbar=False, levels=levels * 2, cmap="RdBu"
+    im3 = spca_comps.isel(mode=i).plot.contourf(
+        ax=ax, add_colorbar=False, levels=levels * 2, cmap=cmap_div
     )
-    ax.set_title("{:.1f} \%".format(100 * spca_expvar.isel(mode=i).values), y=yoffset)
+    plt.colorbar(im3, cax=cax_spca)
+    ax.text(
+        s="{:.1f} %".format(100 * spca_expvar.sel(mode=i + 1).values),
+        transform=ax.transAxes,
+        **txt_info_kws,
+    )
 
-for ax in ax_comps_true + ax_comps_pca + ax_comps_pca_rotated + ax_comps_spca:
+for ax in axes_comps:
     ax.set_aspect("equal")
     ax.set_xlabel("")
     ax.set_ylabel("")
@@ -251,94 +286,102 @@ for ax in ax_comps_true + ax_comps_pca + ax_comps_pca_rotated + ax_comps_spca:
     ax.set_xticklabels(["" for t in ticks])
     ax.set_yticklabels(["" for t in ticks])
 
-
 # Plot scores
-for i, ax in enumerate(ax_scores):
-    S.sel(signal=f"s{i+1}").plot(ax=ax, color=".2", lw=0.5)
-    scores_norm.sel(mode=i + 1).plot(ax=ax, color="C0", lw=0.5)
-
-    ax.set_xticks([])
-    ax.set_yticks([])
-    if i in [0, 1]:
-        ax.set_xlabel("")
-    if i in [0, 2]:
-        ax.set_ylabel("")
-    else:
-        ax.set_ylabel("Scores", labelpad=0.1)
+for i, ax in enumerate(ax_scores_pca):
+    S.sel(signal=f"s{i + 1}").plot(ax=ax, color=clr_true, lw=0.5, zorder=2)
+    scores_norm.sel(mode=i + 1).plot(ax=ax, color=clr_score, lw=0.5, zorder=3)
 
     # Add correlation coefficient
-    ax.set_title(
-        "r={:.2f}".format(pearson_correlation.isel(signal=i, mode=i).values),
-        y=yoffset,
+    ax.text(
+        0.17,
+        0.98,
+        "{:.2f}".format(pearson_correlation.isel(signal=i, mode=i).values),
+        ha="left",
+        va="top",
+        transform=ax.transAxes,
     )
 
 
 # Plot rotated scores
-for i, ax in enumerate(ax_scores_rotated):
-    S.sel(signal=f"s{i+1}").plot(ax=ax, color=".2", lw=0.5)
-    rotated_scores_norm.sel(mode=i + 1).plot(ax=ax, color="C0", lw=0.5)
-
-    ax.set_title("")
-    ax.set_xticks([])
-    ax.set_yticks([])
-    if i in [0, 1]:
-        ax.set_xlabel("")
-    if i in [0, 2]:
-        ax.set_ylabel("")
-    else:
-        ax.set_ylabel("Scores", labelpad=0.1)
+for i, ax in enumerate(ax_scores_rpca):
+    S.sel(signal=f"s{i + 1}").plot(ax=ax, color=clr_true, lw=0.5, zorder=2)
+    rotated_scores_norm.sel(mode=i + 1).plot(ax=ax, color=clr_score, lw=0.5, zorder=3)
 
     # Add correlation coefficient
-    ax.set_title(
-        "r={:.2f}".format(pearson_correlation_rotated.isel(signal=i, mode=i).values),
-        y=yoffset,
+    ax.set_title("")
+    ax.text(
+        0.17,
+        0.98,
+        "{:.2f}".format(pearson_correlation_rotated.isel(signal=i, mode=i).values),
+        ha="left",
+        va="top",
+        transform=ax.transAxes,
     )
 
 # Plot Sparse PCA scores
 for i, ax in enumerate(ax_scores_spca):
-    S.sel(signal=f"s{i+1}").plot(ax=ax, color=".2", lw=0.5)
-    spca_scores_norm.isel(mode=i).plot(ax=ax, color="C0", lw=0.5)
-
-    ax.set_title("")
-    ax.set_xticks([])
-    ax.set_yticks([])
-    if i in [0, 1]:
-        ax.set_xlabel("")
-    if i in [0, 2]:
-        ax.set_ylabel("")
-    else:
-        ax.set_ylabel("Scores", labelpad=0.1)
+    S.sel(signal=f"s{i + 1}").plot(ax=ax, color=clr_true, lw=0.5, zorder=2)
+    spca_scores_norm.isel(mode=i).plot(ax=ax, color=clr_score, lw=0.5, zorder=3)
 
     # Add correlation coefficient
-    ax.set_title(
-        "r={:.2f}".format(pearson_correlation_spca.isel(signal=i, mode=i).values),
-        y=yoffset,
+    ax.set_title("")
+    ax.text(
+        0.17,
+        0.98,
+        "{:.2f}".format(pearson_correlation_spca.isel(signal=i, mode=i).values),
+        ha="left",
+        va="top",
+        transform=ax.transAxes,
     )
 
-ax_comps_true[1].set_ylabel("y", labelpad=0.1)
-ax_comps_pca[1].set_ylabel("y", labelpad=0.1)
-ax_comps_pca_rotated[1].set_ylabel("y", labelpad=0.1)
+axes_wo_cax = (
+    ax_comps_true
+    + ax_comps_pca
+    + ax_scores_pca
+    + ax_comps_rpca
+    + ax_scores_rpca
+    + ax_comps_spca
+    + ax_scores_spca
+)
 
-ax_comps_true[2].set_xlabel("x", labelpad=0.1)
-ax_comps_pca[2].set_xlabel("x", labelpad=0.1)
-ax_comps_pca_rotated[2].set_xlabel("x", labelpad=0.1)
+for i, ax in enumerate(axes_wo_cax):
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+    ax.set_title("")
+    ax.text(
+        0.02, 0.98, "({:})".format(ABC[i]), transform=ax.transAxes, ha="left", va="top"
+    )
 
-title_kws = dict(x=0.5, y=1.2, ha="center", va="bottom", weight=1000)
+for ax in axes_scores:
+    ax.set_ylim(-4, 4)
+
+
+for ax in axes:
+    ax.set_xticks([])
+    ax.set_yticks([])
+    sns.despine(ax=ax, right=False, top=False)
+
+for ax in axes_scores:
+    sns.despine(ax=ax, left=True, bottom=True)
+    ax.axhline(0, lw=0.5, color=".8", zorder=1)
+
+title_kws = dict(x=-0.5, y=0.5, ha="center", va="center", weight=500)
 ax_comps_true[0].text(
     s="True patterns", transform=ax_comps_true[0].transAxes, **title_kws
 )
-title_kws["x"] = 1.1
 ax_comps_pca[0].text(s="PCA", transform=ax_comps_pca[0].transAxes, **title_kws)
-ax_comps_pca_rotated[0].text(
-    s="Sparse PCA (Varimax)", transform=ax_comps_pca_rotated[0].transAxes, **title_kws
+ax_comps_rpca[0].text(
+    s="Sparse PCA\n(Rotated)", transform=ax_comps_rpca[0].transAxes, **title_kws
 )
 
 ax_comps_spca[0].text(
-    s="Sparse PCA (Variable Projection)",
+    s="Sparse PCA\n(VP)",
     transform=ax_comps_spca[0].transAxes,
     **title_kws,
 )
-path_fig = get_figure_path("chapter3", "vector", "example_synthetic_pca_rotated.svg")
-fig.savefig(path_fig, format="pdf", bbox_inches="tight")
+path_vector = get_figure_path("chapter3", "vector", "example_synthetic_pca_rotated.svg")
+path_raster = get_figure_path("chapter3", "raster", "example_synthetic_pca_rotated.png")
+fig.savefig(path_vector, format="svg", bbox_inches="tight")
+fig.savefig(path_raster, format="png", bbox_inches="tight")
 
 # %%
