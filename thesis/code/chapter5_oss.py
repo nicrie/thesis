@@ -3,11 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import utils.visualization as vis
 from utils.tools import get_figure_path
 
-sns.set_context("paper")
-sns.set_style("whitegrid")
-plt.style.use("style/thesis.mplstyle")
+vis.set_style()
 
 # Get Data
 # =============================================================================
@@ -52,7 +51,10 @@ nb_projects_total_prct = nb_projects_total_prct.where(nb_projects_total_prct[0] 
 # %%
 # Create the figure
 # =============================================================================
-path = get_figure_path("chapter5", "vector", "overview_oss.svg")
+clrs = vis.get_sequential_color_palette(as_cmap=False)
+color_primary = clrs[5]
+color_secondary = clrs[3]
+
 # Initialize the matplotlib figure
 f, ax = plt.subplots(
     ncols=2, figsize=(7, 3), gridspec_kw={"width_ratios": [4, 1], "wspace": 0.5}
@@ -66,7 +68,7 @@ sns.barplot(
     y=0,
     data=nb_projects_total,
     label="Total",
-    color="b",
+    color=color_primary,
     ec="w",
     ax=ax[0],
 )
@@ -78,7 +80,7 @@ g = sns.barplot(
     y=0,
     data=nb_projects_py_only,
     label="Python",
-    color="b",
+    color=color_secondary,
     ec="w",
     ax=ax[0],
 )
@@ -88,14 +90,18 @@ sns.barplot(
     x=0,
     y="language",
     data=nb_projects_total_prct,
-    color="b",
+    color=color_secondary,
     ec="w",
     ax=ax[1],
 )
 
 # Add a legend and informative axis label
 ax[0].legend(ncol=1, loc="upper left", frameon=False)
-ax[0].set(xticklabels=np.arange(2010, 2025), xlim=(-1, 14.5), ylabel="", xlabel="")
+xticklabels = np.arange(2010, 2025)
+xticklabels = [str(tick) for tick in xticklabels]
+xticklabels[-1] = "2024*"
+
+ax[0].set(xticklabels=xticklabels, xlim=(-1, 14.5), ylabel="", xlabel="")
 g.set_xticklabels(g.get_xticklabels(), rotation=30)
 ax[0].set_title("A | Number of OSS Created Per Year", y=1.05)
 
@@ -114,7 +120,11 @@ ax[1].text(
 )
 
 sns.despine(left=True, bottom=True)
-f.savefig(path, bbox_inches="tight", format="svg")
+
+path_vector = get_figure_path("chapter5", "vector", "overview_oss.svg")
+path_raster = get_figure_path("chapter5", "raster", "overview_oss.png")
+f.savefig(path_vector, bbox_inches="tight", format="svg")
+f.savefig(path_raster, bbox_inches="tight", format="png")
 
 
 # %%

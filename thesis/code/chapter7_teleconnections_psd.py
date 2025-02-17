@@ -5,10 +5,10 @@ from string import ascii_uppercase as LETTERS
 import matplotlib.pyplot as plt
 import seaborn as sns
 import utils.visualization as viz
+import xarray as xr
 from cycler import cycler
 from matplotlib.gridspec import GridSpec
 from utils.tools import get_figure_path
-from xarray.backends.api import open_datatree
 
 viz.set_style()
 
@@ -26,7 +26,7 @@ n_rot = 22  # 22 or 28
 power = 1  # 1 or 2
 model = "rotated_hilbert_cpcca"
 root_dir = f"/home/nrieger/Projects/cpcca/{case_study}/"
-dt = open_datatree(root_dir + "data/power_spectral_density", engine="zarr")
+dt = xr.open_datatree(root_dir + "data/power_spectral_density", engine="zarr")
 
 # %%
 psd = dt["scores"]
@@ -37,6 +37,9 @@ psd_bootstraps = dt["bootstraps"]
 # %%
 # Plotting
 # =============================================================================
+clrs = viz.get_sequential_color_palette(as_cmap=False)
+
+
 MODES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1]
 
 clr_climate_index = ".5"
@@ -113,8 +116,10 @@ for i, ax in enumerate(axes):
     letter = LETTERS[i]
     mode = MODES[i]
 
-    psd["sst"].sel(mode=mode).plot(ax=ax, zorder=5, lw=1.5, label="SST")
-    psd["prcp"].sel(mode=mode).plot(ax=ax, zorder=4, lw=1.5, label="Precipitation")
+    psd["sst"].sel(mode=mode).plot(ax=ax, zorder=5, lw=2, color=clrs[5], label="SST")
+    psd["prcp"].sel(mode=mode).plot(
+        ax=ax, zorder=4, lw=1, color=clrs[5], ls="--", label="Precipitation"
+    )
 
     # Add dummy label for climate indices
     if i == 0:
@@ -122,27 +127,27 @@ for i, ax in enumerate(axes):
 
     # Add bootstrapped PSDs
     bstplt = psd_bootstraps["bootstraps"].sel(
-        mode=mode, bootstrap=slice(None, None, 25)
+        mode=mode, bootstrap=slice(None, None, 10)
     )
     bstplt.plot.line(
-        x="frequency", ax=ax, color="C0", alpha=0.025, zorder=0, add_legend=False
+        x="frequency", ax=ax, color=clrs[3], alpha=0.01, zorder=0, add_legend=False
     )
     psd_bootstraps["quantiles"].sel(mode=mode, quantile=[0.025, 0.975]).plot.line(
         x="frequency",
         add_legend=False,
         ax=ax,
-        color="C0",
+        color=clrs[3],
         linestyle="--",
         linewidth=0.7,
         zorder=1,
-        alpha=0.5,
+        alpha=0.8,
     )
     psd_red_noise["sst"].sel(mode=mode, quantile=0.5).plot(
         ax=ax,
         color="darkred",
         linestyle="-",
         zorder=6,
-        lw=0.8,
+        lw=1.5,
         alpha=0.7,
         label="AR(1)",
     )
@@ -151,7 +156,7 @@ for i, ax in enumerate(axes):
         color="darkred",
         linestyle="--",
         zorder=6,
-        lw=0.7,
+        lw=1,
         alpha=0.5,
         label=r"$\alpha=0.05$",
     )
@@ -160,7 +165,7 @@ for i, ax in enumerate(axes):
         color="darkred",
         linestyle=":",
         zorder=6,
-        lw=0.7,
+        lw=1,
         alpha=0.5,
         label=r"$\alpha=0.01$",
     )
@@ -218,9 +223,9 @@ ax1[1].set_xlabel("")
 
 
 # Save figure
-save_to_pdf = get_figure_path("chapter7", "pdf/tele_psd.svg")
+# save_to_pdf = get_figure_path("chapter7", "pdf/tele_psd.svg")
 save_to_raster = get_figure_path("chapter7", "raster/tele_psd.png")
-plt.savefig(save_to_pdf, bbox_inches="tight")
+# plt.savefig(save_to_pdf, bbox_inches="tight")
 plt.savefig(save_to_raster, bbox_inches="tight")
 
 plt.show()
