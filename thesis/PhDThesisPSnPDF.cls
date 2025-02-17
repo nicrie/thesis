@@ -5,8 +5,8 @@
 %% A PhD thesis LaTeX template adapted from Krishna Kumar                     %%
 %%                                                                            %%
 %% Version: v0.1                                                              %%
-%% Authors: Niclas Rieger                                                     %%
-%% License: MIT License (c) 2024 Niclas Rieger                                %%
+%% Authors: Niclas Rieger adapted from Krishna Kumar's template               %%
+%% License: MIT License (c) 2025 Niclas Rieger                                %%
 %% GitHub Repo: https://github.com/kks32/phd-thesis-template/                 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -675,7 +675,9 @@ wish to left align your text}
 }
 \fi
 
+% ******************************************************************************
 % ************************** Chapter Title Styles ******************************
+% ******************************************************************************
 \usepackage[explicit]{titlesec}
 
 % Part style
@@ -711,7 +713,7 @@ wish to left align your text}
 
 % Paragraph style
 \titleformat{\paragraph}[runin]
-  {\sffamily\color{primarycolor}}
+  {\rmfamily\scshape\color{primarycolor}}
   {\theparagraph}{1em}{#1}
 
 
@@ -753,7 +755,9 @@ wish to left align your text}
 % }
 % \makeatother
 
+% ******************************************************************************
 % ***************************** Header Formatting ******************************
+% ******************************************************************************
 % Custom Header with Chapter Number, Page Number and Section Numbering
 \RequirePackage{fancyhdr} % Define custom header
 
