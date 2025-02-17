@@ -1,6 +1,6 @@
 %!TEX root = ../thesis.tex
 %*******************************************************************************
-%****************************** Second Chapter *********************************
+%****************************** Third Chapter *********************************
 %*******************************************************************************
 \ifpdf
     \graphicspath{{content/chapter3/figs/raster/}{content/chapter3/figs/pdf/}{content/chapter3/figs/}}
@@ -13,10 +13,22 @@
 
 \chapter{Data-Driven Dimensionality Reduction}\label{chapter:dimred}
 
+With the ever-growing volume of environmental data—particularly in climate science, meteorology, and oceanography—there is an increasing need for algorithms that can efficiently uncover relevant and interpretable patterns. These data-driven methods help researchers navigate massive datasets, such as ECMWF's ERA5 \cite{hersbach_era5_2020}, which already exceeds 9 PB of information, and the forthcoming ERA6 (planned for release in 2025) that is projected to be three to four times larger \cite{hans_hersbach_estimating_2025}. Although these comprehensive reanalysis products provide an unprecedented record of global climate processes at high temporal and spatial resolution, their sheer size and complexity pose significant challenges in extracting actionable insights.
 
-\mynote{Motivation for Dimensionality Reduction: Explain why dimensionality reduction is necessary in climate science. e.g. ERA5 contains more than 9 PB of data. Discuss the need to simplify complex datasets by identifying the most significant patterns and features, which can help in understanding underlying processes and improving predictability.}
+A common strategy for dealing with large-scale datasets is to reduce their dimensionality so that only a small number of important factors or "latent modes" remain. This rests on the notion that climate fields often exhibit substantial redundancy: the vast number of spatio-temporal measurements are largely driven by a few dominant physical mechanisms (e.g., large-scale atmospheric or oceanic circulation patterns). In statistics, this principle is sometimes called \emph{factor sparsity}, suggesting that a small number of factors typically capture the bulk of the observed variability.
 
-\mynote{provide a brief outline of this chapter; link to what is coming in the next chapters}
+Against this backdrop, this chapter reviews two widely used techniques for dimensionality reduction in climate data: \emph{Principal Component Analysis} (PCA) and \emph{Maximum Covariance Analysis} (MCA). Although well-established, both methods remain foundational for modern, large-scale geophysical research \cite[e.g.][]{hannachi_patterns_2021,mori_reconciled_2019,di_capua_dominant_2020,rathore_improving_2021}. PCA identifies key modes of variability from a single dataset, whereas MCA generalizes this idea to two datasets, isolating cross-covarying patterns that link different climatic variables. We also discuss how these methods can be extended to capture propagating features using Hilbert transforms and to enhance interpretability via rotational methods that produce more localized or sparse patterns.
+
+The main novel aspects developed here are: 
+\begin{itemize}[leftmargin=2em] 
+    \item \emph{Rotated Hilbert MCA.} We extend the MCA framework with Hilbert (complex) transformations and subsequent rotations, similar to Hilbert PCA, enabling the detection of propagating, phase-shifted patterns that would otherwise remain hidden.
+    \item \emph{Spectral Leakage Mitigation.} Through simulation studies, we demonstrate how spectral leakage can compromise Hilbert PCA and propose a practical time-series extension approach to mitigate this issue.
+    \item \emph{Rotated MCA and Covariance Preservation.} We show theoretically that applying standard rotation methods in MCA does \emph{not} preserve the total \emph{squared} covariance—a subtle but important distinction for interpreting rotated MCA modes.
+    \item \emph{Mode Selection Criterion.} In the framework of rotated MCA, we introduce a stability-based criterion for selecting the optimal number of rotated modes, improving the robustness and reliability of the extracted patterns.
+\end{itemize}
+
+The remainder of this chapter is structured as follows. In Section~\ref{sec:theory:pca}, we derive PCA from a maximum-variance perspective (Section~\ref{sec:theory:pca_derivation}) and describe its common extensions, including rotated PCA (Section~\ref{sec:theory:rotated_pca}) and Hilbert PCA (Section~\ref{sec:theory:hilbert_pca}). Section~\ref{sec:theory:mca} then introduces MCA, before focusing on rotated Hilbert MCA (Section~\ref{sec:theory:mca_rotated_hilbert}) and Continuum Power Canonical Correlation Analysis (CPCCA)---a more flexible framework for detecting either covariance- or correlation-focused modes (Section~\ref{sec:theory:cpcca}). In subsequent chapters, these methods are applied to real-world cases using the open-source \software{xeofs} library (Chapter~\ref{chapter:xeofs}) and showcased in global teleconnection studies (Chapter~\ref{chapter:tele}).
+
 
 \section{Principal Component Analysis}
 \label{sec:theory:pca}
@@ -26,9 +38,8 @@ The origins of PCA can be traced back to \citet{pearson_lines_1901} in 1901 and 
 
 In this section, we derive PCA from the maximum variance formulation\footnote{\citet{hotelling_relations_1936} originally proposed this formulation. An alternative derivation, known as the minimum error formulation by \citet{pearson_lines_1901}, seeks a linear projection that minimizes the average projection error, defined as the mean squared distance between the original data points and their projections. This alternative approach shows that PCA is an optimal solution for approximating data in the squared error sense.}, as outlined by \citet[][pp.~561-563]{bishop_pattern_2006}. This approach involves projecting the data onto a lower-dimensional linear space, known as the principal subspace, to maximize the variance of the projected data. We will then explore the limitations of PCA, particularly in the context of climate science, and discuss common strategies to address these limitations, such as rotated PCA and Hilbert PCA.
 
-\mynote{make link to Karhunen-Loève expansion}
 
-\subsection{Derivation from Maximum Variance Formulation}
+\subsection{Derivation from Maximum Variance Formulation}\label{sec:theory:pca_derivation}
 Consider a data set represented as a complex-valued, two-dimensional $N\times D$ matrix $\bm{Z}$, where $N$ denotes the number of observations (or samples) and $D$ the number of variables (or features). We will refer to the $n$\textsuperscript{th} observation as the $D$-dimensional vector $\bm{z}_n$. For simplicity, we assume the data is centered, meaning the mean of each variable is zero, i.e. $\bar{\bm{z}} = \frac{1}{N} \sum_{n=1}^{N} \bm{z}_n = \bm{0}$. The goal is to project the data onto an $M$-dimensional space ($M<D$) of $M$ latent variables while maximizing the variance of the projected data.
 
 To start, consider a one-dimensional projection ($M=1$). We define the direction of this space using a $D$-dimensional unit\footnote{This particular normalization is for convenience, and any other would do just fine, since we are only interested in the direction of $\bm{v}_1$, not its magnitude.} vector $\bm{v}_1$, such that $\bm{v}_1^H\bm{v}_1=1$, where $\bm{v}_1^H$ denotes the conjugate transpose of $\bm{v}_1$. The data points $\bm{z}_n$ are then projected onto this direction, $\bm{v}_1^H\bm{z}_n$, and the variance of the projected data is 
