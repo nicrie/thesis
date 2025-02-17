@@ -5,7 +5,7 @@
 
 % **************************** Define Graphics Path **************************
 \ifpdf
-    \graphicspath{{content/chapter5/figs/raster/}{content/chapter5/figs/pdf/}{content/chapter5/figs/}}
+    \graphicspath{{content/chapter5/figs/raster/}{content/chapter5/figs/}}
 \else
     \graphicspath{{content/chapter5/figs/vector/}{content/chapter5/figs/}}
 \fi
@@ -34,8 +34,8 @@ The remainder of this chapter first surveys open-source tools for scalable clima
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{overview_oss.pdf}
-    \caption[Open-source software (OSS) projects in Earth system sciences.]{\textbf{Open-source software (OSS) projects in Earth system sciences.} \textbf{(A)} Annual creation of OSS projects in Earth system sciences, highlighting the increasing prevalence of Python-based projects over time. \textbf{(B)} Relativ share of programming languages used in all OSS projects since 2010, excluding languages with a share of $\leq \qty{0.5}{\percent}$. Data were sourced from the Open Sustainable Technology (OST) platform \cite{augspurger_open_2023}, with Earth system science projects classified under the OST categories: Atmosphere, Climate Change, Cryosphere, Hydrosphere and Biosphere. Data for 2024 includes only the first half of the year, up to August.}
+    \includegraphics[width=\textwidth]{overview_oss}
+    \caption[Open-source software (OSS) projects in Earth system sciences.]{\textbf{Open-source software (OSS) projects in Earth system sciences.} \textbf{(A)} Annual creation of OSS projects in Earth system sciences, highlighting the increasing prevalence of Python-based projects over time. \textbf{(B)} Relative share of programming languages used in all OSS projects since 2010, excluding languages with a share of $\leq \qty{0.5}{\percent}$. Data were sourced from the Open Sustainable Technology (OST) platform \cite{augspurger_open_2023}, with Earth system science projects classified under the OST categories: Atmosphere, Climate Change, Cryosphere, Hydrosphere and Biosphere. Data for 2024 includes only the first half of the year, up to August.}
     \label{fig:xeofs:oss_overview}
 \end{figure}
 
@@ -131,13 +131,13 @@ The core features of \software{xeofs} address common challenges faced by climate
 \begin{description}
     \item[Support for Multidimensional Data:] \software{xeofs} works natively with \software{xarray} objects, preserving labeled dimensions and structures throughout the analysis. This minimizes the risk of errors while ensuring clarity in the workflow.
     \item[Scalable Out-of-Memory Computations:] Leveraging \software{dask}, \software{xeofs} can handle datasets that exceed the memory limits of single machines or high-performance computing systems.
-    \item[Efficiency Through Randomized Algorithms:]  \software{xeofs} leverages randomized linear algebra techniques~\cite{halko_finding_2011,drineas_clustering_2004,erichson_randomized_2019} to deliver, \software{xeofs} achieves significant performance gains, processing medium to large datasets up to ten times faster than \software{eofs} (Figure~\ref{fig:xeofs:performance}).
+    \item[Efficiency Through Randomized Algorithms:]  \software{xeofs} leverages randomized linear algebra techniques~\cite{halko_finding_2011,drineas_clustering_2004,erichson_randomized_2019} to deliver significant performance gains, processing medium to large datasets up to ten times faster than \software{eofs} (Figure~\ref{fig:xeofs:performance}).
 \end{description}
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{performance_xeofs.pdf}
-    \caption[Computational performance of PCA using the \software{xeofs} library (version 3.0.0).]{\textbf{Computational performance of PCA using the \software{xeofs} library (version 3.0.0).} \textbf{(A)} Non-dask computation times (in seconds) for datasets of varying sizes, shown as a function of the number of observations (samples) and variables (features). \textbf{(B)} Speedup achieved by \software{xeofs} compared to the \software{eofs} library (version 1.4.1), quantified as the ratio of computation times. For both \software{xeofs} and \software{eofs}, the faster of the Dask or non-Dask computation times was used. \textbf{(C)} Performance comparison of delayed (lazy) Dask computation versus eager computation in small datasets ($n=10$ samples) and large datasets ($n=\num{10000}$ samples). The results reveal substantial efficiency gains for medium to large datasets (greater than \SI{1}{MB}), where \software{xeofs} outperforms \software{eofs} by approximately an order of magnitude. \software{xeofs} further leverages \software{dask}'s parallel and out-of-core processing capabilities to improve performance for large datasets. However, these efficiency gains are most pronounced in datasets with a balanced ratio of features to samples, with diminished benefits for highly "tall-and-skinny" or "short-and-wide" matrices. Notably, the Dask implementation of \software{eofs} performs the worst on larger datasets. For small datasets (less than \SI{1}{MB}), Python's overhead dominates, making \software{eofs} marginally faster, though the difference remains under a factor of two. Benchmarks were conducted on a system with Dual Intel Xeon Gold 6248R 24C 3.0~GHz processors and 192~GB of RAM, running Rocky Linux~8.}
+    \includegraphics[width=\textwidth]{performance_xeofs}
+    \caption[Computational performance of PCA using the \software{xeofs} library (version 3.0.0).]{\textbf{Computational performance of PCA using the \software{xeofs} library (version 3.0.0).} \textbf{(A)} Non-dask computation times (in seconds) for datasets of varying sizes, shown as a function of the number of observations (samples) and variables (features). \textbf{(B)} Speedup achieved by \software{xeofs} compared to the \software{eofs} library (version 1.4.1), quantified as the ratio of computation times. For both \software{xeofs} and \software{eofs}, the faster of the Dask or non-Dask computation times was used. Performance comparison of delayed (lazy) Dask computation versus eager computation in \textbf{(C)} small datasets ($n=10$ samples) and \textbf{(D)} large datasets ($n=\num{10000}$ samples). The results reveal substantial efficiency gains for medium to large datasets (greater than \SI{1}{MB}), where \software{xeofs} outperforms \software{eofs} by approximately an order of magnitude. \software{xeofs} further leverages \software{dask}'s parallel and out-of-core processing capabilities to improve performance for large datasets. However, these efficiency gains are most pronounced in datasets with a balanced ratio of features to samples, with diminished benefits for highly "tall-and-skinny" or "short-and-wide" matrices. Notably, the Dask implementation of \software{eofs} performs the worst on larger datasets. For small datasets (less than \SI{1}{MB}), Python's overhead dominates, making \software{eofs} marginally faster, though the difference remains under a factor of two. Benchmarks were conducted on a system with Dual Intel Xeon Gold 6248R 24C 3.0~GHz processors and 192~GB of RAM, running Rocky Linux~8.}
     \label{fig:xeofs:performance}
 \end{figure}
 
