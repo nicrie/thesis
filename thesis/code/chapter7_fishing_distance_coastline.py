@@ -200,8 +200,8 @@ ax_cum.set_ylim(0, 1.01)
 sns.despine(fig)
 
 
-save_to_raster = get_figure_path("chapter8", "raster", "fishing_distance_coastline.png")
-save_to_vector = get_figure_path("chapter8", "vector", "fishing_distance_coastline.svg")
+save_to_raster = get_figure_path("chapter7", "raster", "fishing_distance_coastline.png")
+save_to_vector = get_figure_path("chapter7", "vector", "fishing_distance_coastline.svg")
 plt.savefig(save_to_raster, bbox_inches="tight", dpi=300)
 plt.savefig(save_to_vector, bbox_inches="tight", dpi=300)
 plt.show()

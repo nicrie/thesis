@@ -103,7 +103,7 @@ for a in ax:
 ax[0].set_title("A | Annual spread in wave height [in m]", loc="left")
 ax[1].set_title("B | Month of maximum wave height", loc="left")
 
-save_to_raster = get_figure_path("chapter8", "raster", "wave_height.png")
+save_to_raster = get_figure_path("chapter7", "raster", "wave_height.png")
 plt.savefig(save_to_raster, bbox_inches="tight", dpi=300)
 plt.show()
 

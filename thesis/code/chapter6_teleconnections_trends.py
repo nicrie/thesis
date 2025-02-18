@@ -208,8 +208,8 @@ for ax in ax_sst + ax_prcp:
 # ------------------------------------------------
 # Save figure
 figname = "tele_trends"
-path_to_pdf = get_figure_path("chapter7", f"pdf/{figname}.svg")
-path_to_raster = get_figure_path("chapter7", f"raster/{figname}.png")
+path_to_pdf = get_figure_path("chapter6", f"pdf/{figname}.svg")
+path_to_raster = get_figure_path("chapter6", f"raster/{figname}.png")
 
 # plt.savefig(path_to_pdf, bbox_inches="tight")
 plt.savefig(path_to_raster, bbox_inches="tight")

@@ -141,10 +141,10 @@ ax2.set_xlim(1950, 2020)
 sns.despine(fig, trim=True, left=True)
 
 save_to_vector = get_figure_path(
-    "chapter8", "vector", "production_nea_wild_capture_aquaculture.svg"
+    "chapter7", "vector", "production_nea_wild_capture_aquaculture.svg"
 )
 save_to_raster = get_figure_path(
-    "chapter8", "raster", "production_nea_wild_capture_aquaculture.png"
+    "chapter7", "raster", "production_nea_wild_capture_aquaculture.png"
 )
 plt.savefig(save_to_raster, bbox_inches="tight", dpi=300)
 plt.savefig(save_to_vector, bbox_inches="tight", dpi=300)

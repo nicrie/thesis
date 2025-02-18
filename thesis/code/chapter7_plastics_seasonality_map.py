@@ -204,8 +204,8 @@ ax.text(-5, 45.5, "Bay of Biscay", **txt_kws)
 ax.text(-5.1, 53, "IS", **txt_kws)
 ax.text(9, 57.5, "SK", **txt_kws)
 
-save_to_vector = get_figure_path("chapter8", "vector/plastics_seasonality_map_lgcp.svg")
-save_to_raster = get_figure_path("chapter8", "raster/plastics_seasonality_map_lgcp.png")
+save_to_vector = get_figure_path("chapter7", "vector/plastics_seasonality_map_lgcp.svg")
+save_to_raster = get_figure_path("chapter7", "raster/plastics_seasonality_map_lgcp.png")
 plt.savefig(save_to_vector, bbox_inches="tight")
 plt.savefig(save_to_raster, bbox_inches="tight", dpi=150)
 
@@ -381,10 +381,10 @@ globe_ax.spines["geo"].set_linewidth(0.3)
 
 
 save_to_vector = get_figure_path(
-    "chapter8", "vector/plastics_seasonality_map_isolated.svg"
+    "chapter7", "vector/plastics_seasonality_map_isolated.svg"
 )
 save_to_raster = get_figure_path(
-    "chapter8", "raster/plastics_seasonality_map_isolated.png"
+    "chapter7", "raster/plastics_seasonality_map_isolated.png"
 )
 plt.savefig(save_to_vector, bbox_inches="tight")
 plt.savefig(save_to_raster, bbox_inches="tight", dpi=150)

@@ -326,8 +326,8 @@ ax2.legend(
 sns.despine(fig, trim=True, offset=5, bottom=True, left=True)
 ax2.set_yticklabels([])
 
-save_to_vector = get_figure_path("chapter8", "vector", "plastics_clusters_boxplot.svg")
-save_to_raster = get_figure_path("chapter8", "raster", "plastics_clusters_boxplot.png")
+save_to_vector = get_figure_path("chapter7", "vector", "plastics_clusters_boxplot.svg")
+save_to_raster = get_figure_path("chapter7", "raster", "plastics_clusters_boxplot.png")
 plt.savefig(save_to_vector, bbox_inches="tight", dpi=300)
 plt.savefig(save_to_raster, bbox_inches="tight", dpi=300)
 plt.show()

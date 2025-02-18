@@ -103,8 +103,8 @@ for phi in phis:
 
 plt.legend(loc="lower right", frameon=False)
 
-save_to_raster = get_figure_path("chapter8", "raster", "plastic_overdispersion.png")
-save_to_vector = get_figure_path("chapter8", "vector", "plastic_overdispersion.svg")
+save_to_raster = get_figure_path("chapter7", "raster", "plastic_overdispersion.png")
+save_to_vector = get_figure_path("chapter7", "vector", "plastic_overdispersion.svg")
 plt.savefig(save_to_raster, bbox_inches="tight", dpi=300)
 plt.savefig(save_to_vector, bbox_inches="tight", dpi=300)
 plt.show()

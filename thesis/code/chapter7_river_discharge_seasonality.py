@@ -240,10 +240,10 @@ ax1.annotate(
 
 
 save_to_raster = get_figure_path(
-    "chapter8", "raster", "river_discharge_seasonality.png"
+    "chapter7", "raster", "river_discharge_seasonality.png"
 )
 save_to_vector = get_figure_path(
-    "chapter8", "vector", "river_discharge_seasonality.svg"
+    "chapter7", "vector", "river_discharge_seasonality.svg"
 )
 plt.savefig(save_to_raster, bbox_inches="tight", dpi=300)
 plt.savefig(save_to_vector, bbox_inches="tight", dpi=300)

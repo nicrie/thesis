@@ -77,10 +77,10 @@ ax.tick_params(axis="both", length=0)
 sns.despine(fig, trim=True, bottom=True, left=True)
 
 save_to_raster = get_figure_path(
-    "chapter8", "raster", "plastic_clustering_explained_variance.png"
+    "chapter7", "raster", "plastic_clustering_explained_variance.png"
 )
 save_to_vector = get_figure_path(
-    "chapter8", "vector", "plastic_clustering_explained_variance.svg"
+    "chapter7", "vector", "plastic_clustering_explained_variance.svg"
 )
 plt.savefig(save_to_raster, bbox_inches="tight", dpi=300)
 plt.savefig(save_to_vector, bbox_inches="tight", dpi=300)

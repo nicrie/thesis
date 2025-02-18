@@ -578,10 +578,10 @@ add_legend_circles(ax[5], 0.65, 0.01, 0.3, 0.2, sizes, labels, trans_mari, title
 
 
 save_to_vector = get_figure_path(
-    "chapter8", "vector", "plastics_seasonal_potential.svg"
+    "chapter7", "vector", "plastics_seasonal_potential.svg"
 )
 save_to_raster = get_figure_path(
-    "chapter8", "raster", "plastics_seasonal_potential.png"
+    "chapter7", "raster", "plastics_seasonal_potential.png"
 )
 # vector is to heavy; use raster
 # plt.savefig(save_to_vector, bbox_inches="tight", dpi=300)
@@ -765,7 +765,7 @@ title = "Production areas\n[$60km^{-1}$ coastline]"
 add_legend_circles(ax[5], 0.65, 0.01, 0.3, 0.2, sizes, labels, trans_mari, title=title)
 
 save_to_raster = get_figure_path(
-    "chapter8", "raster", "plastics_seasonal_potential_mariculture.png"
+    "chapter7", "raster", "plastics_seasonal_potential_mariculture.png"
 )
 plt.savefig(save_to_raster, bbox_inches="tight", dpi=300)
 plt.show()
@@ -938,7 +938,7 @@ add_legend_circles(ax[5], 0.65, 0.01, 0.3, 0.2, sizes, labels, trans_mari, title
 
 
 save_to_raster = get_figure_path(
-    "chapter8", "raster", "plastics_seasonal_potential_mariculture_bivalve.png"
+    "chapter7", "raster", "plastics_seasonal_potential_mariculture_bivalve.png"
 )
 plt.savefig(save_to_raster, bbox_inches="tight", dpi=300)
 plt.show()

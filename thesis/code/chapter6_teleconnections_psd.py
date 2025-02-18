@@ -223,8 +223,8 @@ ax1[1].set_xlabel("")
 
 
 # Save figure
-# save_to_pdf = get_figure_path("chapter7", "pdf/tele_psd.svg")
-save_to_raster = get_figure_path("chapter7", "raster/tele_psd.png")
+# save_to_pdf = get_figure_path("chapter6", "pdf/tele_psd.svg")
+save_to_raster = get_figure_path("chapter6", "raster/tele_psd.png")
 # plt.savefig(save_to_pdf, bbox_inches="tight")
 plt.savefig(save_to_raster, bbox_inches="tight")
 

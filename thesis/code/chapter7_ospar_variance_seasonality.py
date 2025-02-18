@@ -199,8 +199,8 @@ ax1.set_title("A | Median pollution", loc="left")
 ax2.set_title("B | Median absolute deviation", loc="left")
 
 
-save_to_raster = get_figure_path("chapter8", "raster", "ospar_variance_seasonality.png")
-save_to_vector = get_figure_path("chapter8", "vector", "ospar_variance_seasonality.svg")
+save_to_raster = get_figure_path("chapter7", "raster", "ospar_variance_seasonality.png")
+save_to_vector = get_figure_path("chapter7", "vector", "ospar_variance_seasonality.svg")
 plt.savefig(save_to_raster, bbox_inches="tight", dpi=300)
 plt.savefig(save_to_vector, bbox_inches="tight", dpi=300)
 plt.show()

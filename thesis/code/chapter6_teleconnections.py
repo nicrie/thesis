@@ -397,8 +397,8 @@ for mode in trange(1, 11):
 
     # Save figure
     figname = f"tele_a{int(alpha * 100):03d}_r{n_rot}_p{power}_mode{mode:02d}"
-    save_to_vector = get_figure_path("chapter7", "vector", f"{figname}.svg")
-    save_to_raster = get_figure_path("chapter7", "raster", f"{figname}.png")
+    save_to_vector = get_figure_path("chapter6", "vector", f"{figname}.svg")
+    save_to_raster = get_figure_path("chapter6", "raster", f"{figname}.png")
 
     # plt.savefig(save_to_vector, bbox_inches="tight")
     plt.savefig(save_to_raster, bbox_inches="tight")
@@ -546,8 +546,8 @@ ax5.set_title("E | Correlation Matrix of Expansion Coefficients")
 # -----------------------------------------------------------------------------
 
 # Save figure
-save_to_pdf = get_figure_path("chapter7", "vector", "tele_singular_spectrum.svg")
-save_to_raster = get_figure_path("chapter7", "raster", "tele_singular_spectrum.png")
+save_to_pdf = get_figure_path("chapter6", "vector", "tele_singular_spectrum.svg")
+save_to_raster = get_figure_path("chapter6", "raster", "tele_singular_spectrum.png")
 plt.savefig(save_to_pdf, bbox_inches="tight")
 plt.savefig(save_to_raster, bbox_inches="tight")
 
