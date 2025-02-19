@@ -112,10 +112,10 @@ axes["rho_2"] = fig.add_subplot(gs[2, 1])
 
 axes["mu_mu"].set_title(r"A | GP mean $\mu_{\mu}$", loc="left")
 axes["phi"].set_title(r"B | Dispersion $\phi$", loc="left")
-axes["eta_1"].set_title(r"C | GP covariance parameter $\eta_{short}$", loc="left")
-axes["eta_2"].set_title(r"D | GP covariance parameter $\eta_{long}$", loc="left")
-axes["rho_1"].set_title(r"E | GP covariance parameter $\rho_{short}$", loc="left")
-axes["rho_2"].set_title(r"F | GP covariance parameter $\rho_{long}$", loc="left")
+axes["eta_1"].set_title(r"C | Kernel variance $\eta_{short}^2$", loc="left")
+axes["eta_2"].set_title(r"D | Kernel variance $\eta_{long}^2$", loc="left")
+axes["rho_1"].set_title(r"E | Kernel length scale $\ell_{short}$", loc="left")
+axes["rho_2"].set_title(r"F | Kernel length scale $\ell_{long}$", loc="left")
 
 
 # Priors
