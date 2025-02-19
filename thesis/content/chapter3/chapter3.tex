@@ -155,36 +155,8 @@ Using this scaling, the Equation~\ref{eq:theory:pca_reconstruction} can be expre
 \end{align}
 
 
-\paragraph{Weighting of Data Variables}
-
-In some cases, it may be necessary to weight the data variables differently. This can be achieved by scaling the data matrix $\bm{Z}$ by a diagonal matrix $\bm{W}$, where the $j$\textsuperscript{th} diagonal element $w_j$ corresponds to the weight of the $j$\textsuperscript{th} variable. A very common situation is that the observed variables exhibit stark differences in their variance, which can sometimes lead to mask structure in the data as the PCA solution is solely driven by the different scales of variance (so the first principal axis will closely align to the variable with the highest variance) in which case the obvious choice is to use the inverse of the standard deviation of each variable, which ensures that all variables are equally weighted in which case the covariance matrix becomes the correlation matrix. Another common situation in climate science is that the physical fields are represented on regular longitude-latitude grids. This representation leads to a higher density of grid points near the poles, which typically results in an exaggerated importance of components spatially focused near the poles. To address this, the data matrix can be weighted by the square root of the cosine of the latitude \cite{north_latitude_1982}, $w_j = \sqrt{\cos(\text{lat}_j)}$, where $\text{lat}_j$ is the latitude of the $j$\textsuperscript{th} grid point. This weighting ensures that the grid points are equally weighted in the PCA solution, regardless of their geographical location. 
-
-\paragraph{Computational Considerations}
-
-The computational cost of performing eigendecomposition on the covariance matrix scales with $\order*{D^3}$ \cite[e.g.][Section 8.3]{golub_matrix_2013}, making it impractical for modern datasets, such as those in climate science, where typical data sizes are on the order of $D=\order*{10^6}$ or even larger. For example, ERA5 \cite{c3s_era5_hourly_single}, a widely used reference for state-of-the-art reanalysis climate data, distributes a single climate variable on a regular \ang{0.25} grid, resulting in $D=\num{1036800}$ grid cells.
-
-In practice, more efficient algorithms, such as SVD or power methods~\cite{golub_matrix_2013}, have been traditionally employed. Recently, randomized low-rank approximation techniques~\cite{drineas_clustering_2004,halko_finding_2011} have further reduced computational complexity to $\order*{ND \log(M) + \ab(N+D)M^2}$. These advancements offer feasible alternatives for handling large, out-of-memory datasets (see Table~\ref{tab:pca_algorithm_complexity}).
-
-\paragraph{Shortcomings} 
-
-Despite its widespread use and versatility, PCA has several limitations and potential drawbacks that should be considered:
-
-\begin{enumerate}
-    \item \textbf{Linearity Assumption:} PCA fundamentally relies on linear transformations to reduce the dimensionality of data. Specifically, PCA seeks to identify PCs that are linear combinations of the original variables (Equation~\eqref{eq:theory:pca_projection}), which may not hold in complex systems such as climate data, where relationships between variables often exhibit nonlinear patterns \cite[e.g.][]{hannachi_bimodality_2019}.
-    \item \textbf{Interpretability of VCs:} The orthogonality of the vectors of coefficients is a mathematical construct that may not always correspond to the physical reality of the data, potentially leading to misinterpretations~\cite{richman_rotation_1986}.
-    \item \textbf{Variance Focus:} Focusing on directions of maximum variance may not always capture the most relevant features for a specific application, potentially missing critical but less variable information~\cite{farrell_accurate_2001}.
-    \item \textbf{Static Nature:} As a static method, PCA does not account for temporal dynamics or changes over time, which is particularly limiting in climate science, where time evolution is a key aspect.
-    \item \textbf{Sensitivity to Outliers:} PCA can be sensitive to outliers, as extreme values can disproportionately influence the VCs, leading to misleading results \cite{candes_robust_2011}.
-    \item \textbf{Sensitivity to Scaling:} The results are sensitive to the scaling of the input data, meaning that variables with larger ranges can dominate the VCs unless the data is appropriately standardized.
-    \item \textbf{Loss of Information:} While dimensionality reduction is often the goal, PCA inherently discards some information, which could lead to the loss of important details crucial for accurate analysis and interpretation in specific applications.
-\end{enumerate}
-
-Over the past few decades, numerous modifications and extensions have been proposed to address these limitations, especially in the context of climate science. For instance, to address the linearity assumption, various PCA variants based on non-parametric kernel \cite{webb_approach_1996,scholkopf_nonlinear_1998,bueso_nonlinear_2020} or neural network \cite{kramer_nonlinear_1991} approaches have been developed. For improved interpretability, rotated~\cite{richman_rotation_1986} and sparse~\cite{jolliffe_simplified_2002} PCA methods have been proposed. Robust PCA~\cite{candes_robust_2011} offers a more resilient approach to handling sensitivity to outlier. Furthermore, extended~\cite{weare_examples_1982,broomhead_extracting_1986} and complex~\cite{barnett_interaction_1983,horel_complex_1984} PCA methods have been introduced to account for temporal dynamics. In addition, eigenmethods like Optimal Persistence Analysis (OPA)~\cite{delsole_optimally_2001,delsole_low-frequency_2006} and Principal Oscillation Pattern (POP) analysis~\cite{hasselmann_pips_1988} provide alternative approaches independent to variance maximization to understanding dominant patterns in physical climate fields.
-
-In the following subsections, we will explore some of these shortcomings and proposed solutions in greater detail. Specifically, we will discuss how additional rotation of the PCA solution can enhance physical interpretability (Section~\ref{sec:theory:rotated_pca}) and how complexifying the data can provide insights into time evolution patterns (Section~\ref{sec:theory:hilbert_pca}).
-
 \begin{table}
-    \caption[Computational complexity of PCA algorithms]{Computational costs of different algorithms used to compute either full or approxmative $M$-rank solutions for PCA for a real, dense, in-memory matrix with dimensions $N \times D$. Compiled from~\citet{bishop_pattern_2006,halko_finding_2011}.}
+    \caption[Computational complexity of PCA algorithms]{\textbf{Computational complexity of PCA algorithms.} Asymptotic costs for computing full or approximate $M$-rank PCA solutions on a real, dense $N\times D$ matrix. Complexity estimates are based on~\citet{bishop_pattern_2006} and ~\citet{halko_finding_2011}.}
     \centering
     \label{tab:pca_algorithm_complexity}
     \begin{tabular}{l c}
@@ -199,6 +171,25 @@ In the following subsections, we will explore some of these shortcomings and pro
         \bottomrule
     \end{tabular}
 \end{table}
+
+
+\paragraph{Weighting of Data Variables}
+
+In some cases, it may be necessary to weight the data variables differently. This can be achieved by scaling the data matrix $\bm{Z}$ by a diagonal matrix $\bm{W}$, where the $j$\textsuperscript{th} diagonal element $w_j$ corresponds to the weight of the $j$\textsuperscript{th} variable. A very common situation is that the observed variables exhibit stark differences in their variance, which can sometimes lead to mask structure in the data as the PCA solution is solely driven by the different scales of variance (so the first principal axis will closely align to the variable with the highest variance) in which case the obvious choice is to use the inverse of the standard deviation of each variable, which ensures that all variables are equally weighted in which case the covariance matrix becomes the correlation matrix. Another common situation in climate science is that the physical fields are represented on regular longitude-latitude grids. This representation leads to a higher density of grid points near the poles, which typically results in an exaggerated importance of components spatially focused near the poles. To address this, the data matrix can be weighted by the square root of the cosine of the latitude \cite{north_latitude_1982}, $w_j = \sqrt{\cos(\text{lat}_j)}$, where $\text{lat}_j$ is the latitude of the $j$\textsuperscript{th} grid point. This weighting ensures that the grid points are equally weighted in the PCA solution, regardless of their geographical location. 
+
+\paragraph{Computational Considerations}
+
+The computational cost of performing eigendecomposition on the covariance matrix scales with $\order*{D^3}$ \cite[e.g.][Section 8.3]{golub_matrix_2013}, making it impractical for modern datasets, such as those in climate science, where typical data sizes are on the order of $D=\order*{10^6}$ or even larger. For example, ERA5 \cite{c3s_era5_hourly_single}, a widely used reference for state-of-the-art reanalysis climate data, distributes a single climate variable on a regular \ang{0.25} grid, resulting in $D=\num{1036800}$ grid cells.
+
+In practice, more efficient algorithms, such as SVD or power methods~\cite{golub_matrix_2013}, have been traditionally employed. Recently, randomized low-rank approximation techniques~\cite{drineas_clustering_2004,halko_finding_2011,bogaardt_dataset_2019,erichson_sparse_2020} have further reduced computational complexity to $\order*{ND \log(M) + \ab(N+D)M^2}$. These advancements offer feasible alternatives for handling large, out-of-memory datasets (see Table~\ref{tab:pca_algorithm_complexity}).
+
+\paragraph{Shortcomings} 
+
+Despite its widespread use and versatility, PCA has several limitations that must be considered. First, PCA relies on linear transformations to reduce dimensionality by identifying principal components as linear combinations of the original variables (see Equation~\eqref{eq:theory:pca_projection}). This linearity assumption may not hold for complex systems—such as climate data—where variable relationships are often nonlinear~\cite[e.g.][]{hannachi_bimodality_2019}. In addition, the orthogonality imposed on the coefficient vectors is a mathematical convenience that may not reflect the physical reality, potentially leading to misinterpretation~\cite{richman_rotation_1986}. PCA's focus on directions of maximum variance can also cause it to overlook important but less variable features. Moreover, as a static method, it does not capture temporal dynamics~\cite{farrell_accurate_2001}, and it is sensitive to both outliers and scaling issues---extreme values can disproportionately influence the results, and variables with larger ranges may dominate unless properly standardized.
+
+Over the past few decades, numerous modifications and extensions have been proposed to address these shortcomings, especially in the context of climate science. To relax the linearity assumption, variants based on non-parametric kernel methods~\cite{webb_approach_1996,scholkopf_nonlinear_1998,bueso_nonlinear_2020} or neural networks~\cite{kramer_nonlinear_1991} have been developed. For improved interpretability, rotated~\cite{richman_rotation_1986} and sparse~\cite{jolliffe_simplified_2002} PCA techniques offer alternatives that better capture underlying physical processes. Robust PCA~\cite{candes_robust_2011} has emerged as a more resilient approach to outlier sensitivity, while extended~\cite{weare_examples_1982,broomhead_extracting_1986} and Hilbert~\cite{barnett_interaction_1983,horel_complex_1984} PCA methods have been introduced to account for temporal dynamics. Additionally, eigenmethods such as Optimal Persistence Analysis (OPA)~\cite{delsole_optimally_2001,delsole_low-frequency_2006} and Principal Oscillation Pattern (POP) analysis~\cite{hasselmann_pips_1988} provide alternative frameworks that do not rely solely on variance maximization to uncover dominant patterns.
+
+In the following subsections, we explore these limitations and their corresponding solutions in greater detail. Specifically, we discuss how rotation of the PCA solution can enhance physical interpretability (Section~\ref{sec:theory:rotated_pca}) and how Hilbert-transforming the data offers insights into temporal evolution patterns (Section~\ref{sec:theory:hilbert_pca}).
 
 
 
@@ -284,7 +275,7 @@ It is likely for these reasons that rotated PCA remains one of the most commonly
 \begin{figure}
     \centering
     \includegraphics[width=.8\textwidth]{example_synthetic_pca_rotated}
-    \caption[Spatio-temporal decomposition of a synthetic dataset with three distinct signals.]{\textbf{Spatio-temporal decomposition of a synthetic dataset with three distinct signals.} A synthetic dataset is constructed by summing three signals, each generated from an ARMA(1,0) process with fixed moving-average (MA) coefficients ($0.8$, $0.5$) and autoregressive (AR) coefficients of $0.99$, $0.98$, and $0.97$, respectively. Each time series (\num{1000} time steps) is normalized to zero mean and unit variance and modulated by two-dimensional Gaussian envelopes on a 51 $\times$ 51 grid, centered at $(40,40)$, $(25,25)$, and $(10,10)$, with amplitude factors of $1.5$, $1.0$, and $0.9$, respectively. The resulting spatial fields are summed and corrupted with additive white Gaussian noise ($\sigma$ = 0.5). The top row shows the true spatial patterns, while subsequent rows present spatial modes and corresponding normalized temporal scores obtained via standard PCA, varimax-rotated PCA, and sparse PCA (using variable projection) \cite{erichson_sparse_2020}. Annotations indicate the percentage of explained variance and Pearson correlation coefficients between the true and extracted signals, demonstrating the effectiveness of each method in recovering the underlying spatio-temporal structure. Analyses have been performed using the \xeofs{} package v3.0.4 \cite{rieger_xeofs_2024}.}
+    \caption[Spatio-temporal decomposition of a synthetic dataset with three distinct signals.]{\textbf{Spatio-temporal decomposition of a synthetic dataset with three distinct signals.} A synthetic dataset is constructed by summing three signals, each generated from an ARMA(1,0) process with fixed moving-average (MA) coefficients ($0.8$, $0.5$) and autoregressive (AR) coefficients of $0.99$, $0.98$, and $0.97$, respectively. Each time series (\num{1000} time steps) is normalized to zero mean and unit variance and modulated by two-dimensional Gaussian envelopes on a 51 $\times$ 51 grid, centered at $(40,40)$, $(25,25)$, and $(10,10)$, with amplitude factors of $1.5$, $1.0$, and $0.9$, respectively. The resulting spatial fields are summed and corrupted with additive white Gaussian noise ($\sigma$ = 0.5). The top row shows the true spatial patterns, while subsequent rows present spatial modes and corresponding normalized temporal scores obtained via standard PCA, varimax-rotated PCA, and sparse PCA (using variable projection) \cite{erichson_sparse_2020}. Annotations indicate the percentage of explained variance and Pearson correlation coefficients between the true and extracted signals, demonstrating the effectiveness of each method in recovering the underlying spatio-temporal structure. Analyses have been performed using the \software{xeofs} package v3.0.4 \cite{rieger_xeofs_2024}.}
     \label{fig:theory:pca_buell_patterns}
 \end{figure}
 
@@ -587,45 +578,42 @@ Unfortunately, because total squared covariance is not preserved under rotation,
 
 Finally, before applying rotated MCA to real-world data, we must make two key decisions: (1) determining the optimal number of modes to rotate, and (2) choosing between orthogonal or oblique rotation.
 
-\subsubsection*{Determining the Optimal Number of Rotated Modes}\label{sec:theory:mode_stability_index}
+\subsubsection*{Determining the Number of Modes to Rotate}\label{sec:theory:mode_stability_index}
 
-Determining the optimal number of modes to retain and rotate is crucial for capturing relevant patterns without introducing noise from higher-order modes \cite{richman_rotation_1986}. To address this challenge, we introduce the \emph{mode stability index}, denoted as $\kappa$, which provides an objective criterion for selecting the appropriate number of modes to rotate.
+Choosing the optimal number of modes to rotate is crucial because it can significantly affect the final rotated solution \cite[cf.][p.~271]{jolliffe_principal_2002}. In standard PCA, numerous methods exist—such as the scree plot, cumulative explained variance, North's rule-of-thumb \cite{north_sampling_1982}, and bootstrapping approaches \cite[e.g.][]{preisendorfer_principal_1988,jolliffe_principal_2002}—to guide this choice. Moreover, recent studies have derived optimal hard thresholds for singular values under specific noise assumptions to distinguish signal from noise \cite{gavish_optimal_2014,donoho_screenot_2021}. In rotated PCA, \citet{bueso_nonlinear_2020} even proposed a kurtosis-based measure for mode selection.
 
-The mode stability index quantifies the consistency of mode patterns across different rotation solutions. The fundamental idea is that if the rotation solution is stable, the leading modes' patterns should remain consistent even as the number of rotated modes varies within a reasonable range. This consistency indicates that the essential structures have been captured and that including additional modes does not significantly alter the results.
+For rotated MCA, \citet{cheng_orthogonal_1995} argued that the rotated patterns should remain stable over a wide range of truncation points. However, their selection was ultimately subjective. Here, we propose an objective alternative: the \emph{mode stability index} $\kappa$. This index quantitatively assesses the consistency of mode patterns and provides a robust criterion for selecting the optimal number of modes to retain and rotate.
+
+The underlying idea is simple: if the rotation solution is stable, the leading mode patterns should remain consistent even as the number of rotated modes varies within a reasonable range \cite{cheng_orthogonal_1995}. Once the essential structures are captured, adding extra modes should not significantly change the pattern.
 
 To compute the mode stability index, we proceed as follows:
 
 \begin{enumerate}
-    \item \textbf{Generate multiple rotation solutions:} We perform rotations on the first $R$ modes for a range of $R$ values. The values of $R\in[R_{\text{min}}, R_{\text{max}}]$ should cover a broad range to ensure that the most stable solution is identified. The range $[1, R_{\text{min}}]$ defines the set of modes to be assessed for stability.
-    \item \textbf{Extract pattern vectors:} For each rotated solution, we extract the amplitude pattern vectors, $\vab{\bm{v}_{k}^R}$ of the leading modes, where $k\in[1, R]$ indicates the mode number.
-    \item \textbf{Measure pairwise similarity between patterns:} We compare the amplitude patterns of mode $k$ across different rotation solutions using the cosine similarity. The cosine similarity between two patterns $\bm{v}_{k}^{R}$ and $\bm{v}_{k'}^{R'}$ is given by:
+    \item \textbf{Generate multiple rotation solutions:} Rotate the first $R$ modes over a range $R\in[R_{\text{min}}, R_{\text{max}}]$ to capture a variety of solutions. The range $[1, R_{\text{min}}]$ defines the set of modes whose stability is assessed.
+    \item \textbf{Extract pattern vectors:} For each rotation, extract the amplitude pattern vectors $\vab{\bm{v}{k}^R}$ for the leading modes, where $k\in[1, R]$. 
+    \item \textbf{Measure pairwise similarity:} Compare the amplitude patterns of mode $k$ across different rotation solutions using cosine similarity: 
     \begin{align}
-        c_{k, k'}^{R, R'} = \frac{\vab{\bm{v}_k^R}^T \vab{\bm{v}_{k'}^{R'}}}{\Vab{\bm{v}_{k}^{R}} \cdot \Vab{\bm{v}_{k'}^{R'}}}.
+        c{k, k'}^{R, R'} = \frac{\vab{\bm{v}k^R}^T \vab{\bm{v}{k'}^{R'}}}{\Vab{\bm{v}{k}^{R}} \cdot \Vab{\bm{v}{k'}^{R'}}}.
     \end{align}
-    The cosine similarity ranges from \num{-1} to \num{1}, where \num{1} indicates identical patterns, \num{0} indicates orthogonal patterns, and \num{-1} indicates patterns that are exact opposites.
-    \item \textbf{Determine mode similarity:} For a given mode $k$ in rotation solution $R$, we identify the most similar mode $k'$ in rotation solution $R'$ by maximizing the cosine similarity:
+    Cosine similarity ranges from \num{-1} (exact opposites) to \num{1} (identical), with \num{0} indicating orthogonal patterns. 
+    \item \textbf{Determine mode similarity:} For each mode $k$ in solution $R$, identify the most similar mode in solution $R'$ by maximizing the cosine similarity over all leading modes:
     \begin{align}
         C_{k}^{R, R'} = \max_{k'\in [1, R_{\text{min}}]} \left( c_{k, k'}^{R, R'} \right).
     \end{align}
-    To consider the fact that the order of modes may vary slightly across different rotation solutions, we maximize the cosine similarity over all leading modes, i.e. the range $[1, R_{\text{min}}]$.
-
-    \item \textbf{Define an indicator for consistency:} We introduce an indicator function $\delta_{k}^{R, R'}$ to signify whether the patterns are sufficiently similar:
-    \begin{align}
-        \delta_{k}^{R, R'} = 
-        \begin{cases}
-            1, & \text{if } C_{k}^{R, R'} > \tau,\\
+    This maximization accounts for possible reordering of modes between solutions. 
+    \item \textbf{Define a consistency indicator:} Introduce an indicator function $\delta_{k}^{R, R'}$ that is 1 if $C_{k}^{R, R'}$ exceeds a chosen threshold $\tau$ (e.g. \num{0.9}) and 0 otherwise: \begin{align} 
+        \delta_{k}^{R, R'} = \begin{cases} 
+            1, & \text{if } C_{k}^{R, R'} > \tau,\\[1mm]
             0, & \text{otherwise}.
         \end{cases}
-    \end{align}
-    Here, $\tau$ is a threshold value (e.g. \num{0.9}) chosen to represent a high degree of similarity.
-    \item \textbf{Compute the mode stability index:} The mode stability index $\kappa$ for the rotation solution $R$ is calculated by averaging the indicator function over all pairs of rotation solutions and modes:
+    \end{align} 
+    \item \textbf{Compute the mode stability index:} Finally, average the indicator function over all pairs of solutions and modes: 
     \begin{align}\label{eq:theory:mode_stability_index}
         \kappa^R = \frac{1}{R_{\text{min}} \pab{R_{\text{max}} - R_{\text{min}}}} \sum_{R'=R_{\text{min}}}^{R_{\text{max}}} \sum_{k=1}^{R_{\text{min}}} \delta_{k}^{R, R'}.
     \end{align}
 \end{enumerate}
 
-
-The mode stability index $\kappa$ represents the average fraction of modes that remain consistent across different rotation solutions. A higher value of $\kappa$ (closer to 1) indicates greater stability, meaning the mode patterns are robust to changes in the number of rotated modes. Conversely, a lower $\kappa$ suggests that the mode patterns are sensitive to the number of modes rotated, indicating potential instability or the influence of noise. By plotting $\kappa$ against the number of modes rotated, we can identify a point where $\kappa$ reaches a maximum or plateaus. 
+The mode stability index $\kappa$ represents the average fraction of modes that remain consistent across different rotation solutions. A $\kappa$ value close to 1 indicates high stability---meaning the patterns are robust to changes in the number of rotated modes---whereas a low $\kappa$ suggests sensitivity to the selected number, implying potential instability or noise influence. Plotting $\kappa$ against the number of modes rotated can thus reveal the point where adding more modes no longer improves stability, guiding the optimal choice.
 
 \subsubsection*{Selecting Between Orthogonal and Oblique Rotation} 
 Choosing between orthogonal and oblique rotation involves balancing interpretability with complexity. Orthogonal rotations keep the expansion coefficients uncorrelated, while producing more localized spatial patterns, which may simplify their interpretation. However, the lack of correlation between coefficients may not accurately reflect the interconnected nature of geophysical processes. In contrast, oblique rotations allow the expansion coefficients to be correlated, potentially capturing more realistic relationships, while still producing simpler spatial structures. This added realism comes at the cost of increased complexity in interpretation.
