@@ -9,15 +9,30 @@
     \fi
     
 
+% Instruction to ensure a consistent mathematical notation:
+
+% - Use bold uppercase letters (e.g., $\bm{X}$, $\bm{\Sigma}$) to denote matrices.
+% - Use bold lowercase letters (e.g., $\bm{x}$, $\bm{v}$) for vectors. Clarify that these are column vectors (unless stated otherwise) to avoid ambiguity.
+% - Use uppercase letters for fixed scalar constants, such as dimensions (e.g., $N$ for the number of samples, $D$ for the data dimension).
+% - Use lowercase letters for scalar variables that might change or are elements of vectors/matrices (e.g., $x$ as an individual entry).
+% - Denote eigenvalues by $\lambda$ (typically in lowercase) and, if necessary, with subscripts to indicate order (e.g., $\lambda_1 \geq \lambda_2 \dots $).
+% - Denote eigenvectors with bold lowercase letters (e.g., $\bm{v}_1$, $\bm{v}_2$).
+% - When referring to a collection of elements (such as the set of all data points), consider using calligraphic letters (e.g., $\mathcal{X}$) to distinguish these sets from individual data points.
+% - Clearly state the role of indices. For instance, if $x_i$ represents the $i$th sample, mention that $i\in\{1, \dots, N\}$.
+% - Ensure consistency in indexing throughout your text.
+% - Clearly differentiate between random variables and deterministic quantities. You might choose a specific style (such as sans-serif) to denote random variables, or explicitly mention their probabilistic nature.
+
+
+
 \part{Theoretical Foundations}\label{part:theory}
 
 \chapter{Data-Driven Dimensionality Reduction}\label{chapter:dimred}
 
-With the ever-growing volume of environmental data—particularly in climate science, meteorology, and oceanography—there is an increasing need for algorithms that can efficiently uncover relevant and interpretable patterns. These data-driven methods help researchers navigate massive datasets, such as ECMWF's ERA5 \cite{hersbach_era5_2020}, which already exceeds 9 PB of information, and the forthcoming ERA6 (planned for release in 2025) that is projected to be three to four times larger \cite{hans_hersbach_estimating_2025}. Although these comprehensive reanalysis products provide an unprecedented record of global climate processes at high temporal and spatial resolution, their sheer size and complexity pose significant challenges in extracting actionable insights.
+With the ever-growing volume of environmental data---particularly in climate science, meteorology, and oceanography---there is an increasing need for algorithms that can efficiently uncover relevant and interpretable patterns. These data-driven methods help researchers navigate massive datasets, such as ECMWF's ERA5 \cite{hersbach_era5_2020}, which already exceeds 9 PB of information, and the forthcoming ERA6 (planned for release in 2025) that is projected to be three to four times larger \cite{hans_hersbach_estimating_2025}. Although these comprehensive reanalysis products provide an unprecedented record of global climate processes at high temporal and spatial resolution, their sheer size and complexity pose significant challenges in extracting actionable insights.
 
 A common strategy for dealing with large-scale datasets is to reduce their dimensionality so that only a small number of important factors or "latent modes" remain. This rests on the notion that climate fields often exhibit substantial redundancy: the vast number of spatio-temporal measurements are largely driven by a few dominant physical mechanisms (e.g., large-scale atmospheric or oceanic circulation patterns). In statistics, this principle is sometimes called \emph{factor sparsity}, suggesting that a small number of factors typically capture the bulk of the observed variability.
 
-Against this backdrop, this chapter reviews two widely used techniques for dimensionality reduction in climate data: \emph{Principal Component Analysis} (PCA) and \emph{Maximum Covariance Analysis} (MCA). Although well-established, both methods remain foundational for modern, large-scale geophysical research \cite[e.g.][]{hannachi_patterns_2021,mori_reconciled_2019,di_capua_dominant_2020,rathore_improving_2021}. PCA identifies key modes of variability from a single dataset, whereas MCA generalizes this idea to two datasets, isolating cross-covarying patterns that link different climatic variables. We also discuss how these methods can be extended to capture propagating features using Hilbert transforms and to enhance interpretability via rotational methods that produce more localized or sparse patterns.
+Against this backdrop, this chapter reviews two widely used techniques for dimensionality reduction in climate data: \emph{Principal Component Analysis} (PCA) and \emph{Maximum Covariance Analysis} (MCA). Although well-established, both methods remain foundational for modern, large-scale geophysical research \cite[e.g.][]{hannachi_patterns_2021,mori_reconciled_2019,di_capua_dominant_2020,rathore_improving_2021}. PCA identifies dominant modes of variability from a single dataset, whereas MCA generalizes this idea to two datasets, isolating cross-covarying patterns that link different climatic variables. We also discuss how these methods can be extended to capture propagating features using Hilbert transforms and to enhance interpretability via rotational methods that produce more localized or sparse patterns.
 
 The main novel aspects developed here are: 
 \begin{itemize}[leftmargin=2em] 
@@ -40,118 +55,117 @@ In this section, we derive PCA from the maximum variance formulation\footnote{\c
 
 
 \subsection{Derivation from Maximum Variance Formulation}\label{sec:theory:pca_derivation}
-Consider a data set represented as a complex-valued, two-dimensional $N\times D$ matrix $\bm{Z}$, where $N$ denotes the number of observations (or samples) and $D$ the number of variables (or features). We will refer to the $n$\textsuperscript{th} observation as the $D$-dimensional vector $\bm{z}_n$. For simplicity, we assume the data is centered, meaning the mean of each variable is zero, i.e. $\bar{\bm{z}} = \frac{1}{N} \sum_{n=1}^{N} \bm{z}_n = \bm{0}$. The goal is to project the data onto an $M$-dimensional space ($M<D$) of $M$ latent variables while maximizing the variance of the projected data.
-
-To start, consider a one-dimensional projection ($M=1$). We define the direction of this space using a $D$-dimensional unit\footnote{This particular normalization is for convenience, and any other would do just fine, since we are only interested in the direction of $\bm{v}_1$, not its magnitude.} vector $\bm{v}_1$, such that $\bm{v}_1^H\bm{v}_1=1$, where $\bm{v}_1^H$ denotes the conjugate transpose of $\bm{v}_1$. The data points $\bm{z}_n$ are then projected onto this direction, $\bm{v}_1^H\bm{z}_n$, and the variance of the projected data is 
+Consider a data set represented as a complex-valued, two-dimensional $N\times D$ matrix $\bm{Z}$, where $N$ denotes the number of observations (or samples) and $D$ the number of variables (or features). We will refer to the $n$\textsuperscript{th} sample as the $D$-dimensional vector $\bm{z}_n$, with $n\in\{1,\dots,N\}$. For simplicity, we assume the data are centered, i.e., the mean of each variable is zero: 
 
 \begin{align}
-    \frac{1}{N-1} \sum_{n=1}^{N-1} \ab( \bm{v}_1^H\bm{z}_n - \bm{v}_1^H\bar{\bm{z}} )^2 = \bm{v}_1^H\bm{S}_{ZZ}\bm{v}_1,
+    \bar{\bm{z}} &= \frac{1}{N} \sum_{n=1}^{N} \bm{z}_n = \bm{0}.
 \end{align}
 
-where $\bm{S}_{ZZ}$ is the covariance matrix of $\bm{Z}$ given by
+
+\paragraph{Goal} We seek to project these $D$-dimensional vectors $\{\bm{z}_n\}$ onto an $M$-dimensional linear subspace ($M<D$) in such a way that the variance of the projected data is maximized.
+
+\paragraph{One-Dimensional Case} For concreteness, first consider an ($M=1$) subspace spanned by some $D$-dimensional unit\footnote{This particular normalization is for convenience, and any other would do just fine, since we are only interested in the direction of $\bmn{v}$, not its magnitude.} vector $\bmn{v}$, i.e. $\bmn{v}^H\bmn{v}=1$, where $(\cdot)^H$ denotes conjugate transpose. The projections of $\bm{z}_n$ onto $\bmn{v}$ are scalars $\bmn{v}^H\bm{z}_n$, and the variance of these projected data is
 
 \begin{align}
-    \bm{S}_{ZZ} = \frac{1}{N-1} \sum_{n=1}^{N} \bm{z}_n \bm{z}_n^H = \frac{1}{N-1} \bm{Z}^H \bm{Z}.
+    \frac{1}{N-1} \sum_{n=1}^{N-1} \ab( \bmn{v}^H\bm{z}_n )^2 = \bmn{v}^H\bm{C}\bmn{v},
 \end{align}
 
-The goal is to find the vector $\bm{v}_1$ that maximizes this variance, formulated as:
+where $\bm{C}$ is the $D\times D$ sample covariance matrix of $\bm{Z}$ given by
+
+\begin{align}
+    \bm{C} = \frac{1}{N-1} \sum_{n=1}^{N} \bm{z}_n \bm{z}_n^H = \frac{1}{N-1} \bm{Z}^H \bm{Z}.
+\end{align}
+
+Thus, findings $\bmn{v}$ that maximizes the variance of the projected data amounts to solving
 
 \begin{align}\label{eq:theory:pca_maximization}
-    \argmax_{\bm{v}_1} \, \bm{v}_1^H\bm{S}_{ZZ}\bm{v}_1 \quad \text{subject to} \quad \bm{v}_1^H\bm{v}_1 = 1.
+    \argmax_{\bmn{v}} \, \bmn{v}^H\bm{C}\bmn{v} \quad \text{subject to} \quad \bmn{v}^H\bmn{v} = 1.
 \end{align}
 
-To solve this optimization problem, we maximize the projected variance $\bm{v}_1^H\bm{S}_{ZZ}\bm{v}_1$ with respect to $\bm{v}_1$. To enforce the normalization constraint $\bm{v}_1^H\bm{v}_1=1$, a Lagrange multiplier $\lambda_1$ is introduced, leading to the unconstrained maximization of: 
+A Lagrange multiplier $\lambda$ can be introduced to handle the unit-norm constraint. Taking the derivative with respect to $\bmn{v}$ and setting it to zero yields 
 
-\begin{align}
-    \bm{v}_1^H\bm{S}_{ZZ}\bm{v}_1 + \lambda_1(1-\bm{v}_1^H\bm{v}_1).
-\end{align}
-
-By setting the derivative with respect to $\bm{v}_1$ to zero, we find a stationary point when: 
-
-\begin{align}\label{eq:theory:pca_eigenproblem}
-    \bm{S}_{ZZ}\bm{v}_1 = \lambda_1\bm{v}_1.
-\end{align}
-
-This indicates that $\bm{v}_1$ must be an eigenvector of $\bm{S}_{ZZ}$, with $\lambda_1$ being the corresponding real-valued\footnote{This follows from the property of the covariance matrix being hermitian.} eigenvalue. The variance $\bm{v}_1^T\bm{S}_{ZZ}\bm{v}_1$ reaches its maximum when $\bm{v}_1$ aligns with the eigenvector associated  with the largest eigenvalue\footnote{This can easily be verified by left-multiplying Equation~\eqref{eq:theory:pca_eigenproblem} with $\bm{v}_1^H$ and making use of the normalization condition.} $\lambda_1$. The eigenvector is referred to as the first \textbf{vector of coefficients}\footnote{Naming conventions can vary significantly across different scientific domains. For example, in machine learning, the terms principal components and principal component scores refer to the eigenvectors (here $\bm{V}$) and their corresponding data projections (here $\bm{P}$)\cite[e.g.][]{bishop_pattern_2006}. In statistics, these are often called vectors of coefficients/loadings and principal components\cite[e.g.][]{jolliffe_principal_2002}, while in climate science and meteorology, they are known as empirical orthogonal functions and principal components/expansion coefficients~\cite[e.g.][]{storch_statistical_1999}. In this thesis, I aim to maintain consistency with the terminology commonly used in statistics.} (VC) of the data set.
-
-To find additional VCs, we iteratively select new directions that maximize the projected variance while being orthogonal to the previously chosen directions. For an $M$-dimensional projection space, the optimal linear projection that maximizes the variance of the projected data is defined by the $M$ eigenvectors $\bm{v}_1,\dots,\bm{v}_M$ of the covariance matrix $\bm{S}_{ZZ}$, corresponding to the $M$ largest eigenvalues $\lambda_1,\dots,\lambda_M$. This result can be derived using proof by induction, leading to the concise expression:
-
-\begin{align}\label{eq:theory:pca_eigenvector_decomposition}
-    \bm{S}_{ZZ}  \bm{V} = \bm{V} \bm{\Lambda},
-\end{align}
-
-where $\bm{V}$ is unitary, i.e. $\bm{V}^H\bm{V}=\bm{I}_M$, and $\Lambda=\diag(\lambda_1, \lambda_2, \dots, \lambda_M)$ is the diagonal matrix of eigenvalues.
-
-Thus, the eigenvectors of $\bm{S}_{ZZ}$ define a new unitary coordinate system that aligns with the primary patterns of variability in the data. In other words, PCA identifies the directions (principal axes) along which the data exhibits the most significant variations. However, these principal components are constrained to be orthogonal to each other. In situations where the underlying patterns in the data are not naturally aligned with these orthogonal directions, a rotation technique such as varimax (discussed in Section~\ref{sec:theory:rotated_pca}) can be applied to achieve a more interpretable solution.
-
-According to the spectral theorem for normal matrices~\cite[e.g.][p. 133]{horn_matrix_2012}, the hermitian covariance matrix $\bm{S}_{ZZ}$ can be decomposed into the sum of the outer products of the eigenvectors $\bm{v}_i$ and the corresponding real-valued eigenvalues $\lambda_i$:
-
-\begin{align}
-    \bm{S}_{ZZ} = \sum_{i=1}^M \lambda_i \bm{v}_i \bm{v}_i^H.
-\end{align}
-
-Each eigenvalue $\lambda_i$ represents the amount of variance captured by the corresponding component, typically expressed as a fraction $\gamma_i$ of the total variance:
-
-\begin{align}
-    \gamma_i = \frac{\lambda_i}{\sum_{i=1}^M\lambda_i}
-\end{align}
-
-Projecting the data $\bm{Z}$ onto the $M$-dimensional subspace thus provides a lower-dimensional representation, called the \text{principal components} (PCs),
-
-\begin{equation}\label{eq:theory:pca_projection}
-    \bm{P} = \bm{Z} \bm{V},
+\begin{equation}\label{eq:theory:pca_eigenproblem}
+    \bm{C} \bmn{v} = \lambda \bmn{v}.
 \end{equation}
 
-which also enables an approximate reconstruction of the original data from the projected  data:
+Hence, $\bmn{v}$ must be an eigenvector of $\bm{C}$ and $\lambda$ is its corresponding real-valued (since $\bm{C}$ is Hermitian) eigenvalue. This variance is maximized precisely by choosing the eigenvector $\bmn{v}$ associated with the largest eigenvalue $\lambda$. In PCA parlance, $\bmn{v}$ is the first \textit{vector of coefficients}\footnote{Naming conventions can vary significantly across different scientific domains. For example, in machine learning, the terms principal components and principal component scores refer to the eigenvectors (here $\bmn{V}$) and their corresponding data projections (here $\bm{P}$)~\cite[e.g.][]{bishop_pattern_2006}. In statistics, these are often called vectors of coefficients/loadings and principal components~\cite[e.g.][]{jolliffe_principal_2002}, while in climate science and meteorology, they are known as empirical orthogonal functions and principal components/expansion coefficients~\cite[e.g.][]{storch_statistical_1999}. In this thesis, I aim to maintain consistency with the terminology commonly used in statistics.} (VC).
+
+\paragraph{Higher-Dimensional Case} For a general $M$-dimensional subspace, one can show via induction that the optimal linear subspace for capturing maximum variance is spanned by the $M$ leading eigenvectors\footnote{The eigenvectors of $\bm{C}$ thus define a new unitary coordinate system that aligns with the dominant patterns of variability in the data. In other words, PCA identifies the directions (VCs) along which the data exhibits the most significant variations. However, these VCs are constrained to be orthogonal to each other. In situations where the underlying patterns in the data are not naturally aligned with these orthogonal directions, a rotation technique such as varimax (discussed in Section~\ref{sec:theory:rotated_pca}) can be applied to achieve a more interpretable solution.} $\bmn{v}_1, \dots, \bmn{v}_M$ of $\bm{C}$, corresponding to the largest eigenvalues $\lambda_1 \geq \lambda_2 \dots \lambda_M$. In compact matrix form:
+
+\begin{align}\label{eq:theory:pca_eigenvector_decomposition}
+    \bm{C} \bmn{V} = \bmn{V} \bm{\Lambda},
+\end{align}
+
+where $\bmn{V}$ is the unitary $D\times M$ matrix having columns $\{\bmn{v}_m\}$, i.e. $\bmn{V}^H\bmn{V}=\bm{I}_M$, and the eigenvalues are contained within $\Lambda=\diag(\lambda_1, \lambda_2, \dots, \lambda_M)$.
+
+By the spectral theorem for normal matrices~\cite[e.g.][p. 133]{horn_matrix_2012}, 
+
+\begin{align}
+    \bm{C} = \sum_{m=1}^M \lambda_m \bmn{v}_m \bmn{v}_m^H.
+\end{align}
+
+Each eigenvalue $\lambda_m$ measures the variance explained (or better described) by its associated VC, typically expressed as a fraction of the total variance,
+
+\begin{align}
+    \gamma_m = \frac{\lambda_m}{\sum_{j=1}^M\lambda_j}.
+\end{align}
+
+The data can then be projected onto the subspace spanned by $\{\bmn{v}_m\}$, forming the so-called \textit{principal components} (PCs):
+
+\begin{equation}\label{eq:theory:pca_projection}
+    \bm{P} = \bm{Z} \bmn{V},
+\end{equation}
+
+where $\bm{P}$ is the $N\times M$. If one aims to approximate the data by these $M$ principal axes, then
 
 \begin{align}\label{eq:theory:pca_reconstruction}
-    \bm{Z} \approx \bm{P} \bm{V}^H.
+    \bm{Z} \approx \bm{P} \bmn{V}^H
 \end{align}
 
-This approximation is optimal in the least squares sense and becomes exact only when $M=\rank(X)$.
+is the (rank-$M$) least-squares approximation. This reconstruction is exact only if $M=\rank(\bm{Z})$.
 
-However, calculating the eigenvector decomposition is not always computationally efficient. A more efficient method involves using Singular Value Decomposition (SVD)~\cite[e.g.][p. 150]{horn_matrix_2012}, which decomposes the data matrix as
+\paragraph{PCA via SVD} Directly computing the eigenvectors of $\bm{C}$ can be costly if $D$ is large ($\order{D^3}$ complexity, see Table~\ref{tab:pca_algorithm_complexity}). An alternative is to perform a Singular Value Decomposition (SVD)~\cite[e.g.][p. 150]{horn_matrix_2012} on the $N\times D$ data matrix $\bm{Z}$:
 
 \begin{align}\label{eq:theory:pca_svd}
-    \bm{Z} = \bm{U}' \bm{\Sigma} {\bm{V}'}^H,
+    \bm{Z} = \bmn{U}' \bm{\Sigma} \bmn{V}'^H,
 \end{align}
 
-where $\bm{U}'$ and $\bm{V}'$ are unitary matrices, ${\bm{U}'}^H \bm{U}' = {\bm{V}'}^H \bm{V}' = \bm{I}_M$, and $\bm{\Sigma}$ is a diagonal matrix containing the singular values $\sigma_i$ of $\bm{Z}$. The covariance matrix $\bm{S}_{ZZ}$ can then be expressed in terms of the SVD as
+where $\bmn{U}'$ and $\bmn{V}'$ are unitary matrices, and $\bm{\Sigma}$ is diagonal with singular values $\sigma_1\geq\sigma_2\geq\dots 0$ of $\bm{Z}$. The covariance matrix $\bm{C}$ can then be expressed in terms of the SVD as
 
 \begin{align}
-    \bm{S} = \frac{1}{N-1} \bm{Z}^H \bm{Z} = \frac{1}{N-1} \bm{V}' \bm{\Sigma}^H \bm{U}'^H \bm{U}' \bm{\Sigma} \bm{V}'^H = \bm{V} \bm{\Lambda} {\bm{V}}^H,
+    \bm{C} = \frac{1}{N-1} \bm{Z}^H \bm{Z} = \frac{1}{N-1} \bmn{V}' \bm{\Sigma}^H \bmn{U}'^H \bmn{U}' \bm{\Sigma} \bmn{V}'^H = \bmn{V} \bm{\Lambda} {\bmn{V}}^H,
 \end{align}
 
-where, by comparison with Equation \eqref{eq:theory:pca_eigenvector_decomposition} and \eqref{eq:theory:pca_projection}, $\bm{V} = \bm{V}'$, $\bm{\Lambda} = \frac{1}{N-1} \bm{\Sigma}^T \bm{\Sigma}$ and $\bm{P} = \bm{U}' \Sigma$. This establishes a direct relationship between the eigenvalues of the covariance matrix and the singular values of the data matrix:
+where, by comparison with Equation \eqref{eq:theory:pca_eigenvector_decomposition} and \eqref{eq:theory:pca_projection}, $\bmn{V} = \bmn{V}'$, $\bm{\Lambda} = \frac{1}{N-1} \bm{\Sigma}^T \bm{\Sigma}$ and $\bm{P} = \bmn{U}' \Sigma$. This establishes a direct relationship between the eigenvalues of the covariance matrix and the singular values of the data matrix:
 
 \begin{align}
-    \lambda_i = \frac{ \sigma_i^2}{N-1}.
+    \lambda_m = \frac{ \sigma_m^2}{N-1}.
 \end{align}
 
 Comparing \eqref{eq:theory:pca_reconstruction} with \eqref{eq:theory:pca_svd} shows that the PC scores $\bm{P}$ can be normalized
 
 \begin{align}
-    \bm{U} &\equiv \bm{U}'= \bm{P} \bm{\Sigma}^{-1} = \frac{1}{\ab(N-1)^{1/2}} \bm{P} \bm{\Lambda}^{-1/2}, \nonumber \\
-    \text{or alternatively} \quad \bm{P} &= \ab(N-1)^{1/2} \bm{U} \bm{\Lambda}^{1/2}.
+    \bmn{P} &\equiv \bmn{U}'= \bm{P} \bm{\Sigma}^{-1} = \frac{1}{\ab(N-1)^{1/2}} \bm{P} \bm{\Lambda}^{-1/2}, \nonumber \\
+    \text{or alternatively} \quad \bm{P} &= \ab(N-1)^{1/2} \bmn{P} \bm{\Lambda}^{1/2}.
 \end{align}
 
-Thus, $\bm{U}^H\bm{U} = \bm{I}_M$ ensures that the PC scores $\bm{U}$ are unitary and uncorrelated.
+Thus, $\bmn{P}^H\bmn{P} = \bm{I}_M$ ensures that the normalized PC scores $\bmn{P}$ are unitary and uncorrelated.
 
-A common scaling method for the vector of coefficients $\bm{V}$ involves scaling by the square root of the corresponding eigenvalues, referred to as \textbf{loadings}:
+A common scaling method for the vector of coefficients $\bmn{V}$ involves multiplication with the square root of the corresponding eigenvalues, referred to as \textit{loadings}:
 
 \begin{align}
-    \tilde{\bm{V}} = \bm{V} \bm{\Lambda}^{1/2}.
+    \bm{V} = \bmn{V} \bm{\Lambda}^{1/2}.
 \end{align}
 
 Although not strictly unitary, these loadings form a generalized unitary matrix, as shown by
 
 \begin{align}\label{eq:theory:pca_loadings_non_orthogonal}
-    \tilde{\bm{V}}^H \tilde{\bm{V}} = \bm{\Lambda}.
+    \bm{V}^H \bm{V} = \bm{\Lambda}.
 \end{align}
 Using this scaling, the Equation~\ref{eq:theory:pca_reconstruction} can be expressed as
 
 \begin{align}\label{eq:theory:pca_reconstruction_loadings}
-    \bm{X} = \ab(N-1)^{1/2} \bm{U} \tilde{\bm{V}}^T.
+    \bm{Z} \approx \ab(N-1)^{1/2} \bmn{P} \bm{V}^H.
 \end{align}
 
 
@@ -175,13 +189,9 @@ Using this scaling, the Equation~\ref{eq:theory:pca_reconstruction} can be expre
 
 \paragraph{Weighting of Data Variables}
 
-In some cases, it may be necessary to weight the data variables differently. This can be achieved by scaling the data matrix $\bm{Z}$ by a diagonal matrix $\bm{W}$, where the $j$\textsuperscript{th} diagonal element $w_j$ corresponds to the weight of the $j$\textsuperscript{th} variable. A very common situation is that the observed variables exhibit stark differences in their variance, which can sometimes lead to mask structure in the data as the PCA solution is solely driven by the different scales of variance (so the first principal axis will closely align to the variable with the highest variance) in which case the obvious choice is to use the inverse of the standard deviation of each variable, which ensures that all variables are equally weighted in which case the covariance matrix becomes the correlation matrix. Another common situation in climate science is that the physical fields are represented on regular longitude-latitude grids. This representation leads to a higher density of grid points near the poles, which typically results in an exaggerated importance of components spatially focused near the poles. To address this, the data matrix can be weighted by the square root of the cosine of the latitude \cite{north_latitude_1982}, $w_j = \sqrt{\cos(\text{lat}_j)}$, where $\text{lat}_j$ is the latitude of the $j$\textsuperscript{th} grid point. This weighting ensures that the grid points are equally weighted in the PCA solution, regardless of their geographical location. 
+In some cases, it may be necessary to weight the data variables differently. This can be achieved by scaling the data matrix $\bm{Z}$ by a diagonal matrix $\bm{W}$, where the $j$\textsuperscript{th} diagonal element $w_j$ corresponds to the weight of the $j$\textsuperscript{th} variable. A very common situation is that the observed variables exhibit stark differences in their variance, which can sometimes lead to mask structure in the data as the PCA solution is solely driven by the different scales of variance (so the first principal axis will closely align to the variable with the highest variance) in which case the obvious choice is to use the inverse of the standard deviation of each variable, which ensures that all variables are equally weighted in which case the covariance matrix becomes the correlation matrix. Another common situation in climate science is that the physical fields are represented on regular longitude-latitude grids. This representation leads to a higher density of grid points near the poles, which typically results in an exaggerated importance of components spatially focused near the poles. To address this, the data matrix can be weighted by the square root of the cosine of the latitude \cite{north_latitude_1982}, $w_j = \sqrt{\cos(\phi_j)}$, where $\phi_j$ is the latitude of the $j$\textsuperscript{th} grid point (variable). This weighting ensures that the grid points are equally weighted in the PCA solution, regardless of their geographical location. 
 
-\paragraph{Computational Considerations}
-
-The computational cost of performing eigendecomposition on the covariance matrix scales with $\order*{D^3}$ \cite[e.g.][Section 8.3]{golub_matrix_2013}, making it impractical for modern datasets, such as those in climate science, where typical data sizes are on the order of $D=\order*{10^6}$ or even larger. For example, ERA5 \cite{c3s_era5_hourly_single}, a widely used reference for state-of-the-art reanalysis climate data, distributes a single climate variable on a regular \ang{0.25} grid, resulting in $D=\num{1036800}$ grid cells.
-
-In practice, more efficient algorithms, such as SVD or power methods~\cite{golub_matrix_2013}, have been traditionally employed. Recently, randomized low-rank approximation techniques~\cite{drineas_clustering_2004,halko_finding_2011,bogaardt_dataset_2019,erichson_sparse_2020} have further reduced computational complexity to $\order*{ND \log(M) + \ab(N+D)M^2}$. These advancements offer feasible alternatives for handling large, out-of-memory datasets (see Table~\ref{tab:pca_algorithm_complexity}).
+\paragraph{Computational Considerations} The computational cost of performing eigendecomposition on the covariance matrix scales with $\order*{D^3}$ \cite[e.g.][Section 8.3]{golub_matrix_2013}, making it impractical for modern datasets, such as those in climate science, where typical data sizes are on the order of $D=\order*{10^6}$ or even larger. For example, ERA5 \cite{c3s_era5_hourly_single}, a widely used reference for state-of-the-art reanalysis climate data, distributes a single climate variable on a regular \ang{0.25} grid, resulting in $D=\num{1036800}$ grid cells. In practice, more efficient algorithms, such as SVD or power methods~\cite{golub_matrix_2013}, have been traditionally employed. Recently, randomized low-rank approximation techniques~\cite{drineas_clustering_2004,halko_finding_2011,bogaardt_dataset_2019,erichson_sparse_2020} have further reduced computational complexity to $\order*{ND \log(M) + \ab(N+D)M^2}$. These advancements offer feasible alternatives for handling large, out-of-memory datasets (see Table~\ref{tab:pca_algorithm_complexity}).
 
 \paragraph{Shortcomings} 
 
@@ -197,78 +207,90 @@ In the following subsections, we explore these limitations and their correspondi
 
 
 \subsection{Sparse PCA via Rotation}\label{sec:theory:rotated_pca}
-PCA is widely used for dimensionality reduction, as it maximizes the explained variance and provides orthogonality, making it optimal in a least-squares sense~\cite[][]{bishop_pattern_2006}. It effectively identifies principal axes that capture the covariance among variables, allowing for the examination of interrelationships between stations, grid points or variables. However, PCA is not ideal for identifying the cause of variation or deriving physical modes of variability~\cite{richman_rotation_1986,legates_effect_1993,jolliffe_principal_2002}. 
+Although PCA is an optimal\footnote{"Optimal" here refers to minimizing reconstruction error in a least-squares sense; see \citet{bishop_pattern_2006}.} linear technique for capturing maximum variance and provides orthogonal vectors of coefficients, it is not necessarily suited for identifying physical "modes" of variability~\cite{richman_rotation_1986,legates_effect_1993,jolliffe_principal_2002}. One reason is that real-world processes need not be orthogonal. Another is that PCA modes often feature broad spatial patterns, with many points (e.g. grid cells or stations) exhibiting non-negligible loadings. This can hinder interpretation and produce so called "Buell patterns"~\cite{buell_physical_1979,richman_rotation_1986,legates_effect_1991}, where artificially smooth dipoles or tripoles appear in the leading modes yet do not necessarily reflext an underlying physical mechanism.
 
-One limitation is that real-world processes do not necessarily adhere to the orthogonality imposed by PCA's eigenvectors. Additionally, the dense nature of these VCs -- where all elements are non-zero -- can make interpretation challenging. In the context of climate and environmental science, where variables are often represented across spatial grids, these limitations can lead to recognizable but artificial patterns known as Buell patterns~\cite{buell_physical_1979,richman_rotation_1986,legates_effect_1991}. These patterns typically start with a positive component and evolve into increasingly complex structures, such as bipole or tripole patterns (Figure~\ref{fig:theory:pca_buell_patterns}). Such issues highlight the disconnect between standard PCA and underlying physical processes~\cite{richman_rotation_1986}, prompting the development of alternative methods that produce sparse VCs, characterized by many zero or near-zero elements. This sparsity -- which necessarily implies the loss of orthogonality for at least one of the VCs and PC scores -- can enhance interpretability by localizing the patterns and reducing the density of the VCs.
+A common practical remedy is to \emph{rotate} the leading PCA modes so that the new modes (i) remain good approximations in a variance sense but (ii) become \emph{sparser}, concentrating the explained variability within more localized regions. This approach, often termed \textit{rotated PCA}, originated in factor analysis \cite[cf.][pp. 269]{jolliffe_principal_2002} and is widely employed in meteorology and climatology \cite{richman_rotation_1986,lim_east_2015,lian_evaluation_2012}.
 
-In climate science, the most common approach to achieving sparse PCA is through rotation techniques~\cite{horel_rotated_1981,richman_obliquely_1981,richman_rotation_1986}, a concept borrowed from factor analysis \cite[cf.][pp. 269]{jolliffe_principal_2002}. In this "factor analysis viewpoint" of PCA \cite[][pp. 150-161]{jolliffe_principal_2002}, a linear transformation is applied to a subset of the VCs to derive a new set of rotated VCs that are "simpler" in a heuristically defined manner, ideally aligning better with the underlying physical processes. 
-
-As noted in Equation~\eqref{eq:theory:pca_reconstruction_loadings}, once the orthogonality constraint is relaxed, PCA solutions exhibit inherent indeterminacy, allowing any non-singular transformation $\bm{R}$ to satisfy the PCA formulation \cite[e.g.][p. 305]{richman_rotation_1986}:
-
-\begin{align}
-    \bm{Z} = \ab(N-1)^{1/2} \bm{U} \tilde{\bm{V}}^H = \ab(N-1)^{1/2} \bm{U} \bm{R} \bm{R}^{-1} \tilde{\bm{V}}^H.
-\end{align}
-
-Rotated PCA exploits this indeterminacy by choosing $\bm{R}$ to optimize a simplicity criterion $f$, resulting in rotated loadings\footnote{In principle, it is possible to rotate the unitary matrix of coefficients $\bm{V}$ instead of the loadings matrix $\tilde{\bm{V}}$~\cite{mestasnunez_orthogonality_2000,jolliffe_principal_2002}. However, this approach is seldom used in practice. The primary reason is that rotating the unitary coefficient matrix preserves the orthogonality of the VCs but results in the loss of orthogonality among the PCs, which does not address issues like the Buell patterns. Moreover, this method does not consider the relative importance of the spatial patterns, as indicated by the eigenvalues, making the results of the rotation process highly sensitive to the selection of the number of components to rotate.} $\tilde{\bm{V}}_R = \tilde{\bm{V}} \bm{R}$ that maximize $f$:
+\subsubsection{Rotation Setup}
+Once the strict orthogonality constraint in Equation~\eqref{eq:theory:pca_maximization} is relaxed, PCA solutions become indeterminate up to any non-singular transformation $\bm{T}$ \cite[e.g.][p. 305]{richman_rotation_1986}. For example, the PCA reconstruction from Equation~\eqref{eq:theory:pca_reconstruction_loadings},
 
 \begin{align}
-    \argmax_{\bm{R}} \, f(\tilde{\bm{V}}_R).
+    \bm{Z} \approx \ab(N-1)^{1/2} \bmn{P} \bm{V}^H = \ab(N-1)^{1/2} \bmn{P} \ab(\bm{T}^{-1})^H \ab(\bm{V} \bm{T} )^H,
 \end{align}
 
+remains valid under the additional transformation $\bm{T}$. In practice, one usually rotates only the leading $R<M$ modes, assuming that higher modes primarily contain noise. This approach improves the signal-to-noise ratio by focusing on the strongest patterns. We denote any matrix truncated to its first $R$ columns with the subscript $R$ (e.g. $\bm{V}_R$ for the leading $R$ loaded eigenvectors). Rotated quantities are marked with a superscript $*$.
 
-There are two main categories of rotation: \textit{orthogonal}\footnote{In the broader context of complex data, this would be referred to as a unitary rotation. However, since factor analysis has primarily been applied to real-valued data, the terms orthogonal and oblique rotations have become the standard. To avoid confusion, I use these historical terms while acknowledging that they also encompass the more general case of complex data.} and \textit{oblique}. In orthogonal rotation, $\bm{R}$ is a unitary matrix, preserving the uncorrelated nature of the PCs since $\bm{U}_R^H\bm{U}_R = \bm{R}^H\bm{U}^H\bm{U}\bm{R} = \bm{1}_M$. In oblique rotation, $\bm{R}$ is a general non-singular matrix, resulting in correlated PCs, as $\bm{U}_R^H\bm{U}_R = \bm{R}^H\bm{R}$.
-Regardless of the method, the rotated loadings are not orthogonal,
+Rotated PCA uses this indeterminacy by choosing $\bm{T} \in \mathcal{C}^{R \times R}$ to optimize a \emph{simplicity criterion} $f$, yielding the rotated loadings\footnote{In principle, it is possible to rotate the unitary eigenvectors $\bmn{V}_R$ instead of the loaded matrix $\bm{V}_R$~\cite{mestasnunez_orthogonality_2000,jolliffe_principal_2002}. However, this approach is seldom used in practice. The primary reason is that rotating the unitary coefficient matrix preserves the orthogonality of the VCs but results in the loss of orthogonality among the PCs, which does not address issues like the Buell patterns. Moreover, this method does not consider the relative importance of the spatial patterns, as indicated by the eigenvalues, making the results of the rotation process highly sensitive to the selection of the number of components to rotate.}
 
 \begin{align}
-    \tilde{\bm{V}}_R^H \tilde{\bm{V}}_R = \bm{R}^H \tilde{\bm{V}}^H  \tilde{\bm{V}} \bm{R} \overset{\eqref{eq:theory:pca_loadings_non_orthogonal}}{=} \bm{R}^H \bm{\Lambda} \bm{R} \neq \bm{I}_M,
+    \bm{V}_R^* &= \bm{V}_R \bm{T}
 \end{align}
 
-which is crucial for achieving a more interpretable solution. Various simplicity criteria $f$ have been proposed~\cite[see e.g.][]{richman_rotation_1986}, with most focusing on making the rotated loadings more localized and physically interpretable. In practice, the specific choice of simplicity criterion often has little impact on the results~\cite{richman_rotation_1986}.
+which maximize $f$.
 
-\paragraph{Varimax Orthogonal Rotation} The most widely used orthogonal rotation technique is the varimax criterion~\cite{kaiser_varimax_1958}, which aims to simplify the VCs by maximizing the variance of the squared loadings,
+There are two main categories of rotation: \textit{orthogonal}\footnote{In the complex-valued case, this is referred to as a "unitary" rotation. However, factor analysis historically deals with real-valued data, so "orthogonal" (and "oblique") remain standard terms.} and \textit{oblique}. In orthogonal rotation, $\bm{T}$ is a unitary matrix, preserving the uncorrelated nature of the PCs, because
+
+\begin{align*}
+    \ab(\bmn{P}_R^*)^H\bmn{P}_R^* &= \bm{T}^H\bmn{P}^H\bmn{P}\bm{T} = \bm{1}_R.
+\end{align*}
+
+In oblique rotation, $\bm{T}$ is any non-singular matrix, leading to correlated PCs since
+
+\begin{align*}
+    \ab(\bmn{P}_R^*)^H\bm{P}_R^* &= \bm{T}^H\bm{T}.
+\end{align*}
+
+In either case, the rotated loadings themselves become non-orthogonal:
 
 \begin{align}
-    f(\tilde{\bm{V}}_R) = \sum_{m=1}^{M} \ab(p \sum_{j=1}^{P} b_{jm}^2 - \ab(\sum_{j=1}^{P} b_{jm})^2 )
+    \ab(\bm{V}_R^*)^H \bm{V}_R^* = \bm{T}^H \bm{V}_R^H  \bm{V}_R \bm{T} \overset{\eqref{eq:theory:pca_loadings_non_orthogonal}}{=} \bm{T}^H \bm{\Lambda}_R \bm{T} \neq \bm{I}_R,
 \end{align}
 
-where $b_{jm}$ are the squared norm of the rotated loadings $|\tilde{v}_{R, jm}|^2 / h_j^2$ normalized by the \textit{communalities} $h_j^2 = \sum_{m=1}^{M}|\tilde{v}_{R, jm}|^2$ of variable $j$. The varimax rotation pushes the elements of $\tilde{\bm{V}}_R$ towards either 0 or 1, creating a sparse solution with primarily large or small values, which is particularly useful for identifying localized physical processes, such as atmospheric or oceanic teleconnections.
+which is key to obtaining more interpretable modes. Numerous simplicity criteria $f$ exist~\cite[see e.g.][]{richman_rotation_1986}, most aiming to make loadings more localized. In practice, the specific choice of criterion often has limited impact on the results~\cite{richman_rotation_1986}.
 
-\paragraph{Promax Oblique Rotation} The promax criterion~\cite{hendrickson_promax_1964}, a generalization of the varimax criterion, is one of the most common oblique rotation techniques. It is based on the premise that an orthogonal simple structure solution, such as varimax, is often close to an optimal oblique solution. The promax method constructs a hypothetical oblique target matrix $\bm{T}$ by performing an oblique Procrustes transformation~\cite{hurley_procrustes_1962} on the varimax-rotated loadings matrix,
+\paragraph{Varimax Orthogonal Rotation} The most widely used orthogonal rotation technique is the \emph{varimax} criterion~\cite{kaiser_varimax_1958}, which aims to simplify the loaded eigenvectors by maximizing the variance of the squared loadings:
+
+\begin{align}
+    f(\bm{V}_R^*) = \sum_{m=1}^{R} \ab[ \frac{1}{D} \sum_{j=1}^{D} \pab{\vab{v_{R, jm}^*}^2}^2 - \ab( \frac{1}{D} \sum_{j=1}^{D} \vab{v_{R, jm}^*}^2 )^2 ].
+\end{align}
+
+By pushing element of $\bm{V}_R^*$ closer to \num{0} and \num{1}, varimax often highlights more localized patterns that may better represent underlying physical processes.
+
+In practice, each variably is usually normalized before rotation so that a few variable with especially large loadings do not dominate the criterion. Specifically, each variable's row in  $\bm{V}_R$ is divided by the square root of its total loading sum of absolute squares, 
+
+\begin{equation}
+    h_j = \sum_{m=1}^{R} \vab{v_{R, jm}}^2
+\end{equation}
+
+where $h_j^2$ is called the \emph{communality} of variable $j$. This \emph{Kaiser normalization} ensures each variable contributes similarly to the rotation. Because orthogonal rotation does not alter each variable's total communality, one can rescale (multiply by $h_j$) after rotation to restore the original variance proportions.
+
+\paragraph{Promax Oblique Rotation} The \emph{promax} criterion~\cite{hendrickson_promax_1964} generalizes varimax to allow oblique solutions. It begins by obtaining an orthogonal simple-structure solution (e.g. varimax) and then constructs a target matrix $\bm{G}\in\mathcal{C}^{D \times R}$ via an oblique Procrustes transformation~\cite{hurley_procrustes_1962} of the varimax-rotated loadings matrix~$\bm{V}_R^*$,
 
 \begin{align}\label{eq:theory:procrustes}
-    \bm{T} = \tilde{\bm{V}}_R \bm{R} + \bm{E},
+    \bm{G} = \bm{V}_R^* \bm{T} + \bm{E},
 \end{align}
 
-where $\bm{R}$ is the oblique rotation matrix and $\bm{E}$ is a matrix of residuals. The normal equation for solving the complex Procrustes problem is given by:
+where $\bm{T}$ is the oblique rotation matrix and $\bm{E}$ is a matrix of residuals. The normal equation for this complex Procrustes problem is:
 
 \begin{align}
-    \bm{R} = (\tilde{\bm{V}}_R^H \tilde{\bm{V}}_R)^{-1} \bm{T}^H \tilde{\bm{V}}_R.
+    \bm{T} = \ab(\ab(\bm{V}_R^*)^H \bm{V}_R^*)^{-1} \bm{G}^H \bm{V}_R^*.
 \end{align}
 
-To define the target matrix $T$, the promax criterion increases the discrimination between high and low loadings by raising the loadings to a power $q$ while retaining the original sign,
+To construct $\bm{G}$, promax amplifies the separation between large and small loadings by raising them to a power $q$ while retaining the original sign:
 
 \begin{align}
-    t_{jm} = \frac{\ab|a_{jm}|^{q+1}}{a_{jm}},
+    g_{jm} = \frac{\vab{\tilde{a}_{jm}}^{q+1}}{\tilde{a}_{jm}},
 \end{align}
 
-where $q$ controls the degree of obliqueness and $a_{jm}$ are the elements of the max-normalized, varimax-rotated loadings matrix $\bm{A}$, defined as 
+where $\tilde{a}_{jm}$ are the max-normalized, varimax-rotated loadings in $\bmn{A} = \bm{A} \bm{K}^{-1}$. Here, $\bm{A} = \bm{H}^{-1}\bm{V}_R^*$, $\bm{K}$ is the diagonal with $k_m = \max_j \vab{a_{jm}}$, and $\bm{H}=\diag(h_1, h_2, \dots, h_D)$ holds the square roots of the communalities. The exponent $q$ controls how strongly high loadings are emphasized, thereby producing a more oblique yet sparse structure that can be more physically interpretable.
 
-\begin{align}
-    \bm{A} &= \tilde{\bm{A}} \bm{K}^{-1}, \\
-    \tilde{\bm{A}} &= \bm{H}^{-1}\tilde{\bm{V}}_R,
-\end{align}
-
-with $\bm{K}$ being a diagonal matrix containing the maximum absolute values of each column of $\tilde{\bm{A}}$, $a_{m} = \max_{m} \ab|A_{pm}|$, and $\bm{H}$ a diagonal matrix with the square root of the communalities $h_j$ for the $j$\textsuperscript{th} variable.
-
-\paragraph{Application and Criticism} Both orthogonal and oblique rotation techniques, particularly varimax and promax, have been extensively used since the 1980s to identify stationary modes of variability in climate data~\cite[e.g.][]{horel_rotated_1981,barnston_classification_1987,lim_east_2015,gao_impacts_2017,mezzina_dynamics_2020,huth_how_2021,lee_quantifying_2019}. Notable climate oscillations, such as the North Atlantic Oscillation (NAO),
-have been defined based on varimax-rotated patterns of loadings~\cite{barnston_classification_1987}. These techniques also help identify "ghost patterns", artificial patterns identified by PCA that are not physically meaningful~\cite{lian_evaluation_2012,huth_how_2021}.
+\paragraph{Application and Criticism} Both orthogonal and oblique rotation techniques, particularly varimax and promax, have been extensively used since the 1980s to identify stationary modes of variability in climate data~\cite[e.g.][]{horel_rotated_1981,barnston_classification_1987,lim_east_2015,gao_impacts_2017,mezzina_dynamics_2020,huth_how_2021,lee_quantifying_2019}. Notable climate oscillations, such as the North Atlantic Oscillation (NAO), have been defined based on varimax-rotated patterns of loadings~\cite{barnston_classification_1987}. These techniques also help identify "ghost patterns", artificial patterns identified by PCA that are not physically meaningful~\cite{lian_evaluation_2012,huth_how_2021}.
 
 Rotated modes offer several advantages, such as greater robustness against temporal and spatial subsampling~\cite{cheng_robustness_1995} compared to unrotated modes. They also effectively mitigate the statistical artifacts associated with Buell patterns, resulting in more realistic representations of the underlying autocorrelation structure and thus increased interpretability~\cite{richman_climatic_1985,richman_rotation_1986,lian_evaluation_2012}. Moreover, rotation techniques have been successfully integrated into other PCA extensions dealing with the non-linear and non-stationary nature of climate oscillations~\cite{horel_complex_1984,bueso_nonlinear_2020,guilloteau_rotated_2020}.
 
-However, rotation techniques are not without criticism, mainly due to the ad-hoc nature of the various simplicity criteria~\cite[cf.][pp. 270-274]{jolliffe_principal_2002}. This has led to the exploration of alternative approaches to enforce sparsity. Notably, \citet{jolliffe_simplified_2002} introduced the Simplified Component Technique - LASSO (SCoTLASS), a sparse PCA variant based on the least absolute shrinkage and selection operator (LASSO), originally from regularized regression \cite{tibshirani_regression_1996}. This method imposes a constraint on the $\ell_1$ norm of the vector of loadings, resulting in some loading coefficients being exactly zero.
+However, rotation techniques are not without criticism, mainly due to the ad-hoc nature of the various simplicity criteria~\cite[cf.][pp. 270-274]{jolliffe_principal_2002}. This has led to the exploration of alternative approaches to enforce sparsity. Notably, \citet{jolliffe_simplified_2002} introduced the Simplified Component Technique - LASSO (SCoTLASS), a sparse PCA variant based on the least absolute shrinkage and selection operator (LASSO), originally from regularized regression \cite{tibshirani_regression_1996}. This method imposes a constraint on the $1$-norm of the vector of loadings, resulting in some loading coefficients being exactly zero.
 
-Despite its advantages, SCoTLASS has drawbacks, particularly when the number of variables $D$ is much larger than the number of observations $N$. In such cases, SCoTLASS can only select at most $N$ non-zero elements in the loading vectors, which is not ideal in climate science where often $D \gg N$. Additionally, since SCoTLASS solutions cannot be obtained via SVD and require a numerical approach using projected gradient methods~\cite{trendafilov_projected_2006}, the computational demand is typically higher 
-than for (rotated) PCA. While this method has inspired many other sparse PCA techniques based on additional constraints (usually the $1$-norm or $2$-norm)~\cite[see e.g.][]{zou_sparse_2006,zou_selective_2018,erichson_sparse_2020}, these formulations are often complex and require algorithmic innovations to avoid issues like local optima and ensure convergence. They may also face challenges with memory limitations, slow computation speeds and limited effectiveness in modelling the data~\cite{guerra-urzola_guide_2021,camacho_all_2020}.
+Despite its advantages, SCoTLASS has drawbacks, particularly when the number of variables $D$ is much larger than the number of observations $N$. In such cases, SCoTLASS can only select at most $N$ non-zero elements in the loading vectors, which is not ideal in climate science where often $D \gg N$. Additionally, since SCoTLASS solutions cannot be obtained via SVD and require a numerical approach using projected gradient methods~\cite{trendafilov_projected_2006}, the computational demand is typically higher than for (rotated) PCA. While this method has inspired many other sparse PCA techniques based on additional constraints (usually the $1$-norm or $2$-norm)~\cite[see e.g.][]{zou_sparse_2006,zou_selective_2018,erichson_sparse_2020}, these formulations are often complex and require algorithmic innovations to avoid issues like local optima and ensure convergence. They may also face challenges with memory limitations, slow computation speeds and limited effectiveness in modelling the data~\cite{guerra-urzola_guide_2021,camacho_all_2020}.
 
 It is likely for these reasons that rotated PCA remains one of the most commonly used techniques for achieving sparse PCA solutions in climate science. It is computationally efficient, straightforward to implement and provides a more interpretable understanding of the data compared to standard PCA.
 
@@ -287,8 +309,7 @@ This static nature poses a challenge for capturing oscillatory patterns, such as
 
 \subsubsection{Hilbert Transform as a Momentum Operator}
 
-To address this limitation, one approach is to model both the current state of the climate and its tendency or `momentum', analogous to the Hamiltonian principle in mechanics, where a system's future is described by first-order differential equations for location (state) and momentum (tendency)~\cite[cf.][p. 353]{storch_statistical_1999}. In classical mechanics, propagating features are represented using canonical coordinates: each state variable is augmented by a momentum variable, allowing oscillations to be depicted as rotations in a two-dimensional phase space. From a data perspective, this augmentation can be achieved via the Hilbert transform ($\mathcal{H}$). For a real time series $x(t)$, the Hilbert transform $x'(t)$ is defined as
-
+To address this limitation, one approach is to model both the current state of the climate and its tendency or "momentum", analogous to the Hamiltonian principle in mechanics, where a system's future is described by first-order differential equations for location (state) and momentum (tendency)~\cite[cf.][p. 353]{storch_statistical_1999}. In classical mechanics, propagating features are represented using canonical coordinates: each state variable is augmented by a momentum variable, allowing oscillations to be depicted as rotations in a two-dimensional phase space. From a data perspective, this augmentation can be achieved via the Hilbert transform ($\mathcal{H}$). For a real time series $x(t)$, the Hilbert transform $x'(t)$ is defined as
 
 \begin{align}\label{eq:theory:hilbert_transform_time}
 x'(t) \equiv \HT{x}(t) = \frac{1}{\pi} \pv \int_{-\infty}^{\infty} \frac{x(\tau)}{\tau - t} d\tau,
@@ -315,122 +336,118 @@ defining the analytic signal of a data matrix $X$ as
     \bm{Z} = \bm{X} + i \HT{\bm{X}},
 \end{align}
 
-where $\HT{\bm{X}}$ is the feature-wise Hilbert transform of $\bm{X}$. 
+where $\HT{\bm{X}}$ is the feature-wise Hilbert transform of a real-valued, $N\times D$ data matrix $\bm{X}$. 
 
 
 \citet{rasmusson_biennial_1981} introduced the concept of Hilbert PCA using this data augmentation technique\footnote{Although \citet{rasmusson_biennial_1981} originally termed it \textit{Hilbert Singular Decomposition}, the terms \textit{Hilbert EOF/PCA} and \textit{Complex EOF} anaylsis are more commonly used in the literature \cite{jolliffe_principal_2002,storch_statistical_1999,hannachi_patterns_2021,burger_intraseasonal_2021}.     In this thesis, we adopt the term Hilbert PCA to align with standard conventions and to distinguish it from Complex PCA, a different method that does not involve the Hilbert transform. Complex PCA constructs a complex signal by combining two separate variables---often representing zonal and meridional flow, such as wind speed---as the real and imaginary components before applying complex SVD.}. This method, refined by \citet{barnett_interaction_1983} and \citet{horel_complex_1984}, involves applying PCA to the augmented data matrix $\bm{Z}$. By incorporating phase information, Hilbert PCA can capture the direction and speed of wave-like patterns, unlike traditional PCA, which only identifies standing oscillations. The resulting eigenvectors and principal component scores are complex, with the real and imaginary components linked via the Hilbert transform. The variance captured by each component is represented by the real eigenvalues of the complex covariance matrix of $\bm{Z}$ (see Section~\ref{sec:theory:pca}).
 
-The main advantage of Hilbert PCA is the ability to identify and reconstruct propagating waves, which is especially valuable in studying climate phenomena characterized by such patterns, including MJO, ENSO and QBO. For instance, \citet{cai_forcing_2001} utilized Hilbert PCA to analyze SST in the Southern Hemisphere, linking the findings to ENSO, while \citet{burger_intraseasonal_2021} employed it to develop an index for the Boreal summer intraseasonal oscillation (BSISO). However, to reliably identify oscillatory patterns, sufficiently long time series are required to resolve at least one full oscillation~\cite{merrifield_detecting_1990}. Additionally, interpreting of the Hilbert transform as representing the instantaneous frequency is valid holds for narrowband signals; the phase of the Hilbert transform is not well-defined for broadband signals~\cite{gabor_theory_1946,boashash_estimating_1992}. Moreover, real-time monitoring is challenging with Hilbert PCA because new real-valued data cannot be directly projected onto the existing patterns without knowing or estimating the exact momentum (phase) of the new data, which requires future information (Equation~\eqref{eq:theory:hilbert_transform_time}). To mitigate this, an approximate real-time (causal) Hilbert transform can be employed~\cite{burger_complex_1993,burger_intraseasonal_2021}, offering a practical remedy to the issue of real-time applicability. Finally, Hilbert PCA shares PCA's limitations regarding physical interpretability due to the orthogonality of the VCs. To address this, rotated Hilbert PCA has been proposed to enhance interpretability~\cite{horel_rotated_1981,bloomfield_orthogonal_1994}. 
+The main advantage of Hilbert PCA is the ability to identify and reconstruct propagating waves, which is especially valuable in studying climate phenomena characterized by such patterns, including MJO, ENSO and QBO. For instance, \citet{cai_forcing_2001} utilized Hilbert PCA to analyze SST in the Southern Hemisphere, linking the findings to ENSO, while \citet{burger_intraseasonal_2021} employed it to develop an index for the Boreal summer intraseasonal oscillation (BSISO). However, to reliably identify oscillatory patterns, sufficiently long time series are required to resolve at least one full oscillation~\cite{merrifield_detecting_1990}. Additionally, interpreting of the Hilbert transform as representing the instantaneous frequency holds only for narrowband signals; the phase of the Hilbert transform is not well-defined for broadband signals~\cite{gabor_theory_1946,boashash_estimating_1992}. Moreover, real-time monitoring is challenging with Hilbert PCA because new real-valued data cannot be directly projected onto the existing patterns without knowing or estimating the exact momentum (phase) of the new data, which requires future information (Equation~\eqref{eq:theory:hilbert_transform_time}). To mitigate this, an approximate real-time (causal) Hilbert transform can be employed~\cite{burger_complex_1993,burger_intraseasonal_2021}, offering a practical remedy to the issue of real-time applicability. Finally, Hilbert PCA shares PCA's limitations regarding physical interpretability due to the orthogonality of the VCs. To address this, rotated Hilbert PCA has been proposed to enhance interpretability~\cite{horel_rotated_1981,bloomfield_orthogonal_1994}. 
 
 
 \section{Maximum Covariance Analysis}
 \label{sec:theory:mca}
 
-In contrast to finding latent variables that maximize variance within a single dataset, Maximum Covariance Analysis (MCA) aims to identify the latent variables that are common in two sets of data and maximize covariance. For example, in the case of the MJO \cite{madden_detection_1971}, which is the dominant mode of intraseasonal variability in the tropical atmosphere, characterized by an eastward-moving cell of overturning wind circulation and associated regions of enhanced and suppressed precipitation, MCA allows us to focus on shared variability between different variables while ignoring dominant variations associated with only one variable, such as diurnal cycles linked to surface processes absent at higher atmosphere levels. 
-MCA gained popularity in the field of meteorology\footnote{According to \citet[][p. 225]{jolliffe_principal_2002}, the technique was first used in psychology in the 1950s under the name \textit{inter-battery factor analysis}. As a variant of Partial Least Squares (PLS), it was later applied in biomedical sciences by \citet{sampson_neurobehavioral_1989} and was referred to as \textit{PLS-SVD} by \citet{wegelin_survey_2000}. In meteorology, \citet{bretherton_intercomparison_1992} introduced the term \textit{SVD analysis}, which remains in use today \cite[e.g.][]{mori_reconciled_2019}. Occasionally, the method is also called \textit{Canonical Covariance Analysis}, similar to Canonical Correlation Analysis \cite[e.g.][]{cherry_singular_1996,hannachi_patterns_2021}.} through the works of \citet{bretherton_intercomparison_1992} and \citet{wallace_singular_1992}, since when it has been extensively applied \cite[e.g.][]{wallace_singular_1992,tsai_maximum_2009,li_north_2016,barreto_maximum_2017,mori_reconciled_2019,rathore_improving_2021}.
+Maximum Covariance Analysis (MCA) identifies patterns of maximum covariance between datasets by finding pairs of linear subspaces\footnote{\citet{cherry_comments_1997} provided an interesting, complementary view: MCA can be seen as two PCAs followed by rotation to align the results of the two analyses as closely as possible. Based on this view, it becomes immediately clear that MCA reduces to PCA when both sets are identical.} with high covariance \cite[e.g.][p. 321]{storch_statistical_1999}. Unlike PCA, which operates on a single set of variables, MCA considers two\footnote{In theory, this can be extended to more than two sets of data \cite{kettenring_canonical_1971}.} sets of variables and seeks components that exhibit high covariance across datasets, sometimes called \textit{cross-covariance}. For example, in the case of the MJO \cite{madden_detection_1971}, which is the dominant mode of intraseasonal variability in the tropical atmosphere, characterized by an eastward-moving cell of overturning wind circulation and associated regions of enhanced and suppressed precipitation, MCA allows us to focus on shared variability between different variables while ignoring dominant variations associated with only one variable, such as diurnal cycles linked to surface processes absent at higher atmosphere levels. MCA gained popularity in the field of meteorology\footnote{According to \citet[][p. 225]{jolliffe_principal_2002}, the technique was first used in psychology in the 1950s under the name \textit{inter-battery factor analysis}. As a variant of Partial Least Squares (PLS), it was later applied in biomedical sciences by \citet{sampson_neurobehavioral_1989} and was referred to as \textit{PLS-SVD} by \citet{wegelin_survey_2000}. In meteorology, \citet{bretherton_intercomparison_1992} introduced the term \textit{SVD analysis}, which remains in use today \cite[e.g.][]{mori_reconciled_2019}. Occasionally, the method is also called \textit{Canonical Covariance Analysis}, similar to Canonical Correlation Analysis \cite[e.g.][]{cherry_singular_1996,hannachi_patterns_2021}.} through the works of \citet{bretherton_intercomparison_1992} and \citet{wallace_singular_1992}, since when it has been extensively applied \cite[e.g.][]{wallace_singular_1992,tsai_maximum_2009,li_north_2016,barreto_maximum_2017,mori_reconciled_2019,rathore_improving_2021}.
 
-MCA identifies patterns of maximum covariance between datasets by finding pairs of linear subspaces\footnote{\citet{cherry_comments_1997} provided an interesting, complementary view: MCA can be seen as two PCAs followed by rotation to align the results of the two analyses as closely as possible. Based on this view, it becomes immediately clear that MCA reduces to PCA when both sets are identical.} with high covariance \cite[e.g.][p. 321]{storch_statistical_1999}. Unlike PCA, which operates on a single set of variables, MCA considers two\footnote{In theory, this can be extended to more than two sets of data \cite{kettenring_canonical_1971}.} sets of variables and seeks components that exhibit high covariance across datasets, sometimes called cross-covariance. This approach can be formulated as an optimization problem, aiming to find pairs of (complex-valued) coupled patterns $\bm{v}_{s,1}$ for datasets $\bm{Z}_s$, $s=\{x, y\}$, such that the projection maximizes the covariance between the datasets:
+Let $\bm{Z}_x$ be an $N\times D_x$ data matrix of $N$ samples from one field (e.g., ocean), and $\bm{Z}_y$ be an $N \times D_y$ data matrix of $N$ samples from another field (e.g., atmosphere). For sample $i\in\{1, \dots, N\}$, let $\bm{z}_{x,i}$ and $\bm{z}_{y,i}$ be the corresponding column vectors. Assume both are centered over the sample index $i$. MCA finds linear mappings $\bmn{v}_x$, $\bmn{v}_y$ so that $\bmn{v}_x^H \bm{z}_{x,i}$  and $\bmn{v}_y^H \bm{z}_{y,i}$ co-vary as strongly as possible. Concretely, it solves
 
 \begin{align}\label{eq:theory:mca_maximization}
-    \argmax_{\bm{v}_{x,1}, \bm{v}_{y,1}} \, \bm{v}_{x,1}^H \bm{C}_{xy} \bm{v}_{y,1} \quad \text{subject to} \quad \Vab{\bm{v}_{x,1}}_2 = \Vab{\bm{v}_{y,1}}_2 = 1,
+    \argmax_{\bmn{v}_{x}, \bmn{v}_{y}} \, \bmn{v}_{x}^H \bm{C}_{xy} \bmn{v}_{y} \quad \text{subject to} \quad \Vab{\bmn{v}_{x}}_2 = \Vab{\bmn{v}_{y}}_2 = 1,
 \end{align}
 
-where the cross-covariance matrix between the two datasets is given by
+where $\bm{C}_{xy}$ is the $D_x \times D_y$ cross-covariance matrix,
 
 \begin{align}\label{eq:theory:mca_cross_covariance}
     \bm{C}_{xy} = \frac{1}{N-1} \bm{Z}_x^H \bm{Z}_y.
 \end{align}
 
-The solution to this problem gives rise to a generalized eigenvalue equations similar to that of PCA, which can also be solved by using the SVD of the cross-covariance matrix,
+By analogy with PCA, one can show the solutions are given by the SVD of $\bm{C}_{xy}$:
 
 \begin{align}\label{eq:theory:mca_svd}
-    \bm{C}_{xy} = \bm{V}_x \bm{\Sigma} \bm{V}_y^H,
+    \bm{C}_{xy} = \bmn{V}_x \bm{\Sigma} \bmn{V}_y^H,
 \end{align}
 
-% Proof that optimality of leading SVD components: https://atmos.washington.edu/~breth/classes/AS552/lect/lect22.pdf
+where the singular vectors $\bmn{V}_x\in\mathbb{C}^{D_x \times M}$ and $\bmn{V}_y\in\mathbb{C}^{D_y \times M}$ contain orthonormal columns $\bmn{v}_{x,m}$ and $\bmn{v}_{y,m}$, and $\bm{\Sigma}$ is diagonal with real, nonnegative singular values $\sigma_1 \geq \sigma_2 \geq \dots \sigma_M$, and $M=\rank(\bm{C}_{xy})$. Each pair $\{ \bm{v}_{x,m}, \bm{v}_{y,m}\}$ is a "coupled mode" maximizing the covariance between $\bm{Z}_x$ and $\bm{Z}_y$.
 
-where the $k$\textsuperscript{th} column of the left and right singular vectors, $\bm{V}_x$ and $\bm{V}_y$, contains the pattern vectors $\bm{v}_{x,k}$ and $\bm{v}_{y,k}$, and $\bm{\Sigma}$ a diagonal matrix containing the singular values $\sigma_k$ in descending order, with $k=1\dots M$ and $M=\rank(\bm{C}_{xy})$. The first left and right singular vectors correspond to the maximum covariance, given by the largest singular value $\sigma_1$.
-
-The associated time series of these pattern vectors, typically called expansion coefficients, $\bm{P}_s$ for each dataset are obtained by projecting the data onto the pattern vectors:
+Projecting the data onto the pattern vectors $\bm{v}_{x,m}$ and $\bm{v}_{y,m}$ yields the associated time series, often called \textit{expansion coefficients}:
 
 \begin{align}\label{eq:theory:mca_projection}
-    \bm{P}_s &= \bm{Z}_s \bm{V}_s,
+    \bm{P}_s &= \bm{Z}_s \bmn{V}_s, \quad s\in\{x, y\}.
 \end{align}
 
-with the expansion coefficients $\bm{P}_s$, $s\in \{x, y\}$. Note that in MCA an exact reconstruction of the original data is in general not possible, in contrast to PCA (see Equation \eqref{eq:theory:pca_reconstruction}), as the cross-covariance matrix has in general lower rank than the original data matrices, i.e. $\rank(\bm{C}_{xy}) \leq \min(M_x, M_y)$, where $M_x$ and $M_y$ are the number of variables in each dataset. In other words, the singular vectors $\bm{V}_x$ and $\bm{V}_y$ span a subspace of the original data space, capturing the shared variability between the two datasets, and thus--in general--do not provide a complete basis for either $\bm{Z}_x$ or $\bm{Z}_y$. Equation~\eqref{eq:theory:mca_projection} can be used though to reconstruct the shared variability into the original data space of each dataset:
+Note that in MCA an exact reconstruction of the original data is in general not possible, in contrast to PCA (see Equation \eqref{eq:theory:pca_reconstruction}), as the cross-covariance matrix has in general lower rank than the original data matrices, i.e. $\rank(\bm{C}_{xy}) \leq \min(D_x, D_y)$. In other words, the singular vectors $\bm{V}_x$ and $\bm{V}_y$ span a subspace of the original data space, capturing the shared variability between the two datasets, and thus--in general--do not provide a complete basis for either $\bm{Z}_x$ or $\bm{Z}_y$. Equation~\eqref{eq:theory:mca_projection} can be used though to reconstruct the shared variability into the original data space of each dataset:
 
 \begin{align}\label{eq:theory:mca_reconstruction}
-    \bm{\hat{Z}}_s \approx \bm{P}_s \bm{V}_s^H.
+    \bm{\hat{Z}}_s \approx \bm{P}_s \bmn{V}_s^H.
 \end{align}
-
 
 It can be shown that the expansion coefficients $\bm{P}_x$ and $\bm{P}_y$ are jointly orthogonal:
 
 \begin{align}\label{eq:theory:mca_covariance}
-    \frac{1}{N-1}\bm{P}_x^H \bm{P}_y \overset{\eqref{eq:theory:mca_projection}}&{=} \frac{1}{N-1} \bm{V}_x^H \bm{Z}_x^H \bm{Z}_y \bm{V}_y \overset{\eqref{eq:theory:mca_cross_covariance}}{=} \bm{V}_x^H \bm{C}_{xy} \bm{V}_y \overset{\eqref{eq:theory:mca_svd}}{=} \bm{\Sigma}.
+    \frac{1}{N-1}\bm{P}_x^H \bm{P}_y \overset{\eqref{eq:theory:mca_projection}}&{=} \frac{1}{N-1} \bmn{V}_x^H \bm{Z}_x^H \bm{Z}_y \bmn{V}_y \overset{\eqref{eq:theory:mca_cross_covariance}}{=} \bmn{V}_x^H \bm{C}_{xy} \bmn{V}_y \overset{\eqref{eq:theory:mca_svd}}{=} \bm{\Sigma}.
 \end{align}
 
 However, the expansion coefficients $\bm{P}_x$ and $\bm{P}_y$ are not orthogonal within themselves, meaning their covariance matrices $\bm{P}_s^H\bm{P}_s$ are generally not diagonal. 
 
-Equation~\eqref{eq:theory:mca_covariance} can also be interpreted as the total covariance between $\bm{X}$ and $\bm{Y}$, given by the trace of $\bm{\Sigma}$. Therefore, one may use the singular values to assess the relative importance of each mode. However, this total covariance is \emph{not} equal to the sum of covariances between $\bm{X}$ and $\bm{Y}$ before decomposition. The reason is that covariances can be positive or negative, and summing them directly may result in cancellations. Moreover, the singular values $\sigma_k$ are always non-negative, representing the magnitude of covariance captured by each mode, without accounting for sign. That is, the total covariance is \emph{not invariant} before and after decomposition. 
+Equation~\eqref{eq:theory:mca_covariance} can also be interpreted as the total covariance between $\bm{Z}_x$ and $\bm{Z}_y$, given by the trace of $\bm{\Sigma}$. Therefore, one may use the singular values to assess the relative importance of each mode. However, this total covariance is \emph{not} equal to the sum of covariances between $\bm{Z}_x$ and $\bm{Z}_y$ before decomposition. The reason is that covariances can be positive or negative, and summing them directly may result in cancellations. Moreover, the singular values $\sigma_k$ are always non-negative, representing the magnitude of covariance captured by each mode, without accounting for sign. That is, the total covariance is \emph{not invariant} before and after decomposition. 
 
-A more appropriate measure to assess the relative importance of each mode in capturing the shared variability between the two datasets is the \emph{squared} covariance. The reason for this can be seen by computing the squared Frobenius norm of the cross-covariance matrix,
+A more appropriate measure to assess the relative importance of each mode in capturing the shared variability between the two datasets is the \emph{squared} covariance. The reason for this can be seen by computing the squared Frobenius norm of the cross-covariance matrix:
 
 \begin{align}\label{eq:theory:total_squared_covariance}
-    \Vab{\bm{C}_{xy}}_F^2 &\equiv  \pab{\sum_i^N \sum_j^P \vab{c_{ij}}^2} = \sum_{i}^{M} \sigma_i^2,
+    \Vab{\bm{C}_{xy}}_F^2 &\equiv  \pab{\sum_i^N \sum_j^D \vab{c_{ij}}^2} = \sum_{k}^{M} \sigma_k^2.
 \end{align}
 
-where $M$ is the rank of the cross-covariance matrix. The result shows that the total squared covariance of the cross-covariance matrix $\bm{C}_{xy}$ is an invariant and the same as the sum of the squared singular values. A formal proof for this statement is provided in Appendix~\ref{app:proof:frobenius_norm}. Therefore, the relative importance of mode $k$ can be quantified by the squared covariance fraction (SCF) $f_{xy, k}$:
+The result shows that the total squared covariance of the cross-covariance matrix $\bm{C}_{xy}$ is an invariant and the same as the sum of the squared singular values. A formal proof for this statement is provided in Appendix~\ref{app:proof:frobenius_norm}. Therefore, the relative importance of mode $m$ can be quantified by the squared covariance fraction (SCF) $f_{xy, m}$:
 
 \begin{align}\label{eq:theory:mca_scf_singular_values}
-    f_{xy, k} = \frac{\sigma_k^2}{\sum_{i=1}^{M} \sigma_i^2}.
+    f_{xy, m} = \frac{\sigma_m^2}{\sum_{i=1}^{M} \sigma_i^2}.
 \end{align}
 
 Alternatively, this expression can be formulated as a residual-based measure \cite{swenson_continuum_2015}:
 
 \begin{align}\label{eq:theory:mca_scf_residual}
-    f_{xy, k} = 1 - \frac{\Vab{(\bm{Z}_{x} - \bm{\hat{Z}}_{x,k})^H (\bm{Z}_{y} - \bm{\hat{Z}}_{y,k})}_F^2}{\Vab{\bm{Z}_{x}^H\bm{Z}_{y}}_F^2}
+    f_{xy, m} = 1 - \frac{\Vab{(\bm{Z}_{x} - \bm{\hat{Z}}_{x,m})^H (\bm{Z}_{y} - \bm{\hat{Z}}_{y,m})}_F^2}{\Vab{\bm{Z}_{x}^H\bm{Z}_{y}}_F^2}
 \end{align}
 
-where $\bm{\hat{Z}}_{x,k}$ and $\bm{\hat{Z}}_{y,k}$ represent the shared variability of the $k$\textsuperscript{th} mode reconstructed in the original data space using Equation~\eqref{eq:theory:mca_reconstruction}. This fraction provides a measure of how much of the shared variability between the two datasets is captured by the $k$\textsuperscript{th} mode. 
+where $\bm{\hat{Z}}_{x,m}$ and $\bm{\hat{Z}}_{y,m}$ represent the shared variability of the $m$\textsuperscript{th} mode reconstructed in the original data space using Equation~\eqref{eq:theory:mca_reconstruction}. This fraction provides a measure of how much of the shared variability between the two datasets is captured by the $m$\textsuperscript{th} mode. 
 
 To assess the relative importance of the patterns in relation to each dataset, it is necessary to consider the variance within the individual datasets explained by each mode relative to the total variance of the individual datasets. This can be expressed using the squared Frobenius norm of the individual datasets:
 
 \begin{align}
-    f_{ss, k} &= \frac{\bm{v}_{s,k}^H\bm{C}_{ss}\bm{v}_{s,k}}{\tr \left(\bm{Z}_s\right)} = \frac{\bm{p}_{s,k}^H\bm{p}_{s,k}}{\Vab{\bm{Z}_s}_F^2}.
+    f_{ss, m} &= \frac{\ab(\bmn{v}_{s,m})^H\bm{C}_{ss}\bmn{v}_{s,m}}{\tr \ab( \bm{Z}_s )} = \frac{\ab(\bm{p}_{s,m})^H\bm{p}_{s,m}}{\Vab{\bm{Z}_s}_F^2}.
 \end{align}
 
 Note that this projection-based measure of explained variance is mathematically the same in MCA as the following residual-based measure:
 
 \begin{align}\label{eq:theory:mca_explained_variance}
-    f_{ss, k} &= 1 - \frac{\Vab{\bm{Z}_s - \bm{\hat{Z}}_{s,k}^2}}{\Vab{\bm{Z}_s}_F^2}
+    f_{ss, m} &= 1 - \frac{\Vab{\bm{Z}_s - \bm{\hat{Z}}_{s,m}^2}}{\Vab{\bm{Z}_s}_F^2}
 \end{align}
 
-While the SCF $f_{xy, k}$ indicates the amount of shared variability between the two datasets, it does not provide information about the strength of the association or coupling between them. To measure this, we use the correlation coefficient $\rho_k$ for the expansion coefficients of mode $k$ between the two datasets:
+While the SCF $f_{xy, m}$ indicates the amount of shared variability between the two datasets, it does not provide information about the strength of the association or coupling between them. To measure this, we use the correlation coefficient $\rho_m$ for the expansion coefficients of mode $m$ between the two datasets:
 
 \begin{align}
-    \rho_k = \frac{\cov (\bm{p}_{x, k}, \bm{p}_{y, k}) }{\pab{\var(\bm{p}_{x, k}) \var(\bm{p}_{y, k})}^{1/2}} =  \frac{\sigma_k}{\Vab{\bm{p}_{x, k}}^2 \Vab{\bm{p}_{y, k}}^2}.
+    \rho_m = \frac{\cov \ab(\bm{p}_{x,m}, \bm{p}_{y,m}) }{\pab{\var(\bm{p}_{x,m}) \var(\bm{p}_{y,m})}^{1/2}} =  \frac{\sigma_m}{\Vab{\bm{p}_{x,m}}^2 \Vab{\bm{p}_{y,m}}^2}.
 \end{align}
 
 The homogeneous covariance patterns \cite{bretherton_intercomparison_1992} for the pattern vectors are:
 
 \begin{subequations}
     \begin{align}
-        \bm{h}_{M,x,k} = \cov(\bm{Z}_x, \bm{p}_{x, k}) = \bm{S}_{xx} \bm{v}_{x, k},\\
-        \bm{h}_{M,y,k} = \cov(\bm{Z}_y, \bm{p}_{y, k}) = \bm{S}_{yy} \bm{v}_{y, k},
+        \bm{h}_{x, m}^{\text{hom}} = \cov(\bm{Z}_x, \bm{p}_{x,m}) = \bm{C}_{xx} \bmn{v}_{x,m},\\
+        \bm{h}_{y, m}^{\text{hom}} = \cov(\bm{Z}_y, \bm{p}_{y,m}) = \bm{C}_{yy} \bmn{v}_{y,m},
     \end{align}
 \end{subequations}
 
-These patterns provide an indicator of which variables or features are important for the co-varying components in both fields. The corresponding heterogeneous covariance patterns are defined as:
+where $\bm{C}_{xx}$ and $\bm{C}_{yy}$ are the covariance matrix of $\bm{Z}_x$ and $\bm{Z}_y$, respectively. These patterns provide an indicator of which variables or features are important for the co-varying components in both fields. The corresponding heterogeneous covariance patterns are defined as:
 
 \begin{subequations}
     \begin{align}\label{eq:theory:mca_heterogeneous_patterns}
-        \bm{h}_{T,x,k} = \cov(\bm{Z}_x, \bm{p}_{y, k}) = \sigma_i \bm{v}_{y, k},\\
-        \bm{h}_{T,y,k} = \cov(\bm{Z}_y, \bm{p}_{x, k}) = \sigma_i \bm{v}_{x, k}.
+        \bm{h}_{x,m}^{\text{het}} = \cov(\bm{Z}_x, \bm{p}_{y,m}) = \sigma_m \bmn{v}_{y,m},\\
+        \bm{h}_{y,m}^{\text{het}} = \cov(\bm{Z}_y, \bm{p}_{x,m}) = \sigma_m \bmn{v}_{x,m}.
     \end{align}
 \end{subequations}
 
-These patterns indicate how well the variables in one field can be predicted from the $k$\textsuperscript{th} expansion coefficient of the other field. One may also use standardized data to obtain the respective homogeneous and heterogeneous correlation patterns.
+These patterns indicate how well the variables in one field can be predicted from the $m$\textsuperscript{th} expansion coefficient of the other field. One may also use standardized data to obtain the respective homogeneous and heterogeneous correlation patterns.
 
 
 \paragraph{Computational Complexity} In MCA, computing the cross-covariance matrix (see~\eqref{eq:theory:mca_cross_covariance}) can be a significant bottleneck, as its dimensions depend on the number of grid points or, more generally, the feature dimensions to be reduced. For instance, modern climate datasets, such as ERA5, comprise on the order of one million grid points for a single variable at one pressure level. Consequently, storing this matrix may require between 1 and 10 terabytes of memory, depending on the numerical precision (e.g., \texttt{np.float32} versus \texttt{np.float64} in Python). These substantial memory demands, combined with the computational  cost of forming the matrix and performing its SVD, render the direct approach impractical in many applications. A viable alternative is to perform MCA in a reduced subspace spanned by the principal components of each dataset. When combined with randomized linear algebra techniques \cite{halko_finding_2011}, this PCA preprocessing step yields significant computational gains, particularly for moderate to large datasets.
@@ -438,52 +455,55 @@ These patterns indicate how well the variables in one field can be predicted fro
 \subsection{Rotated Hilbert MCA}\label{sec:theory:mca_rotated_hilbert}
 The method's orthogonal patterns ensure efficient dimensionality reduction of the covariance but limit physical interpretability, similar to PCA. To enhance interpretability, rotation of the MCA solution can be employed. In the following, we outline the rotation procedure as proposed by \citet{cheng_orthogonal_1995}.
 
-A `loaded' composite matrix $L$ of the left and right singular vectors truncated to the first $R$ modes, $\bm{\tilde{V}}_{s}$, is constructed and a simplicity criterion (e.g. varimax) is applied,
+A \textit{loaded} composite matrix $\bm{L}$ of the left and right singular vectors truncated to the first $R$ modes $\bm{V}_{s,R}$ is constructed and a simplicity criterion (e.g. varimax) is applied,
 
 \begin{align}
-    \bm{L} = 
+    \bm{L}_R = 
     \begin{bmatrix}
-        \bm{\tilde{V}}_{x}\\
-        \bm{\tilde{V}}_{y}
+        \bm{\tilde{V}}_{x,R}\\
+        \bm{\tilde{V}}_{y,R}
     \end{bmatrix}
-    \Sigma^{1/2},
+    \bm{\Sigma}_R^{1/2} = \begin{bmatrix}
+        \bm{V}_{x,R}\\
+        \bm{V}_{y,R}
+    \end{bmatrix},
 \end{align}
 
-where the term `loaded' refers to the fact that the truncated singular vectors are weighted by the square root of the singular values. The rotated pattern vectors $\bm{\tilde{V}}_{R,s}$ are then obtained by applying the rotation matrix $\bm{R}$ to the `loaded' $\bm{\tilde{V}}_{s}$:
+where the term "loaded" refers to the fact that the truncated singular vectors are weighted by the square root of the singular values. The rotated pattern vectors $\bm{V}_{s,R}^*$ are then obtained by applying the rotation matrix $\bm{T}$ to the loaded $\bm{V}_{s,R}$:
 
 \begin{align}\label{eq:theory:mca_rotated_pattern_vectors}
-    \bm{\tilde{V}}_{R,s} =& \bm{\tilde{V}}_{s} \Sigma^{1/2} \bm{R} \bm{W}_s^{-1}
+    \bmn{V}_{s,R}^* =& \bmn{V}_{s,R} \bm{\Sigma}_R^{1/2} \bm{T} \bm{W}_s^{-1}
 \end{align}
 
-where $\bm{W}_s^{-1}$ is a diagonal matrix with the elements that normalize the rotated pattern vectors to unit length. Similarly, the associated rotated expansion coefficients $\bm{\tilde{P}}_{R,s}$ are then obtained by rotating the first $R$ non-rotated expansion coefficients $\bm{\tilde{P}}_{s}$:
+where $\bm{W}_s^{-1}$ is a diagonal matrix with the elements that normalize the rotated pattern vectors to unit length. Similarly, the associated rotated expansion coefficients $\bm{P}_{s,R}^*$ are then obtained by rotating the first $R$ non-rotated expansion coefficients $\bm{P}_{s,R}$:
 
 \begin{align}
-    \bm{\tilde{P}}_{R,x} =& \bm{\tilde{P}}_x \Sigma^{-1/2} \bm{R} \bm{W}_s
+    \bm{P}_{s,R}^* =& \bm{P}_{s,R} \bm{\Sigma}_R^{-1/2} \bm{T} \bm{W}_s
 \end{align}
 
 For an orthogonal rotation, the rotated expansion coefficients remain uncorrelated:
 
 \begin{align}\label{eq:theory:mca_covariance_rotated_expansion_coefficients}
-    \bm{\tilde{P}}_{R,x}^H \bm{\tilde{P}}_{R,y}  =& \pab{ \bm{\tilde{P}}_x \Sigma^{-1/2} \bm{R} \bm{W}_x}^H \pab{ \bm{\tilde{P}}_y \Sigma^{-1/2} \bm{R} \bm{W}_y} \nonumber\\
-    =& \bm{W}_x \bm{R}^H \Sigma^{-1/2} \bm{\tilde{P}}_x^H \bm{\tilde{P}}_y \Sigma^{-1/2} \bm{R} \bm{W}_y \nonumber\\
+    \ab(\bm{P}_{x,R}^*)^H \bm{P}_{y,R}^*  =& \pab{ \bm{P}_{x,R} \bm{\Sigma}_R^{-1/2} \bm{T} \bm{W}_x}^H \pab{ \bm{P}_{y,R} \bm{\Sigma}_R^{-1/2} \bm{T} \bm{W}_y} \nonumber\\
+    =& \bm{W}_x \bm{T}^H \bm{\Sigma}_R^{-1/2} \bm{P}_{x,R}^H \bm{P}_{y,R} \bm{\Sigma}_R^{-1/2} \bm{T} \bm{W}_y \nonumber\\
     =& (N-1) \bm{W}_x \bm{W}_y.
 \end{align}
 
 while the unitary property of the rotated pattern vectors is removed:
 
 \begin{align}
-    \bm{\tilde{V}}_{R,x}^H \bm{\tilde{V}}_{R,y} =& \pab{ \bm{\tilde{V}}_x \Sigma^{1/2} \bm{R} W_x}^H \pab{ \bm{\tilde{V}}_y \Sigma^{1/2} \bm{R} \bm{W}_y^{-1}} \nonumber\\
-    =& \bm{W}_x \bm{R}^H \Sigma^{1/2} \bm{\tilde{V}}_x^H \bm{\tilde{V}}_y \Sigma^{1/2} \bm{R} \bm{W}_y \nonumber\\
-    =& \bm{W}_x \bm{R}^H \Sigma \bm{R} \bm{W}_y.
+    \ab(\bmn{V}_{x,R}^*)^H \bmn{V}_{y,R}^* =& \pab{ \bmn{V}_{x,R} \bm{\Sigma}_R^{1/2} \bm{T} \bm{W}_x}^H \pab{ \bmn{V}_{y,R} \bm{\Sigma}_R^{1/2} \bm{T} \bm{W}_y^{-1}} \nonumber\\
+    =& \bm{W}_x \bm{T}^H \bm{\Sigma}_R^{1/2} \bmn{V}_{x,R}^H \bmn{V}_{y,R} \bm{\Sigma}_R^{1/2} \bm{T} \bm{W}_y \nonumber\\
+    =& \bm{W}_x \bm{T}^H \bm{\Sigma}_R \bm{T} \bm{W}_y.
 \end{align}
 
 To assess the relative importance of the rotated modes, \citet{cheng_orthogonal_1995} proposed to use the fraction of covariance explained, defined as
 
 \begin{align}\label{eq:theory:mca_rotated_covariance_fraction}
-    f_{\text{CD}, k} = \frac{\sigma_k}{\sum_{i=1}^{M} \sigma_i}.
+    f_{\text{CD}, m} = \frac{\sigma_m}{\sum_{k=1}^{M} \sigma_k}.
 \end{align}
 
-\citet{cheng_orthogonal_1995} argued that they chose this measure to be consistent with PCA and rotated PCA, although they acknowledge that it is the total squared covariance which is an invariant in MCA. 
+\citet{cheng_orthogonal_1995} argued that they chose this measure to be consistent with PCA and rotated PCA, although they acknowledge that it is the total \emph{squared} covariance which is an invariant in MCA. 
 
 In this thesis, we demonstrate that while the total covariance between two datasets is preserved under rotation, the total \emph{squared} covariance is not. To the best of our knowledge, this distinction has not been previously reported. This finding has practical implications for interpreting rotated MCA modes.
 
@@ -498,37 +518,37 @@ First, recall that the total squared covariance between $\bm{Z}_x$ and $\bm{Z}_y
 \end{align}
 
 
-Next, according to Equation~\eqref{eq:theory:mca_covariance_rotated_expansion_coefficients}, the covariance of the rotated expansion coefficients $\bm{\tilde{P}}_{R,x}$ and $\bm{\tilde{P}}_{R,y}$ is given by:
+Next, according to Equation~\eqref{eq:theory:mca_covariance_rotated_expansion_coefficients}, the covariance of the rotated expansion coefficients $\bm{P}_{x,R}^*$ and $\bm{P}_{y,R}^*$ is given by:
 
 \begin{align}
-    \frac{1}{N-1} \bm{\tilde{P}_{R,x}}^H \bm{\tilde{P}_{R,y}} &\overset{\eqref{eq:theory:mca_covariance_rotated_expansion_coefficients}}{=} \bm{W}_x \bm{W}_y.
+    \frac{1}{N-1} \ab(\bm{P}_{x,R}^*)^H \bm{P}_{y,R} &\overset{\eqref{eq:theory:mca_covariance_rotated_expansion_coefficients}}{=} \bm{W}_x \bm{W}_y.
 \end{align}
 
-To relate $\bm{W}_x$ and $\bm{W}_y$ to the original singular values $\sigma_k$, we use the normalization condition for the $k$\textsuperscript{th} rotated pattern vector $\bm{\tilde{V}}_{R,s,k}$, for $s\in \{x, y\}$:
+To relate $\bm{W}_x$ and $\bm{W}_y$ to the original singular values $\sigma_m$, we use the normalization condition for the $m$\textsuperscript{th} rotated pattern vector $\bm{v}_{s,m}^*$, for $s\in \{x, y\}$:
 
-\begin{align} | \bm{\tilde{V}}_{R,s,k} |^2 = 1. \end{align}
+\begin{align} \Vab{\bmn{v}_{s,m}^*}_F = 1. \end{align}
 
 Using the expression for the rotated pattern vectors, we have:
 
 \begin{align*}
-    1 &= \Vab{\bm{\tilde{V}}_{R,s,k}}^2 \\
-    &=\bm{\tilde{V}}_{R,s,k}^H \bm{\tilde{V}}_{R,s,k} \\
-    \overset{\eqref{eq:theory:mca_rotated_pattern_vectors}}&{=} \pab{\bm{\tilde{V}}_s^H \bm{\Sigma}^{1/2} \bm{R}_{:,k} (\bm{W}_s^{-1})_{kk}}^H \pab{\bm{\tilde{V}}_s^H \bm{\Sigma}^{1/2} \bm{R}_{:,k} (\bm{W}_s^{-1})_{kk}} \\
-    &= (\bm{W}_s^{-1})_{kk}^2 \pab{\bm{R}_{:,k}^H \bm{\Sigma} \bm{R}_{:,k}},
+    1 &= \Vab{\bm{v}_{s,m}^*}_F^2 \\
+    &=\ab(\bm{v}_{s,m}^*)^H \bmn{v}_{s,m}^* \\
+    \overset{\eqref{eq:theory:mca_rotated_pattern_vectors}}&{=} \pab{\bmn{V}_{s,R} \bm{\Sigma}_R^{1/2} \bm{t}_{m} w_{s,m}^{-1}}^H \pab{\bmn{V}_{s,R} \bm{\Sigma}_R^{1/2} \bm{t}_{m} w_{s,m}^{-1}} \\
+    &= w_{s,m}^{-2} \pab{\bm{t}_{m}^H \bm{\Sigma}_R \bm{t}_{m}},
 \end{align*}
 
-where $\bm{R}_{:,k}$ is the $k$\textsuperscript{th} column of the rotation matrix $\bm{R}$.
+where $\bm{t}_{m}$ is the $m$\textsuperscript{th} column of the rotation matrix $\bm{T}$, and $w_{s,m}^2$ is the $m$\textsubscript{th} diagonal element of $\bm{W}_s$.
 
-Solving for $(\bm{W}_s)_{kk}$, we find:
+Solving for $w_{s,m}^2$, we find:
 
 \begin{align}
-    (\bm{W}_s)_{kk}^2 &= \pab{\bm{R}_{:,k}^H \bm{\Sigma} \bm{R}_{:,k}} \implies \bm{W}_s^2 = \diag \pab{\bm{R}^H \bm{\Sigma} \bm{R}}.
+    w_{s,m}^2 &= \pab{\bm{t}_{m}^H \bm{\Sigma}_R \bm{t}_{m}} \implies \bm{W}_s^2 = \diag \pab{\bm{T}^H \bm{\Sigma}_R \bm{T}}.
 \end{align}
 
-This equation holds for both $\bm{W}_x$ and $\bm{W}_y$ implying that $\bm{W}_x = \bm{W}_y \equiv \bm{W}$. Therefore, the covariance between the rotated expansion coefficients, Equation~\eqref{eq:theory:mca_total_squared_covariance2}, simplifies to $\bm{W}^2$. Using the orthogonality of $\bm{R}$ and the fact that $\bm{\Sigma}$ is a diagonal matrix, we can find simplified expression for the diagonal elements of $\bm{W}^2$:
+This equation holds for both $\bm{W}_x$ and $\bm{W}_y$ implying that $\bm{W}_x = \bm{W}_y \equiv \bm{W}$. Therefore, the covariance between the rotated expansion coefficients, Equation~\eqref{eq:theory:mca_total_squared_covariance2}, simplifies to $\bm{W}^2$. Using the orthogonality of $\bm{T}$ and the fact that $\bm{\Sigma}_R$ is a diagonal matrix, we can find simplified expression for the diagonal elements  $w_{s,m}^2$:
 
 \begin{align}\label{eq:theory:mca_rotated_covariance_elements}
-    \pab{\bm{W}^2}_{kk} &= \sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i
+    w_{s,m}^2 &= \sum_{k=1}^{R} t_{km}^2 \sigma_k
 \end{align}
 
 For deriving the total squared covariance of the first $R$ rotated modes, we will make use of the Jensen inequality, which can be stated in its general, finite form as:
@@ -537,33 +557,33 @@ For deriving the total squared covariance of the first $R$ rotated modes, we wil
     f \pab{\frac{\sum_{i} a_i x_i}{\sum_{i} a_i}} \leq \frac{\sum_i a_i f(x_i)}{\sum_i a_i},
 \end{align}
 
-where $f$ is a real convex function and $a_i$ are positive weights. Note that equality holds if and only if $x_i = x_j$ for all $i$ and $j$ or if $f$ is a linear function. Specifically in our case, we define the convex, nonlinear function $f(x) \equiv x^2$ and the weights $a_i \equiv \bm{R}_{ik}^2$ and $x_i \equiv \sigma_i$, so that the Jensen inequality can be applied to the sum in Equation~\eqref{eq:theory:mca_rotated_covariance_elements}:
+where $f$ is a real convex function and $a_i$ are positive weights. Note that equality holds if and only if $x_i = x_j$ for all $i$ and $j$ or if $f$ is a linear function. Specifically in our case, we define the convex, nonlinear function $f(x) \equiv x^2$ and the weights $a_i \equiv t_{ik}^2$ and $x_i \equiv \sigma_i$, so that the Jensen inequality can be applied to the sum in Equation~\eqref{eq:theory:mca_rotated_covariance_elements}:
 
 \begin{equation}\label{eq:theory:jensen_inequality_applied}
-    \pab{\pab{\bm{W}^2}_{kk}}^2 = f \pab{\sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i} = f \pab{\frac{\sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i}{\sum_{i=1}^R \bm{R}_{ik}^2}}  < \frac{\sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i^2}{\sum_{i=1}^R \bm{R}_{ik}^2}  = \sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i^2.
+    \pab{w_m^2}^2 = f \pab{\sum_{i=1}^{R} t_{im}^2 \sigma_i} = f \pab{\frac{\sum_{i=1}^{R} t_{im}^2 \sigma_i}{\sum_{i=1}^R t_{im}^2}}  < \frac{\sum_{i=1}^{R} t_{im}^2 \sigma_i^2}{\sum_{i=1}^R t_{im}^2}  = \sum_{i=1}^{R} t_{im}^2 \sigma_i^2.
 \end{equation}
 
-where we used the fact that $\bm{R}$ is orthogonal, i.e. $\sum_{i=1}^R \bm{R}_{ik}^2 = 1$. Also, the inequality is strict because function $f$ is nonlinear, and, we can safely assume that $\sigma_i \neq \sigma_j$ for $i \neq j$, as well as that the rotation matrix $\bm{R}$ is not the identity matrix.
+where we used the fact that $\bm{T}$ is orthogonal, i.e. $\sum_{i=1}^R t_{ik}^2 = 1$. Also, the inequality is strict because function $f$ is nonlinear, and, we can safely assume that $\sigma_i \neq \sigma_j$ for $i \neq j$, as well as that the rotation matrix $\bm{T}$ is not the identity matrix.
 
 The total squared covariance of the first $R$ rotated modes is then:
 
 \begin{align}
     \tr{\bm{W}^4} &= \sum_{k=1}^{R} \pab{\bm{W}^2}_{kk}^2 \nonumber\\
-    \overset{\eqref{eq:theory:mca_rotated_covariance_elements}}&{=} \sum_{k=1}^{R} \pab{\sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i}^2 \nonumber\\
-    \overset{\eqref{eq:theory:jensen_inequality_applied}}&{\leq} \sum_{k=1}^{R} \pab{\sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i^2} \nonumber\\
-    &= \sum_{i=1}^{R} \sigma_i^2 \sum_{k=1}^{R} \bm{R}_{ik}^2 \nonumber\\
+    \overset{\eqref{eq:theory:mca_rotated_covariance_elements}}&{=} \sum_{k=1}^{R} \pab{\sum_{i=1}^{R} \bm{T}_{ik}^2 \sigma_i}^2 \nonumber\\
+    \overset{\eqref{eq:theory:jensen_inequality_applied}}&{\leq} \sum_{k=1}^{R} \pab{\sum_{i=1}^{R} \bm{T}_{ik}^2 \sigma_i^2} \nonumber\\
+    &= \sum_{i=1}^{R} \sigma_i^2 \sum_{k=1}^{R} \bm{T}_{ik}^2 \nonumber\\
     &= \sum_{i=1}^R \sigma_i^2.
 \end{align}
 
-The final result shows that the total squared covariance of the first $R$ rotated modes is less than the total squared covariance of the original modes. This shows that the total squared covariance after rotation is generally less than before rotation, unless the rotation matrix $\bm{R}$ is the identity matrix. Thus, total squared covariance is not preserved under rotation.
+The final result shows that the total squared covariance of the first $R$ rotated modes is less than the total squared covariance of the original modes. This shows that the total squared covariance after rotation is generally less than before rotation, unless the rotation matrix $\bm{T}$ is the identity matrix. Thus, total squared covariance is not preserved under rotation.
 
 \subsubsection*{Total Covariance Is Preserved Under Rotation}
 
 In contrast, the total covariance (without squaring) remains unchanged under rotation. We can show this following a similar approach to above:
 
 \begin{align}
-    \tr{\bm{W}^2} &= \sum_{k=1}^{R} \sum_{i=1}^{R} \bm{R}_{ik}^2 \sigma_i \nonumber\\
-    &= \sum_{i=1}^{R} \sigma_i \sum_{k=1}^{R} \bm{R}_{ik}^2 \nonumber\\
+    \tr{\bm{W}^2} &= \sum_{k=1}^{R} \sum_{i=1}^{R} \bm{T}_{ik}^2 \sigma_i \nonumber\\
+    &= \sum_{i=1}^{R} \sigma_i \sum_{k=1}^{R} \bm{T}_{ik}^2 \nonumber\\
     &= \sum_{i=1}^R \sigma_i.
 \end{align}
 
