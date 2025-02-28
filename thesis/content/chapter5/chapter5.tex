@@ -13,12 +13,12 @@
 
 \part[Pattern Identification in the Dense Data Regime]{Pattern Identification\\in the Dense Data Regime}\label{part:dense_data}
 
-\chapter[Bridging Theory and Practice: Scalable Dimensionality Reduction for Climate Data in Python]{Bridging Theory and Practice:\\Scalable Dimensionality Reduction for Climate Data}\label{chapter:xeofs}
+\chapter[Bridging Theory and Practice: Scalable Dimensionality Reduction for Climate Data]{Bridging Theory and Practice:\\Scalable Dimensionality Reduction for Climate Data}\label{chapter:xeofs}
 
 
 Over the past few decades, Earth system sciences have experienced an impressive increase in the volume and complexity of data \cite{overpeck_climate_2011}, driven by the proliferation of Earth observations satellites \cite{gomes_overview_2020}, high-resolution climate models \cite{hassani_big_2019} and citizen science contributions \cite{fritz_role_2017}. As a result, researchers must now navigate the immense challenge of analyzing vast datasets to extract meaningful insights about Earth's climate system \cite{schnase_big_2016}. Dimensionality reduction techniques have become indispensable for addressing this challenge by simplifying complex data and revealing key underlying patterns.
 
-In the previous chapter, we explored the theoretical foundations of several dimensionality reduction techniques commonly applied in Earth system sciences. We summarized how common PCA extensions can enhance MCA, yielding more physically interpretable patterns that reflect the shared variability between two datasets. This chapter shifts to the practical side of implementing these methods in the context of large, complex environmental data. In particular, we introduce the \software{xeofs} Python library, which offers a user-friendly, scalable framework for dimensionality reduction tailored to climate science. By supporting both traditional and advanced techniques, \software{xeofs} enables sophisticated analysis even for those with limited data science expertise. This chapter builds on material from:
+In Chapter~\ref{chapter:dimred}, we explored the theoretical foundations of several dimensionality reduction techniques commonly applied in Earth system sciences. We summarized how common PCA extensions can enhance MCA, yielding more physically interpretable patterns that reflect the shared variability between two datasets. This chapter shifts to the practical side of implementing these methods in the context of large, complex environmental data. In particular, we introduce the \software{xeofs} Python library, which offers a user-friendly, scalable framework for dimensionality reduction tailored to climate science. By supporting both traditional and advanced techniques, \software{xeofs} enables sophisticated analysis even for those with limited data science expertise. This chapter builds on material from:
 
 \begin{itemize}
     \item \highlightnames{1}{\fullcite{rieger_xeofs_2024}}
@@ -42,7 +42,7 @@ The remainder of this chapter first surveys open-source tools for scalable clima
 
 Climate science is inherently data-intensive, relying on the analysis of large, complex datasets to understand the Earth's climate system. However, traditional analysis methods often struggle to handle the scale and complexity of modern climate data, making the application of these techniques increasingly difficult \cite{fan_challenges_2013}. This creates a growing need for tools that lower the barrier to entry for non-experts, allowing them to manage and analyze vast datasets effectively.
 
-One of the central challenges in climate science today is the "data deluge"---the overwhelming volume of climate data and the difficulty of extracting useful insights from it. As \citet{schnase_merra_2017} noted, "data analytics, the capacity to perform useful scientific analyses over large quantities of data in reasonable amounts of time" is a critical challenge for climate science. Without effective tools to transform large datasets into actionable knowledge, the mission of climate science falters.
+One of the central challenges in climate science today is the "data deluge"---the overwhelming volume of climate data and the difficulty of extracting useful insights from it. As \citet{schnase_merra_2017} noted, "data analytics, the capacity to perform useful scientific analyses over large quantities of data in reasonable amounts of time" is a critical challenge for climate science. Without effective tools to transform large datasets into actionable knowledge, \citet{schnase_merra_2017} argued, the mission of climate science falters.
 
 To ensure that data analysis remains accessible to the broader scientific community, free, robust, and scalable software tools are essential \cite{easterbrook_engineering_2009}. These tools must allow researchers to work with large datasets, even without specialized programming skills, and simplify the processing of data produced by climate models.
 
@@ -51,6 +51,7 @@ It therefore comes as no surprise that the open-source software (OSS) movement h
 The \textit{Pangeo} project \cite{pangeo} has been especially influential in promoting open-source tools for big data geoscience. Two key components of the Pangeo ecosystem are the \software{xarray} \cite{hoyer_xarray_2017} and \software{dask} \cite{dask_development_team_dask_2016} Python libraries. \software{Xarray} enhances the user experience by introducing labeled data structures that simplify the manipulation of multidimensional arrays, while \software{dask} enables parallel and distributed computing through a system of lazy (or delayed) computation. Unlike eager computation, where operations are executed immediately, lazy computation builds a task graph without performing the actual computations until explicitly triggered. This approach allows \software{dask} to efficiently optimize workflows, minimize memory usage, and handle computations that exceed the memory limits of a single machine. Together, these tools have revolutionized the way climate researchers handle large datasets, enabling them to focus on scientific questions rather than technical hurdles.
 
 Moreover, additional packages have emerged to address more specialized tasks in the climate data ecosystem. For example, \software{XCast} \cite{hall_xcast_2022} offers a highly parallelized approach to gridpoint-wise climate forecasting and statistical post-processing, seamlessly bridging the gap between Python's data science libraries (e.g., \software{scikit-learn} \cite{scikit-learn}) and \software{xarray}-based Earth data. Similarly, \software{climpred} \cite{brady_climpred_2021} provides a unified framework to verify and analyze initialized climate forecasts, simplifying the alignment of model lead times with observation datasets while offering a suite of skill metrics for both deterministic and probabilistic assessments. Such domain-specific libraries illustrate the breadth and depth of solutions now available to climate scientists, each addressing different facets of data preprocessing, model training, and forecast evaluation.
+
 
 \section{Challenges in Handling Multidimensional Climate Data}
 \label{sec:xeofs:challenges}
@@ -63,8 +64,25 @@ Analyzing climate data often involves multivariate statistical techniques to ide
 
 These characteristics have led to the widespread adoption of tools like \software{xarray} and \software{dask}, which facilitate the handling of large, multidimensional datasets in the Python ecosystem.
 
-\begin{table}
-    \caption[Overview of available methods in the \software{xeofs} library.]{\textbf{Overview of available methods in the \software{xeofs} library.} A comprehensive summary of methods supported by the \software{xeofs} library (as of January 2025) for single-set (one dataset), cross-set (two datasets), and multi-set (more than two datasets) analyses. Methods include Principal Component Analysis (PCA), Principal Oscillation Pattern (POP) analysis, Optimal Persistence Analysis (OPA), Canonical Correlation Analysis (CCA), Redundancy Analysis (RDA), Maximum Covariance Analysis (MCA), and Continuum Power CCA (CPCCA). The library supports advanced techniques such as geographically weighted PCA (GWPCA), sparse PCA (based on the \software{ristretto} library \cite{erichson_randomized_2019}), and multi-set CCA (leveraging the \software{cca-zoo} library \cite{chapman_cca-zoo_2021}). Rotation techniques include orthogonal varimax \cite{kaiser_varimax_1958} and oblique promax \cite{hendrickson_promax_1964}, enabling combinations such as rotated Hilbert PCA \cite[e.g.][]{horel_complex_1984}. References are provided for each method.}
+However, applying dimensionality reduction techniques such as PCA and MCA (Chapter~\ref{chapter:dimred}) presents several challenges. Climate datasets typically require significant pre-processing, including variable weighting (Section~\ref{sec:theory:pca}), removing invalid grid points (e.g., land cells in sea surface temperature data), and reshaping multidimensional arrays into 2D matrices. After analysis, researchers must reverse this process---transforming the 2D results back into their original multidimensional form, reinserting missing data (such as land grid cells), and removing weights. This workflow can be cumbersome, error-prone, and time-consuming.
+
+Earlier tools, such as the \software{eofs}\ \cite{dawson_eofs_2016} and \software{xMCA} \cite{he_xmca_2020} libraries, addressed PCA and MCA applications in climate science. However, they lack full compatibility with \software{xarray}and \software{dask}\, limiting their scalability and effectiveness when dealing with large datasets. For example, these libraries do not support \software{xarray}'s \texttt{Dataset} object, and neither leverages randomized linear algebra techniques \cite{halko_finding_2011,erichson_randomized_2019}, which can significantly improve computational performance for large datasets.
+
+In addition, researchers often need more than dimensionality reduction. Assessing the statistical significance of the extracted patterns, for example, requires bootstrapping techniques \cite{efron_bootstrap_1979}, adding further complexity to the analysis process. Implementing these advanced methods often requires substantial coding expertise, which can be a barrier for many scientists \cite{wilson_good_2016}.
+
+Moreover, several classical methods developed over the years for pattern extraction in climate science have not yet been implemented in Python or integrated with \software{xarray} and \software{dask}. This lack of availability limits researchers' ability to apply these well-established techniques to their datasets.
+
+
+
+\section{Introducing xeofs: A Scalable Tool for Dimensionality Reduction}
+\label{sec:xeofs:software}
+
+To address the challenges of handling large-scale multidimensional datasets in climate science, this thesis presents the \software{xeofs} library \cite{rieger_xeofs_2024}. Developed as part of this doctoral research, \software{xeofs} is a Python package designed to simplify the application of dimensionality reduction in climate data analysis. By seamlessly integrating with \software{xarray} and \software{dask}, it offers a user-friendly framework that can process extensive datasets while maintaining flexibility and scalability.
+
+The library supports a wide range of dimensionality reduction methods relevant to climate science (Table~\ref{tab:xeofs:methods}), organized into three categories:
+
+\begin{table}[t!]
+    \caption[Overview of available methods in the \software{xeofs} library.]{\textbf{Overview of available methods in the \software{xeofs} library.} A comprehensive summary of methods supported by the \software{xeofs} library (as of January 2025, version 3.0.4) for single-set (one dataset), cross-set (two datasets), and multi-set (more than two datasets) analyses. Methods include Principal Component Analysis (PCA), Principal Oscillation Pattern (POP) analysis, Optimal Persistence Analysis (OPA), Canonical Correlation Analysis (CCA), Redundancy Analysis (RDA), Maximum Covariance Analysis (MCA), and Continuum Power CCA (CPCCA). The library supports advanced techniques such as geographically weighted PCA (GWPCA), sparse PCA (based on the \software{ristretto} library \cite{erichson_randomized_2019}), and multi-set CCA (leveraging the \software{cca-zoo} library \cite{chapman_cca-zoo_2021}). Rotation techniques include orthogonal varimax \cite{kaiser_varimax_1958} and oblique promax \cite{hendrickson_promax_1964}, enabling combinations such as rotated Hilbert PCA \cite[e.g.][]{horel_complex_1984}. References are provided for each method.}
     \centering
     \label{tab:xeofs:methods}
     \begin{tabular}{l r c}
@@ -100,41 +118,20 @@ These characteristics have led to the widespread adoption of tools like \softwar
     \end{tabular}
 \end{table}
 
-
-However, applying dimensionality reduction techniques such as PCA and MCA (Chapter~\ref{chapter:dimred}) presents several challenges. Climate datasets typically require significant pre-processing, including variable weighting (Section~\ref{sec:theory:pca}), removing invalid grid points (e.g., land cells in sea surface temperature data), and reshaping multidimensional arrays into 2D matrices. After analysis, researchers must reverse this process---transforming the 2D results back into their original multidimensional form, reinserting missing data (such as land grid cells), and removing weights. This workflow can be cumbersome, error-prone, and time-consuming.
-
-Earlier tools, such as the \software{eofs}\ \cite{dawson_eofs_2016} and \software{xMCA} \cite{he_xmca_2020} libraries, addressed PCA and MCA applications in climate science. However, they lack full compatibility with \software{xarray}and \software{dask}\, limiting their scalability and effectiveness when dealing with large datasets. For example, these libraries do not support \software{xarray}'s \texttt{Dataset} object, and neither leverages randomized linear algebra techniques \cite{halko_finding_2011,erichson_randomized_2019}, which can significantly improve computational performance for large datasets.
-
-In addition, researchers often need more than dimensionality reduction. Assessing the statistical significance of the extracted patterns, for example, requires bootstrapping techniques \cite{efron_bootstrap_1979}, adding further complexity to the analysis process. Implementing these advanced methods often requires substantial coding expertise, which can be a barrier for many scientists \cite{wilson_good_2016}.
-
-Moreover, several classical methods developed over the years for pattern extraction in climate science have not yet been implemented in Python or integrated with \software{xarray} and \software{dask}. This lack of availability limits researchers' ability to apply these well-established techniques to their datasets.
-
-
-
-\section{Introducing xeofs: A Scalable Tool for Dimensionality Reduction}
-\label{sec:xeofs:software}
-
-To address the challenges of handling large-scale multidimensional datasets in climate science, this thesis presents the \software{xeofs} library \cite{rieger_xeofs_2024}. Developed as part of this doctoral research, \software{xeofs} is a Python package designed to simplify the application of dimensionality reduction in climate data analysis. By seamlessly integrating with \software{xarray} and \software{dask}, it provides a user-friendly framework that enables efficient processing of extensive datasets while maintaining flexibility and scalability.
-
-The library supports a wide range of dimensionality reduction methods tailored to climate science (Table~\ref{tab:xeofs:methods}), organized into three categories:
-
 \begin{itemize}
     \item \textbf{Single-Set Analysis:} Analyze patterns within a single dataset using methods like PCA, complex and Hilbert PCA, Extended EOF analysis (Multi-channel SSA), Principal Oscillation Pattern (POP) analysis, and Optimal Persistence Analysis (OPA).
     \item \textbf{Cross-Set Analysis:} Extract shared patterns between two datasets using Canonical Correlation Analysis (CCA), Maximum Covariance Analysis (MCA), Redundancy Analysis (RDA), and Continuum Power CCA (CPCCA). These methods also support advanced variants, including complex, Hilbert, and rotated flavors.
     \item \textbf{Multi-Set Analysis:} Analyze shared patterns across multiple datasets. Currently, the library supports only (regularized) CCA.
 \end{itemize}
 
-To improve interpretability, \software{xeofs} incorporates rotation techniques like orthogonal varimax \cite{kaiser_varimax_1958} and oblique promax \cite{hendrickson_promax_1964}. Sparse solutions are also available, using modern approaches like sparse PCA via variable projection \cite{erichson_sparse_2020}.
+To improve interpretability, \software{xeofs} includes rotation techniques such as orthogonal varimax \cite{kaiser_varimax_1958} and oblique promax \cite{hendrickson_promax_1964}. It also accommodates sparse solutions through modern approaches like sparse PCA via variable projection \cite{erichson_sparse_2020}.
 
-\software{xeofs} builds on best-practices in open-source scientific software development \cite{prlic_ten_2012,balaban_ten_2021}, adhering to principles such as clean code, rigorous testing, version control, and robust documentation \cite{perez-riverol_ten_2016,list_ten_2017,taschuk_ten_2017,lee_ten_2018,hunter-zinck_ten_2021}. These principles ensure reliability, usability, and long-term maintainability \cite{list_ten_2017}. The library is particularly aligned with the standards of the Pangeo community \cite{pangeo} and the \textit{pyOpenSci} Packaging Guide \cite{wasser_pyopenscipython-package-guide_2024}, both of which promote reproducibility and accessibility in scientific research.
+The core features of \software{xeofs} address common challenges faced by climate scientists and are threefold:
 
-The core features of \software{xeofs} address common challenges faced by climate scientists:
+\paragraph{Streamlined Preprocessing of Multidimensional Data}
+\software{Xeofs} accepts input as \texttt{xarray.DataArray} or \texttt{xarray.Dataset}, which can represent either single or multiple datasets depending on the chosen analysis module (\texttt{xeofs.single}, \texttt{xeofs.cross}, \texttt{xeofs.multi}). All essential preprocessing steps---such as variable weighting, masking invalid variables (e.g. land points in an ocean dataset), and reshaping data into 2D matrices---are handled automatically. Throughout this workflow, the library preserves dimension labels and coordinates, minimizing user burden. Once the decomposition completes, results are returned in a consistent format with original dimension labels, which can make interpretation more straightforward.
 
-\begin{description}
-    \item[Support for Multidimensional Data:] \software{xeofs} works natively with \software{xarray} objects, preserving labeled dimensions and structures throughout the analysis. This minimizes the risk of errors while ensuring clarity in the workflow.
-    \item[Scalable Out-of-Memory Computations:] Leveraging \software{dask}, \software{xeofs} can handle datasets that exceed the memory limits of single machines or high-performance computing systems.
-    \item[Efficiency Through Randomized Algorithms:]  \software{xeofs} leverages randomized linear algebra techniques~\cite{halko_finding_2011,drineas_clustering_2004,erichson_randomized_2019} to deliver significant performance gains, processing medium to large datasets up to ten times faster than \software{eofs} (Figure~\ref{fig:xeofs:performance}).
-\end{description}
+\paragraph{Out-of-Memory Computations for Large Datasets} When a workstation cannot store an entire dataset in main memory, \software{xeofs} employs \software{xarray} and \software{dask} to allow chunk-wise processing. This approach constructs a task graph, which can be executed in small segments, thus reducing the memory footprint. However, performance often depends on how data are chunked; suboptimal chunking may lead to overheads and slower processing times. Users therefore need to consider their hardware environment and data structure when fine-tuning the chunk sizes.
 
 \begin{figure}
     \centering
@@ -144,9 +141,20 @@ The core features of \software{xeofs} address common challenges faced by climate
 \end{figure}
 
 
-\software{xeofs} also includes advanced capabilities, such as built-in bootstrapping for significance testing, flexible handling of missing values, support for common weighting schemes (e.g., latitude-based cosine weighting, cf. Section~\ref{sec:theory:pca}), and model serialization to formats like HDF5, netCDF4, and cloud-optimized Zarr~\cite{alistair_miles_2020_3773450}. These features reduce the need for additional coding and streamline the entire analysis process.
+\paragraph{Accelerated Calculations via Randomized Linear Algebra} A principal bottleneck in dimensionality reduction is the SVD. \software{Xeofs} attempts to mitigate this by implementing \emph{randomized} SVD methods \cite{drineas_clustering_2004,halko_finding_2011,erichson_randomized_2019}, which provide significant performance gains of up to ten times faster than \software{eofs} (Figure~\ref{fig:xeofs:performance}). Rather than computing the SVD of an $N \times D$ data matrix $\bm{X}$ directly, these methods project $\bm{X}$ onto a smaller random subspace:
 
-With an intuitive application programming interface (API) inspired by \software{scikit-learn} \cite{scikit-learn}, \software{xeofs} is designed for accessibility, even for users with limited programming experience. Its modular architecture ensures flexibility for incorporating new methods, thus making it a robust tool for future research developments and methodological advances.
+\begin{align*}
+    \bm{A} &= \bm{X} \bm{\Omega}
+\end{align*}
+
+where $\bm{\Omega} \in \mathcal{R}^{N \times (M+p)}$ is a random test matrix, $M$ is the desired rank, and $p$ is an oversampling parameter that allows to balance accuracy versus computational speed up. The intermediate matrix $\bm{A}$ can be factored (e.g. via QR) to obtain $\bm{Q}$, which serves as an approximate basis for the column space of $\bm{X}$. Applying
+
+\begin{align}
+    \bm{B} &= \bm{Q}^T \bm{X}
+\end{align}
+
+reduces the dimensionality before the more computationally expensive part of the SVD is performed. This can offer substantial speed improvements and memory savings for datasets with strong low-rank structure (Figure~\ref{fig:xeofs:performance}). Nonetheless, because this approach yields an approximate SVD, accuracy may depend on the decay of singular values and the choice of oversampling parameter \cite{halko_finding_2011}. In cases where the spectrum does not decay rapidly, additional power iterations or larger $p$ might be required, and performance gains can be more modest.
+Additional features of \software{xeofs} include built-in bootstrapping for significance testing, flexible handling of missing values, support for common weighting schemes (e.g., latitude-based cosine weighting, cf. Section~\ref{sec:theory:pca}), and model serialization to formats like HDF5, netCDF4, and cloud-optimized Zarr~\cite{alistair_miles_2020_3773450}. The overall design of \software{xeofs} builds on best-practices in open-source scientific software development \cite{prlic_ten_2012,balaban_ten_2021}, adhering to principles such as clean code, rigorous testing, version control, and robust documentation \cite{perez-riverol_ten_2016,list_ten_2017,taschuk_ten_2017,lee_ten_2018,hunter-zinck_ten_2021}, which have shown to increase the reliability, usability, and long-term maintainability \cite{list_ten_2017} of OSS. The library is particularly aligned with the standards of the Pangeo community \cite{pangeo} and the \textit{pyOpenSci} Packaging Guide \cite{wasser_pyopenscipython-package-guide_2024}, both of which promote reproducibility and accessibility in scientific research. With an intuitive application programming interface (API) inspired by \software{scikit-learn} \cite{scikit-learn}, \software{xeofs} is designed for accessibility, even for users with limited programming experience. Finally, its modular architecture ensures flexibility for incorporating new methods, thus making it a robust tool for future research developments and methodological advances.
 
 
 \begin{table}[th]

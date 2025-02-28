@@ -1098,7 +1098,7 @@ wish to left align your text}
 \fi
 
 
-\newenvironment{abstract} {
+\newenvironment{abstract}[1][Abstract] {
 \ifPHD@abstract
 % Separate abstract as per Student Registry guidelines
   \thispagestyle{empty}
@@ -1111,7 +1111,7 @@ wish to left align your text}
 % Normal abstract in the thesis
   \cleardoublepage
   \setsinglecolumn
-  \chapter*{\centering \Large Abstract}
+  \chapter*{\centering \Large #1}
   \thispagestyle{empty}
 \fi
 }

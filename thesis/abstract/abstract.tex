@@ -1,5 +1,46 @@
 % ************************** Thesis Abstract *****************************
 % Use `abstract' as an option in the document class to print only the titlepage and the abstract.
 \begin{abstract}
-This is where you write your abstract ...
+    Environmental science increasingly contends with two extremes of data availability. On one end, massive and continuously expanding datasets---exceeding petabyte scales---describe Earth's climate in unprecedented detail, propelled by high-resolution reanalyses and satellite observations. On the other end, many crucial environmental issues, such as marine pollution, remain data-poor, with sparse, irregular measurements obscuring spatiotemporal patterns. This thesis addresses both challenges by developing and applying advanced statistical and machine learning methods capable of extracting meaningful insights across these data regimes.
+
+    First, the thesis introduces \textit{xeofs}, an open-source Python library designed for scalable dimensionality reduction in climate science. By integrating seamlessly with xarray and dask, xeofs handles datasets too large for traditional in-memory approaches, thereby facilitating complex analyses on modern high-performance computing infrastructures. Leveraging randomized linear algebra, it accelerates computations by an order of magnitude compared to existing tools. 
+    
+    Second, the thesis refines and extends Maximum Covariance Analysis with Hilbert transforms and rotation techniques, enabling the detection of phase-shifted climate patterns and teleconnections even in the presence of trends in the data. The resulting modes of variability recover established phenomena such as El Niño-Southern Oscillation and Pacific Decadal Oscillation, while also revealing less-explored teleconnections between the tropics and the extratopics. 
+    
+    Thirdly, the thesis applies Bayesian Gaussian process regression to model spatially sparse observations of beach litter pollution in the North-East Atlantic. Using a log-Gaussian Cox process framework, significant seasonal variations are uncovered and shown to be linked to small-scale river discharges and aquaculture-related activities. By explicitly quantifying uncertainties, this analysis showcases how data-driven modeling approaches can inform policies on beach litter monitoring and management, even amid a scarce and irregular observation network.
+    
+    Taken together, these contributions advance the state of data-driven environmental research by enabling robust pattern identification in both dense and scarce data regimes, paving the way for more effective climate diagnostics and pollution mitigation strategies.
 \end{abstract}
+
+
+\newpage
+
+\begin{abstract}[Resum]
+    Les ciències ambientals s'afronten cada cop més a dues realitats extremes pel que fa a la disponibilitat de dades. D'una banda, conjunts massius i en contínua expansió---superant els petabytes de dades---descriuen el clima terrestre amb un detall sense precedents, gràcies a les reanàlisis d'alta resolució i observacions per satèl·lit. De l'altra banda, molts problemes ambientals crucials, com la contaminació marina, continuen patint una manca de dades, amb mesures escasses i irregulars que dificulten la identificació de patrons espaciotemporals. Aquesta tesi aborda ambdós reptes desenvolupant i aplicant mètodes avançats d'estadística i aprenentatge automàtic capaços d'extreure informació significativa en aquests règims de dades. 
+    
+    En primer lloc, la tesi presenta \textit{xeofs}, una biblioteca de codi obert en Python dissenyada per a la reducció escalable de dimensionalitat en ciències del clima. Integrant-se de manera fluida amb xarray i dask, xeofs permet el processament de conjunts de dades que per als enfocaments tradicionals són massa grans, facilitant així anàlisis complexes en infraestructures modernes de computació d'alt rendiment. Mitjançant l'ús d'àlgebra lineal aleatòria, accelera els càlculs en un ordre de magnitud respecte a les eines existents. 
+    
+    En segon lloc, la tesi perfecciona i amplia l'Anàlisi de Màxima Covariància mitjançant transformades de Hilbert i tècniques de rotació, i això permet detectar patrons climàtics desfasats en fase i teleconnexions, fins i tot en presència de tendències en les dades. Els modes de variabilitat resultants recuperen fenòmens climàtics establerts, com l'Oscil·lació del Sud-El Niño i l'Oscil·lació Decadal del Pacífic, alhora que revelen teleconnexions menys explorades entre els tròpics i les regions extratròpiques. 
+    
+    En tercer lloc, la tesi aplica la regressió Bayesiana amb processos gaussians per modelar observacions espacialment escasses de contaminació per residus a les platges de l'Atlàntic Nord-est. Utilitzant un marc teòric de processos de Cox log-gaussià, es descobreixen variacions estacionals significatives i es demostra que estan relacionades amb descàrregues fluvials a petita escala i activitats vinculades a l'aqüicultura. En quantificar explícitament les incerteses, aquesta anàlisi mostra com els enfocaments basats en l'anàlisi de dades poden informar polítiques de monitoratge i gestió dels residus a les platges, fins i tot quan la xarxa d'observació és escassa i irregular.
+
+    En conjunt, aquestes contribucions impulsen la recerca ambiental basada en l'anàlisi de dades, que permet la identificació robusta de patrons tant en règims densos com escassos de dades i obrint el camí per a diagnòstics climàtics més efectius i estratègies de mitigació de la contaminació.
+\end{abstract}
+
+
+\newpage
+
+\begin{abstract}[Resumen]
+    La ciencia ambiental enfrenta cada vez más dos extremos en la disponibilidad de datos. Por un lado, existen conjuntos de datos masivos y en continua expansión---que superan escalas de petabytes---que describen el clima de la Tierra con un detalle sin precedentes, impulsados por reanálisis de alta resolución y observaciones satelitales. Por otro lado, muchos problemas ambientales cruciales, como la contaminación marina, siguen siendo deficientes en datos, con mediciones escasas e irregulares que dificultan la identificación de patrones espaciotemporales. Esta tesis aborda ambos desafíos mediante el desarrollo y aplicación de métodos avanzados de estadística y aprendizaje automático capaces de extraer información relevante en estos distintos regímenes de datos.
+
+    En primer lugar, la tesis presenta \textit{xeofs}, una biblioteca de Python de código abierto diseñada para la reducción escalable de dimensionalidad en ciencia climática. Al integrarse de manera fluida con xarray y dask, xeofs permite el análisis de conjuntos de datos demasiado grandes para los enfoques tradicionales en memoria, facilitando así estudios complejos en infraestructuras modernas de computación de alto rendimiento. Mediante el uso de álgebra lineal aleatorizada, la biblioteca acelera los cálculos en un orden de magnitud en comparación con las herramientas existentes.
+    
+    En segundo lugar, la tesis perfecciona y amplía el Análisis de Covarianza Máxima mediante transformadas de Hilbert y técnicas de rotación, lo que permite detectar patrones climáticos desfasados y teleconexiones incluso en presencia de tendencias en los datos. Los modos de variabilidad resultantes capturan fenómenos bien establecidos, como El Niño-Oscilación del Sur y la Oscilación Decadal del Pacífico, al tiempo que revelan teleconexiones menos exploradas entre los trópicos y las regiones extratropicales.
+    
+    En tercer lugar, la tesis aplica la regresión Bayesiana de procesos Gaussianos para modelar observaciones espacialmente escasas de contaminación por residuos en playas del Atlántico nororiental. Utilizando un marco de proceso de Cox log-Gaussiano, se identifican variaciones estacionales significativas, que se vinculan con descargas fluviales a pequeña escala y actividades relacionadas con la acuicultura. Al cuantificar explícitamente las incertidumbres, este análisis demuestra cómo los enfoques de modelado basados en datos pueden contribuir a la formulación de políticas para el monitoreo y gestión de residuos en playas, incluso en redes de observación escasas e irregulares.
+    
+    En conjunto, estas contribuciones avanzan el estado de la investigación ambiental basada en datos al permitir la identificación robusta de patrones tanto en regímenes de datos densos como escasos, allanando el camino hacia diagnósticos climáticos más efectivos y estrategias mejoradas para la mitigación de la contaminación.
+\end{abstract}
+
+
+
